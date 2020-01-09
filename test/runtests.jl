@@ -4,3 +4,4 @@ using PDDL, PDDL.Parser
 
 include("strips/test.jl")
 include("typing/test.jl")
+include("axioms/test.jl")

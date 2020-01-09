@@ -4,7 +4,7 @@
     (:objects rooma - room roomb - room
               ball1 - ball ball2 - ball
               left - gripper right - gripper)
-    (:init (at_robby rooma)
+    (:init (robbyat rooma)
            (free left)
            (free right)
            (at ball1 rooma)

@@ -8,7 +8,7 @@
            (ball ball2)
            (gripper left)
            (gripper right)
-           (at_robby rooma)
+           (robbyat rooma)
            (free left)
            (free right)
            (at ball1 rooma)

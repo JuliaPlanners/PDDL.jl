@@ -17,6 +17,7 @@ Action(term::Term, refs::Dict{Var,Term}, precond::Term, effect::Term) =
 
 "PDDL event description."
 struct Event
+    name::Symbol # Name of event
     precond::Term # Precondition / trigger of event
     effect::Term # Effect of event
 end

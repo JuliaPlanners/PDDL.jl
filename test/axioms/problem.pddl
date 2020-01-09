@@ -1,0 +1,5 @@
+(define (problem blocksworld-problem)
+   (:domain blocksworld-axioms)
+   (:objects a b c)
+   (:init (on-table a) (on-table b) (on-table c))
+   (:goal (and (above a c) (on b c))))

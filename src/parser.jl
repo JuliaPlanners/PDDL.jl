@@ -41,7 +41,7 @@ dispatchy    = E"#" + symboly + ~opt_ws + lisp |> (x -> reader_table[x[1]](x[2])
 bracket      = E"[" + ~opt_ws + Repeat(lisp + ~opt_ws) + E"]" |> (x -> x)
 
 # Additional combinators to handle PDDL-specific syntax
-vary         = p"\?[^\d():\?{}#'`,@~;~\[\]^\s][^\s():\?#'`,@~;^{}~\[\]]*" > (x -> Var(Symbol(x[2:end])))
+vary         = p"\?[^\d():\?{}#'`,@~;~\[\]^\s][^\s():\?#'`,@~;^{}~\[\]]*" > (x -> Var(Symbol(uppercasefirst(x[2:end]))))
 keywordy     = p":[^\d():\?{}#'`,@~;~\[\]^\s][^\s():\?#'`,@~;^{}~\[\]]*" > (x -> Keyword(Symbol(x[2:end])))
 
 lisp.matcher = doubley | floaty | inty | uchary | achary | chary | stringy | booly |
@@ -125,15 +125,21 @@ function parse_domain(expr::Vector)
         parse_predicates(get(defs, :predicates, nothing), requirements[:typing])
     # Parse domain body (actions, events, etc.)
     defs = [(e[1].name, e) for e in expr[3:end]]
+    axioms = Clause[]
     actions = Dict{Symbol,Action}()
+    events = Event[]
     for (kw, def) in defs
-        if (kw == :action)
+        if kw in [:axiom, :derived]
+            push!(axioms, parse_axiom(def))
+        elseif kw == :action
             action = parse_action(def, requirements[:typing])
             actions[action.name] = action
+        elseif kw == :event
+            push!(events, parse_event(def))
         end
     end
     return Domain(name, requirements, types, predicates, predtypes,
-                  actions, Event[], Clause[])
+                  axioms, actions, events)
 end
 
 "Parse domain requirements."
@@ -182,6 +188,14 @@ end
 parse_predicates(expr::Nothing, typing::Bool=false) =
     Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
 
+"Parse axioms (a.k.a. derived predicates)."
+function parse_axiom(expr::Vector)
+    @assert (expr[1].name in [:axiom, :derived]) ":derived keyword is missing."
+    head = parse_formula(expr[2])
+    body = parse_formula(expr[3])
+    return Clause(head, Term[body])
+end
+
 "Parse action definition."
 function parse_action(expr::Vector, typing::Bool=false)
     args = Dict(expr[i].name => expr[i+1] for i in 1:2:length(expr))
@@ -193,17 +207,27 @@ function parse_action(expr::Vector, typing::Bool=false)
     return Action(name, params, types, Dict{Var,Term}(), precondition, effect)
 end
 
+"Parse event definition."
+function parse_event(expr::Vector)
+    args = Dict(expr[i].name => expr[i+1] for i in 1:2:length(expr))
+    @assert (:event in keys(args)) ":action keyword is missing"
+    name = args[:event]
+    precondition = parse_precondition(args[:precondition])
+    effect = parse_effect(args[:effect])
+    return Event(name, precondition, effect)
+end
+
 "Parse action parameters."
 function parse_parameters(expr::Vector, typing::Bool=false)
     return typing ? parse_typed_vars(expr) : (Vector{Var}(expr), Symbol[])
 end
 
-"Parse precondition of an action."
+"Parse precondition of an action or event."
 function parse_precondition(expr::Vector)
     return parse_formula(expr)
 end
 
-"Parse effect of an action."
+"Parse effect of an action or event."
 function parse_effect(expr::Vector)
     return parse_formula(expr)
 end
