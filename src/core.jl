@@ -28,10 +28,22 @@ function get_diff(effect::Term, model=nothing)
         end
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
-        if model == nothing || resolve([cond], model; mode=:any)[1] == true
+        if model == nothing || resolve(cond, model; mode=:any)[1] == true
+            # Return eff if cond is satisfied
             diff = get_diff(eff, model)
             append!(add, diff[1])
             append!(del, diff[2])
+        end
+    elseif effect.name == :forall
+        cond, eff = effect.args[1], effect.args[2]
+        if model != nothing
+            # Find objects matching cond and apply effects for each
+            _, subst = resolve(cond, model)
+            for s in subst
+                diff = get_diff(substitute(eff, s), model)
+                append!(add, diff[1])
+                append!(del, diff[2])
+            end
         end
     elseif effect.name == :probabilistic
         n_effs = Int(length(effect.args)/2)
@@ -165,7 +177,7 @@ function check(act::Action, args::Vector{<:Term}, model::Vector{Clause},
    end
    subst = merge(arg_subst, ref_subst)
    # Construct type conditions of the form "type(val)"
-   typecond = (length(act.types) == 0 ? Term[] :
+   typecond = (all(ty == :object for ty in act.types) ? Term[] :
                [@fol($ty(:v)) for (v, ty) in zip(args, act.types)])
    # Check whether preconditions hold
    precond = substitute(act.precond, subst)
@@ -183,11 +195,13 @@ function execute(act::Action, args::Vector{<:Term}, model::Vector{Clause},
         @debug "Precondition $precond does not hold."
         return nothing
     end
-    # Evaluate effects after substitution
-    effect = eval_term(substitute(act.effect, subst), Subst())
-    if effect == nothing
-        error("Effect is not ground after substitution.")
-    end
+    # Substitute arguments and preconditions
+    effect = substitute(act.effect, subst)
+    # TODO : make term evaluation work with foralls
+    # effect = eval_term(substitute(act.effect, subst), Subst())
+    # if effect == nothing
+    #     error("Effect is not ground after substitution.")
+    # end
     # Compute effects in the appropriate form
     if as_dist
         # Compute categorical distribution over differences

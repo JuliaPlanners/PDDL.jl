@@ -53,7 +53,7 @@ top_level    = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
 "Parse to first-order-logic formulas."
 function parse_formula(expr::Vector)
     if length(expr) == 0
-        return Compound(:and, [])
+        return Const(:true)
     elseif length(expr) == 1 && isa(expr[1], Vector)
         return parse_formula(expr[1])
     elseif length(expr) == 1 && isa(expr[1], Var)
@@ -62,8 +62,17 @@ function parse_formula(expr::Vector)
         return Const(expr[1])
     elseif length(expr) > 1 && isa(expr[1], Symbol)
         name = expr[1]
-        args = Term[parse_formula(expr[i:i]) for i in 2:length(expr)]
-        return Compound(name, args)
+        if name in [:exists, :forall]
+            # Handle exists and forall separately
+            vars, types = parse_typed_vars(expr[2])
+            typepreds = Term[@fol($ty(:v)) for (v, ty) in zip(vars, types)]
+            cond = Compound(:and, typepreds)
+            body = parse_formula(expr[3:3])
+            return Compound(name, Term[cond, body])
+        else
+            args = Term[parse_formula(expr[i:i]) for i in 2:length(expr)]
+            return Compound(name, args)
+        end
     else
         error("Could not parse $expr to FOL formula.")
     end
@@ -84,25 +93,43 @@ end
 
 "Parse list of typed variables."
 function parse_typed_vars(expr::Vector)
-    @assert mod(length(expr), 3) == 0 "List of typed vars has wrong length."
     vars, types = Var[], Symbol[]
-    for i in 1:3:length(expr)
-        @assert (expr[i+1] == :-) "Missing hyphen for variable $(expr[i])."
-        push!(vars, expr[i])
-        push!(types, expr[i+2])
+    count, is_type = 0, false
+    for e in expr
+        if e == :-
+            is_type = true
+            continue
+        end
+        if is_type
+            append!(types, repeat([e], count))
+            count, is_type = 0, false
+        else
+            push!(vars, e)
+            count += 1
+        end
     end
+    append!(types, repeat([:object], count))
     return vars, types
 end
 
 "Parse list of typed constants."
 function parse_typed_consts(expr::Vector)
-    @assert mod(length(expr), 3) == 0 "List of typed consts has wrong length."
     consts, types = Const[], Symbol[]
-    for i in 1:3:length(expr)
-        @assert (expr[i+1] == :-) "Missing hyphen for variable $(expr[i])."
-        push!(consts, Const(expr[i]))
-        push!(types, expr[i+2])
+    count, is_type = 0, false
+    for e in expr
+        if e == :-
+            is_type = true
+            continue
+        end
+        if is_type
+            append!(types, repeat([e], count))
+            count, is_type = 0, false
+        else
+            push!(consts, Const(e))
+            count += 1
+        end
     end
+    append!(types, repeat([:object], count))
     return consts, types
 end
 
@@ -121,8 +148,7 @@ function parse_domain(expr::Vector)
     defs = Dict(e[1].name => e for e in expr[3:end])
     requirements = parse_requirements(get(defs, :requirements, nothing))
     types = parse_types(get(defs, :types, nothing))
-    predicates, predtypes =
-        parse_predicates(get(defs, :predicates, nothing), requirements[:typing])
+    predicates, predtypes = parse_predicates(get(defs, :predicates, nothing))
     # Parse domain body (actions, events, etc.)
     defs = [(e[1].name, e) for e in expr[3:end]]
     axioms = Clause[]
@@ -132,7 +158,7 @@ function parse_domain(expr::Vector)
         if kw in [:axiom, :derived]
             push!(axioms, parse_axiom(def))
         elseif kw == :action
-            action = parse_action(def, requirements[:typing])
+            action = parse_action(def)
             actions[action.name] = action
         elseif kw == :event
             push!(events, parse_event(def))
@@ -153,7 +179,7 @@ parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
 "Parse type hierarchy."
 function parse_types(expr::Vector)
     @assert (expr[1].name == :types) ":types keyword is missing."
-    types = Dict{Symbol,Vector{Symbol}}()
+    types = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
     accum = Symbol[]
     is_supertype = false
     for e in expr[2:end]
@@ -172,20 +198,20 @@ function parse_types(expr::Vector)
     end
     return types
 end
-parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}()
+parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
 
 "Parse predicate list."
-function parse_predicates(expr::Vector, typing::Bool=false)
+function parse_predicates(expr::Vector)
     @assert (expr[1].name == :predicates) ":predicates keyword is missing."
     preds, types = Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
     for e in expr[2:end]
-        pred, ty = typing ? parse_typed_pred(e) : (parse_formula(e), Symbol[])
+        pred, ty = parse_typed_pred(e)
         preds[pred.name] = pred
         types[pred.name] = ty
     end
     return preds, types
 end
-parse_predicates(expr::Nothing, typing::Bool=false) =
+parse_predicates(expr::Nothing) =
     Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
 
 "Parse axioms (a.k.a. derived predicates)."
@@ -197,12 +223,12 @@ function parse_axiom(expr::Vector)
 end
 
 "Parse action definition."
-function parse_action(expr::Vector, typing::Bool=false)
+function parse_action(expr::Vector)
     args = Dict(expr[i].name => expr[i+1] for i in 1:2:length(expr))
     @assert (:action in keys(args)) ":action keyword is missing"
     name = args[:action]
-    params, types = parse_parameters(get(args, :parameters, []), typing)
-    precondition = parse_precondition(args[:precondition])
+    params, types = parse_parameters(get(args, :parameters, []))
+    precondition = parse_precondition(get(args, :precondition, []))
     effect = parse_effect(args[:effect])
     return Action(name, params, types, Dict{Var,Term}(), precondition, effect)
 end
@@ -218,8 +244,8 @@ function parse_event(expr::Vector)
 end
 
 "Parse action parameters."
-function parse_parameters(expr::Vector, typing::Bool=false)
-    return typing ? parse_typed_vars(expr) : (Vector{Var}(expr), Symbol[])
+function parse_parameters(expr::Vector)
+    return parse_typed_vars(expr)
 end
 
 "Parse precondition of an action or event."
@@ -246,25 +272,20 @@ function parse_problem(expr::Vector, requirements::Dict=Dict())
     name = expr[2][2]
     defs = Dict(e[1].name => e for e in expr[3:end])
     domain = defs[:domain][2]
-    objects, objtypes =
-        parse_objects(get(defs, :objects, nothing), requirements[:typing])
+    objects, objtypes = parse_objects(get(defs, :objects, nothing))
     init = parse_init(defs[:init])
     goal = parse_goal(defs[:goal])
     return Problem(name, domain, objects, objtypes, init, goal)
 end
 
 "Parse objects in planning problem."
-function parse_objects(expr::Vector, typing::Bool=false)
+function parse_objects(expr::Vector)
     @assert (expr[1].name == :objects) ":objects keyword is missing."
-    if !typing
-        return Const[Const(e) for e in expr[2:end]], Dict{Const,Symbol}()
-    else
-        objs, types = parse_typed_consts(expr[2:end])
-        types = Dict{Const,Symbol}(o => t for (o, t) in zip(objs, types))
-        return objs, types
-    end
+    objs, types = parse_typed_consts(expr[2:end])
+    types = Dict{Const,Symbol}(o => t for (o, t) in zip(objs, types))
+    return objs, types
 end
-parse_objects(expr::Nothing, typing::Bool=false) = Const[], Dict{Const,Symbol}()
+parse_objects(expr::Nothing) = Const[], Dict{Const,Symbol}()
 
 "Parse initial formula literals in planning problem."
 function parse_init(expr::Vector)

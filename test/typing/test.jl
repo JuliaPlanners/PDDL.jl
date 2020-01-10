@@ -24,4 +24,4 @@ state = execute(domain.actions[:move], @fol([rooma, roomb]), state, types)
 state = execute(domain.actions[:drop], @fol([ball1, roomb, left]), state, types)
 @test @fol(at(ball1, roomb) <<= true) in state
 
-@test resolve(problem.goal, state)[1] == true
+@test resolve(problem.goal, [state; types])[1] == true
