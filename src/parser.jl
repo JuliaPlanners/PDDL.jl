@@ -70,6 +70,8 @@ function parse_formula(expr::Vector)
             body = parse_formula(expr[3:3])
             return Compound(name, Term[cond, body])
         else
+            # Convert = to == so that FOL can handle equality checks
+            if name == :(=) name = :(==) end
             args = Term[parse_formula(expr[i:i]) for i in 2:length(expr)]
             return Compound(name, args)
         end

@@ -196,12 +196,8 @@ function execute(act::Action, args::Vector{<:Term}, model::Vector{Clause},
         return nothing
     end
     # Substitute arguments and preconditions
-    effect = substitute(act.effect, subst)
-    # TODO : make term evaluation work with foralls
-    # effect = eval_term(substitute(act.effect, subst), Subst())
-    # if effect == nothing
-    #     error("Effect is not ground after substitution.")
-    # end
+    # TODO : Check for non-ground terms outside of quantified formulas
+    effect = eval_term(substitute(act.effect, subst), Subst())
     # Compute effects in the appropriate form
     if as_dist
         # Compute categorical distribution over differences
