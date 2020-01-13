@@ -1,6 +1,6 @@
 module Parser
 
-export parse_domain, parse_problem, parse_action, parse_formula
+export parse_domain, parse_problem, parse_pddl, @pddl
 
 using ParserCombinator
 using FOL
@@ -133,13 +133,7 @@ function parse_typed_consts(expr::Vector)
     return consts, types
 end
 
-"Parse planning domain from string."
-function parse_domain(str::String)
-     expr = parse_one(str, top_level)[1]
-     return parse_domain(expr)
-end
-
-"Parse planning domain from S-expression."
+"Parse planning domain."
 function parse_domain(expr::Vector)
     @assert (expr[1] == :define) "'define' keyword is missing."
     @assert (expr[2][1] == :domain) "'domain' keyword is missing."
@@ -167,6 +161,7 @@ function parse_domain(expr::Vector)
     return Domain(name, requirements, types, predicates, predtypes,
                   axioms, actions, events)
 end
+parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
 
 "Parse domain requirements."
 function parse_requirements(expr::Vector)
@@ -221,6 +216,8 @@ function parse_axiom(expr::Vector)
     body = parse_formula(expr[3])
     return Clause(head, Term[body])
 end
+"Parse axioms (a.k.a. derived predicates)."
+parse_derived(expr::Vector) = parse_axiom(expr)
 
 "Parse action definition."
 function parse_action(expr::Vector)
@@ -258,13 +255,7 @@ function parse_effect(expr::Vector)
     return parse_formula(expr)
 end
 
-"Parse planning problem from string."
-function parse_problem(str::String, requirements::Dict=Dict())
-     expr = parse_one(str, top_level)[1]
-     return parse_problem(expr, requirements)
-end
-
-"Parse planning problem from S-expression."
+"Parse planning problem."
 function parse_problem(expr::Vector, requirements::Dict=Dict())
     requirements = merge(DEFAULT_REQUIREMENTS, Dict{Symbol,Bool}(requirements))
     @assert (expr[1] == :define) "'define' keyword is missing."
@@ -277,6 +268,8 @@ function parse_problem(expr::Vector, requirements::Dict=Dict())
     goal = parse_goal(defs[:goal])
     return Problem(name, domain, objects, objtypes, init, goal)
 end
+parse_problem(str::String, requirements::Dict=Dict()) =
+    parse_problem(parse_one(str, top_level)[1], requirements)
 
 "Parse objects in planning problem."
 function parse_objects(expr::Vector)
@@ -297,6 +290,33 @@ end
 function parse_goal(expr::Vector)
     @assert (expr[1].name == :goal) ":goal keyword is missing."
     return parse_formula(expr[2])
+end
+
+"List of PDDL keywords."
+keywords = [:domain, :problem,
+            :requirements, :types, :predicates,
+            :axiom, :derived, :action, :event,
+            :objects, :init, :goal]
+
+"Dictionary of parsing functions."
+parse_funcs = Dict{Symbol,Function}(
+    kw => getfield(@__MODULE__, Symbol(:parse_, kw)) for kw in keywords
+)
+
+"Parse to PDDL structure based on initial keyword."
+function parse_pddl(expr::Vector)
+    if expr[1] == :define
+        kw = expr[2][1]
+        return parse_funcs[kw](expr)
+    end
+    kw = expr[1].name
+    return parse_funcs[kw](expr)
+end
+parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
+
+"Parse to PDDL structure based on initial keyword."
+macro pddl(str::String)
+    return parse_pddl(str)
 end
 
 end
