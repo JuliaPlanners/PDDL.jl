@@ -4,7 +4,8 @@ export parse_domain, parse_problem, parse_pddl, @pddl
 
 using ParserCombinator
 using FOL
-using ..PDDL: Domain, Problem, Action, Event, DEFAULT_REQUIREMENTS
+using ..PDDL: Domain, Problem, Action, Event
+using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 struct Keyword
     name::Symbol
@@ -169,7 +170,16 @@ parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
 function parse_requirements(expr::Vector)
     @assert (expr[1].name == :requirements) ":requirements keyword is missing."
     reqs = Dict{Symbol,Bool}(e.name => true for e in expr[2:end])
-    return merge(DEFAULT_REQUIREMENTS, reqs)
+    reqs = merge(DEFAULT_REQUIREMENTS, reqs)
+    unchecked = [k for (k, v) in reqs if v == true]
+    while length(unchecked) > 0
+        req = pop!(unchecked)
+        deps = get(IMPLIED_REQUIREMENTS, req, Symbol[])
+        if length(deps) == 0 continue end
+        reqs = merge(reqs, Dict{Symbol,Bool}(d => true for d in deps))
+        append!(unchecked, deps)
+    end
+    return reqs
 end
 parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
 
