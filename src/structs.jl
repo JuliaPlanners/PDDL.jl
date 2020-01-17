@@ -43,3 +43,9 @@ mutable struct Problem
     init::Vector{Clause} # Predicates that hold in initial state
     goal::Term # Goal formula
 end
+
+"PDDL state description."
+mutable struct State
+    facts::Vector{Clause}
+    fluents::Dict{Symbol,Any}
+end

@@ -1,4 +1,4 @@
-# Test basic STRIPS functionality in a gripper domain
+# Test functionality of PDDL axioms / derived predicates
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "axioms")
 
 domain_str = open(f->read(f, String), joinpath(path, "domain.pddl"))
@@ -12,14 +12,14 @@ problem = parse_problem(problem_str)
 @test problem.name == Symbol("blocksworld-problem")
 @test problem.objects == @fol [a, b, c]
 
-state = problem.init
-state = execute(domain.actions[:pickup], @fol([b]), state, domain.axioms)
-@test resolve(@fol(holding(b)), [state; domain.axioms])[1] == true
-state = execute(domain.actions[:stack], @fol([b, c]), state, domain.axioms)
-@test resolve(@fol(on(b, c)), [state; domain.axioms])[1] == true
-state = execute(domain.actions[:pickup], @fol([a]), state, domain.axioms)
-@test resolve(@fol(holding(a)), [state; domain.axioms])[1] == true
-state = execute(domain.actions[:stack], @fol([a, b]), state, domain.axioms)
-@test resolve(@fol(above(a, c)), [state; domain.axioms])[1] == true
+state = init_state(problem)
+state = execute(@fol(pickup(b)), state, domain)
+@test satisfy(@fol(holding(b)), state, domain)[1] == true
+state = execute(@fol(stack(b, c)), state, domain)
+@test satisfy(@fol(on(b, c)), state, domain)[1] == true
+state = execute(@fol(pickup(a)), state, domain)
+@test satisfy(@fol(holding(a)), state, domain)[1] == true
+state = execute(@fol(stack(a, b)), state, domain)
+@test satisfy(@fol(above(a, c)), state, domain)[1] == true
 
-@test resolve(problem.goal, [state; domain.axioms])[1] == true
+@test satisfy(problem.goal, state, domain)[1] == true

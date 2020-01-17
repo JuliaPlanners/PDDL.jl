@@ -13,7 +13,7 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[FOL]]
-git-tree-sha1 = "a4013677058553d5e78a2542be829e1c7b63c49e"
+git-tree-sha1 = "c7f1ece1bf907629d22a04a7cdb1360d782f05d5"
 repo-rev = "master"
 repo-url = "https://github.com/ztangent/FOL.jl"
 uuid = "5d8bcb5e-2b2c-4a96-a2b1-d40b3d3c344f"
