@@ -11,7 +11,7 @@ problem = parse_problem(problem_str)
 @test problem.name == Symbol("gripper-problem")
 @test problem.objects == @fol [rooma, roomb, ball1, ball2, left, right]
 
-state = init_state(problem)
+state = initialize(problem)
 state = execute(@fol(pick(ball1, rooma, left)), state, domain)
 @test satisfy(@fol(carry(ball1, left)), state)[1] == true
 state = execute(@fol(move(rooma, roomb)), state, domain)

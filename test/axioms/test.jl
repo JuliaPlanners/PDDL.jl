@@ -12,7 +12,7 @@ problem = parse_problem(problem_str)
 @test problem.name == Symbol("blocksworld-problem")
 @test problem.objects == @fol [a, b, c]
 
-state = init_state(problem)
+state = initialize(problem)
 state = execute(@fol(pickup(b)), state, domain)
 @test satisfy(@fol(holding(b)), state, domain)[1] == true
 state = execute(@fol(stack(b, c)), state, domain)

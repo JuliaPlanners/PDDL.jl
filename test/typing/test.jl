@@ -14,7 +14,7 @@ problem = parse_problem(problem_str, domain.requirements)
 @test problem.objects == @fol [rooma, roomb, ball1, ball2, left, right]
 @test problem.objtypes[Const(:ball1)] == :ball
 
-state = init_state(problem)
+state = initialize(problem)
 state = execute(@fol(pick(ball1, rooma, left)), state, domain)
 @test satisfy(@fol(carry(ball1, left)), state)[1] == true
 state = execute(@fol(move(rooma, roomb)), state, domain)

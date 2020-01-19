@@ -9,7 +9,7 @@ problem_str = open(f->read(f, String), joinpath(path, "flip-problem.pddl"))
 problem = parse_problem(problem_str, domain.requirements)
 @test problem.name == Symbol("flip-problem")
 
-state = init_state(problem)
+state = initialize(problem)
 state = execute(@fol(flip_column(c1)), state, domain)
 state = execute(@fol(flip_column(c3)), state, domain)
 state = execute(@fol(flip_row(r2)), state, domain)
@@ -26,7 +26,7 @@ problem_str = open(f->read(f, String), joinpath(path, "assembly-problem.pddl"))
 problem = parse_problem(problem_str, domain.requirements)
 
 # Our goal is to assemble a frob
-state = init_state(problem)
+state = initialize(problem)
 
 # Commit charger to assembly of frob
 state = execute(@fol(commit(charger, frob)), state, domain)
