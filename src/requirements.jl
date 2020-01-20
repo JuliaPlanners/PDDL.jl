@@ -1,5 +1,5 @@
 "Default PDDL requirements."
-DEFAULT_REQUIREMENTS = Dict{Symbol,Bool}(
+const DEFAULT_REQUIREMENTS = Dict{Symbol,Bool}(
     Symbol("strips") => true,
     Symbol("typing") => false,
     Symbol("negative-preconditions") => false,
@@ -12,7 +12,7 @@ DEFAULT_REQUIREMENTS = Dict{Symbol,Bool}(
     Symbol("adl") => false
 )
 
-IMPLIED_REQUIREMENTS = Dict{Symbol,Vector{Symbol}}(
+const IMPLIED_REQUIREMENTS = Dict{Symbol,Vector{Symbol}}(
     Symbol("adl") => [
         Symbol("strips"),
         Symbol("typing"),

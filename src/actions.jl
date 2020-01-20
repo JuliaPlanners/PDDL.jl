@@ -64,7 +64,7 @@ function execute(actions::Vector{Term}, state::State, domain::Domain;
     diffs = [execute(domain.actions[act.name], act.args, state, domain;
                      as_dist=as_dist, as_diff=true) for act in actions]
     filter!(d -> d != nothing, diffs)
-    diff = combine_diffs(diffs, as_dist)
+    diff = combine(diffs...)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end

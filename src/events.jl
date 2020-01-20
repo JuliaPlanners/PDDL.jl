@@ -13,10 +13,10 @@ function execute(evt::Event, state::State,
     if as_dist
         # Compute product distribution
         eff_dists = [get_dist(e, state) for e in effects]
-        diff = combine_diffs(eff_dists, as_dist)
+        diff = combine(eff_dists...)
     else
         # Accumulate effect diffs
-        diff = combine_diffs([get_diff(e, state) for e in effects])
+        diff = combine([get_diff(e, state) for e in effects]...)
     end
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
@@ -29,7 +29,7 @@ function execute(events::Vector{Event}, state::State,
     diffs = [execute(e, state, domain; as_dist=as_dist, as_diff=true)
              for e in events]
     filter!(d -> d != nothing, diffs)
-    diff = combine_diffs(diffs, as_dist)
+    diff = combine(diffs...)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end
