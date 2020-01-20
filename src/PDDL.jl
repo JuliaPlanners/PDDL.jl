@@ -4,7 +4,8 @@ using FOL
 
 export Domain, Problem, Action, Event, State
 export satisfy, evaluate, initialize
-export get_diff, get_dist, update!, update, check, execute
+export get_diff, get_dist, update!, update
+export check, execute, execpar, execseq
 
 include("requirements.jl")
 include("structs.jl")

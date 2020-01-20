@@ -20,3 +20,12 @@ state = execute(@fol(drop(ball1, roomb, left)), state, domain)
 @test satisfy(@fol(at(ball1, roomb)), state)[1] == true
 
 @test satisfy(problem.goal, state)[1] == true
+
+state = initialize(problem)
+plan = @fol [
+    pick(ball1, rooma, left),
+    move(rooma, roomb),
+    drop(ball1, roomb, left)
+]
+state = execute(plan, state, domain)
+@test satisfy(problem.goal, state)[1] == true

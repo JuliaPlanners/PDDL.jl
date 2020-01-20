@@ -58,8 +58,25 @@ end
 execute(act::Term, state::State, domain::Domain; options...) =
     execute(domain.actions[act.name], act.args, state, domain; options...)
 
-"Execute a set of actions on a state."
-function execute(actions::Vector{Term}, state::State, domain::Domain;
+"Execute a list of actions in sequence on a state."
+function execute(actions::Vector{<:Term}, state::State, domain::Domain;
+                 as_dist::Bool=false, as_diff::Bool=false)
+    state = copy(state)
+    for act in actions
+        diff = execute(domain.actions[act.name], act.args, state, domain;
+                       as_dist=as_dist, as_diff=true)
+        update!(state, diff)
+    end
+    # Return either the difference or the final state
+    return as_diff ? diff : state
+end
+
+"Execute a list of actions in sequence on a state."
+execseq(actions::Vector{<:Term}, state::State, domain::Domain; options...) =
+    execute(actions, state, domain; options...)
+
+"Execute a set of actions in parallel on a state."
+function execute(actions::Set{<:Term}, state::State, domain::Domain;
                  as_dist::Bool=false, as_diff::Bool=false)
     diffs = [execute(domain.actions[act.name], act.args, state, domain;
                      as_dist=as_dist, as_diff=true) for act in actions]
@@ -68,3 +85,9 @@ function execute(actions::Vector{Term}, state::State, domain::Domain;
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end
+
+"Execute a set of actions in parallel on a state."
+execpar(actions::Set{<:Term}, state::State, domain::Domain; options...) =
+    execute(actions, state, domain; options...)
+execpar(actions::Vector{<:Term}, state::State, domain::Domain; options...) =
+    execute(Set(actions), state, domain; options...)

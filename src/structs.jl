@@ -50,3 +50,5 @@ mutable struct State
     facts::Vector{Clause}
     fluents::Dict{Symbol,Any}
 end
+
+Base.copy(s::State) = State(copy(s.facts), deepcopy(s.fluents))

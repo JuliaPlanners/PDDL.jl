@@ -93,8 +93,7 @@ end
 
 "Update a world state with a state difference."
 function update(state::State, diff::Diff)
-    state = State(copy(state.facts), deepcopy(state.fluents))
-    return update!(state, diff)
+    return update!(copy(state), diff)
 end
 
 "A (categorical) distribution over possible state differences."
