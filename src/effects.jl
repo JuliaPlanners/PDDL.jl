@@ -63,6 +63,7 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
         end
     elseif effect.name in keys(assign_ops)
         term, val = effect.args[1], effect.args[2]
+        val = state == nothing ? val : evaluate(val, state, domain)
         diff.ops[term] = (assign_ops[effect.name], val.name)
     elseif effect.name in [:not, :!]
         push!(diff.del, effect.args[1])
@@ -82,7 +83,7 @@ function update!(state::State, diff::Diff)
             state.fluents[term.name] = op(oldval, val)
         elseif isa(term, Compound)
             valdict = get!(state.fluents, term.name, Dict())
-            args = Tuple(a for a in term.args)
+            args = Tuple(a.name for a in term.args)
             oldval = get(valdict, args, 0)
             valdict[args] = op(oldval, val)
         end

@@ -3,7 +3,8 @@ module PDDL
 using FOL
 
 export Domain, Problem, Action, Event, State
-export satisfy, initialize, get_diff, get_dist, update, check, execute
+export satisfy, evaluate, initialize
+export get_diff, get_dist, update!, update, check, execute
 
 include("requirements.jl")
 include("structs.jl")

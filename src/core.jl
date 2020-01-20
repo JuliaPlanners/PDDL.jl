@@ -15,6 +15,12 @@ end
 satisfy(formula::Term, state::State, domain::Union{Domain,Nothing}=nothing;
         options...) = satisfy(Term[formula], state, domain; options...)
 
+"Evaluate formula within a given state."
+function evaluate(formula::Term, state::State,
+                  domain::Union{Domain,Nothing}=nothing)
+    return eval_term(formula, FOL.Subst(), state.fluents)
+end
+
 "Create initial state from problem definition."
 function initialize(problem::Problem)
     types = [@fol($ty(:o) <<= true) for (o, ty) in problem.objtypes]

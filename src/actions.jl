@@ -42,7 +42,7 @@ function execute(act::Action, args::Vector{<:Term}, state::State,
     end
     # Substitute arguments and preconditions
     # TODO : Check for non-ground terms outside of quantified formulas
-    effect = eval_term(substitute(act.effect, subst), Subst())
+    effect = substitute(act.effect, subst)
     # Compute effects in the appropriate form
     if as_dist
         # Compute categorical distribution over differences
