@@ -96,6 +96,7 @@ end
 
 "Parse list of typed variables."
 function parse_typed_vars(expr::Vector)
+    # TODO : Handle either-types
     vars, types = Var[], Symbol[]
     count, is_type = 0, false
     for e in expr
@@ -146,6 +147,7 @@ function parse_domain(expr::Vector)
     requirements = parse_requirements(get(defs, :requirements, nothing))
     types = parse_types(get(defs, :types, nothing))
     predicates, predtypes = parse_predicates(get(defs, :predicates, nothing))
+    functions, functypes = parse_functions(get(defs, :functions, nothing))
     # Parse domain body (actions, events, etc.)
     defs = [(e[1].name, e) for e in expr[3:end]]
     axioms = Clause[]
@@ -162,7 +164,7 @@ function parse_domain(expr::Vector)
         end
     end
     return Domain(name, requirements, types, predicates, predtypes,
-                  axioms, actions, events)
+                  functions, functypes, axioms, actions, events)
 end
 parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
 
@@ -221,6 +223,20 @@ end
 parse_predicates(expr::Nothing) =
     Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
 
+"Parse list of function (i.e. fluent) declarations."
+function parse_functions(expr::Vector)
+    @assert (expr[1].name == :functions) ":functions keyword is missing."
+    funcs, types = Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
+    for e in expr[2:end]
+        func, ty = parse_typed_pred(e)
+        funcs[func.name] = func
+        types[func.name] = ty
+    end
+    return funcs, types
+end
+parse_functions(expr::Nothing) =
+    Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
+
 "Parse axioms (a.k.a. derived predicates)."
 function parse_axiom(expr::Vector)
     @assert (expr[1].name in [:axiom, :derived]) ":derived keyword is missing."
@@ -276,9 +292,10 @@ function parse_problem(expr::Vector, requirements::Dict=Dict())
     defs = Dict(e[1].name => e for e in expr[3:end])
     domain = defs[:domain][2]
     objects, objtypes = parse_objects(get(defs, :objects, nothing))
-    init = parse_init(defs[:init])
-    goal = parse_goal(defs[:goal])
-    return Problem(name, domain, objects, objtypes, init, goal)
+    init = parse_init(get(defs, :init, nothing))
+    goal = parse_goal(get(defs, :goal, nothing))
+    metric = parse_metric(get(defs, :metric, nothing))
+    return Problem(name, domain, objects, objtypes, init, goal, metric)
 end
 parse_problem(str::String, requirements::Dict=Dict()) =
     parse_problem(parse_one(str, top_level)[1], requirements)
@@ -295,20 +312,30 @@ parse_objects(expr::Nothing) = Const[], Dict{Const,Symbol}()
 "Parse initial formula literals in planning problem."
 function parse_init(expr::Vector)
     @assert (expr[1].name == :init) ":init keyword is missing."
-    return Clause[Clause(parse_formula(e), []) for e in expr[2:end]]
+    return [Clause(parse_formula(e), []) for e in expr[2:end]]
 end
+parse_init(expr::Nothing) = Clause[]
 
 "Parse goal formula in planning problem."
 function parse_goal(expr::Vector)
     @assert (expr[1].name == :goal) ":goal keyword is missing."
     return parse_formula(expr[2])
 end
+parse_goal(expr::Nothing) = Const(true)
+
+"Parse metric expression in planning problem."
+function parse_metric(expr::Vector)
+    @assert (expr[1].name == :metric) ":metric keyword is missing."
+    @assert (expr[2] in [:minimize, :maximize]) "Unrecognized optimization."
+    return (expr[2] == :maximize ? 1 : -1, parse_formula(expr[3]))
+end
+parse_metric(expr::Nothing) = (-1, Const(Symbol("total-cost")))
 
 "List of PDDL keywords."
 keywords = [:domain, :problem,
-            :requirements, :types, :predicates,
+            :requirements, :types, :predicates, :functions,
             :axiom, :derived, :action, :event,
-            :objects, :init, :goal]
+            :objects, :init, :goal, :metric]
 
 "Dictionary of parsing functions."
 parse_funcs = Dict{Symbol,Function}(
@@ -317,12 +344,15 @@ parse_funcs = Dict{Symbol,Function}(
 
 "Parse to PDDL structure based on initial keyword."
 function parse_pddl(expr::Vector)
-    if expr[1] == :define
+    if isa(expr[1], Keyword)
+        kw = expr[1].name
+        return parse_funcs[kw](expr)
+    elseif expr[1] == :define
         kw = expr[2][1]
         return parse_funcs[kw](expr)
+    else
+        return parse_formula(expr)
     end
-    kw = expr[1].name
-    return parse_funcs[kw](expr)
 end
 parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
 

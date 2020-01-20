@@ -10,6 +10,7 @@
             (fast-burn ?a - aircraft)
             (capacity ?a - aircraft)
             (total-fuel-used)
+            (total-time)
             (onboard ?a - aircraft)
             (zoom-limit ?a - aircraft)
             )

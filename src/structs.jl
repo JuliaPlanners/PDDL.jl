@@ -27,6 +27,8 @@ mutable struct Domain
     types::Dict{Symbol,Vector{Symbol}} # Types and their subtypes
     predicates::Dict{Symbol,Term} # Dictionary of predicates
     predtypes::Dict{Symbol,Vector{Symbol}} # Predicate type signatures
+    functions::Dict{Symbol,Term} # Dictionary of function declarations
+    functypes::Dict{Symbol,Vector{Symbol}} # Function type signatures
     axioms::Vector{Clause} # Axioms / derived predicates
     actions::Dict{Symbol,Action} # Action definitions
     events::Vector{Event} # Event definitions
@@ -40,6 +42,7 @@ mutable struct Problem
     objtypes::Dict{Const,Symbol} # Types of objects
     init::Vector{Clause} # Predicates that hold in initial state
     goal::Term # Goal formula
+    metric::Tuple{Int64,Term} # Metric direction (+/-1) and formula
 end
 
 "PDDL state description."
