@@ -23,3 +23,8 @@ state = execute(@fol(drop(ball1, roomb, left)), state, domain)
 @test satisfy(@fol(at(ball1, roomb)), state)[1] == true
 
 @test satisfy(problem.goal, state)[1] == true
+
+@test Set(available(state, domain)) == Set{Term}(@fol([
+    pick(ball1, roomb, right), pick(ball1, roomb, left),
+    move(roomb, rooma), move(roomb, roomb)
+]))

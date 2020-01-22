@@ -1,3 +1,10 @@
+"Convert type hierarchy to list of FOL clauses."
+function type_clauses(typetree::Dict{Symbol,Vector{Symbol}})
+    clauses = [[Clause(@fol($ty(X)), Term[@fol($s(X))]) for s in subtys]
+               for (ty, subtys) in typetree if length(subtys) > 0]
+    return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
+end
+
 "Check whether formulas can be satisfied in a given state."
 function satisfy(formulas::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
@@ -47,9 +54,38 @@ function initialize(problem::Problem)
     return State([facts; types], fluents)
 end
 
-"Convert type hierarchy to list of FOL clauses."
-function type_clauses(typetree::Dict{Symbol,Vector{Symbol}})
-    clauses = [[Clause(@fol($ty(X)), Term[@fol($s(X))]) for s in subtys]
-               for (ty, subtys) in typetree if length(subtys) > 0]
-    return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
+"Simulate a step forward (action + triggered events) in a domain."
+function step(domain::Domain, state::State, action::Term)
+    state = execute(act, state, domain)
+    if length(domain.events) > 0
+        state = trigger(domain.events, state, domain)
+    end
+    return state
+end
+
+function step(domain::Domain, state::State, actions::Set{<:Term})
+    state = execpar(actions, state, domain) # Execute in parallel
+    if length(domain.events) > 0
+        state = trigger(domain.events, state, domain)
+    end
+    return state
+end
+
+"Simulate state trajectory for a given domain and sequence of actions."
+function simulate(domain::Domain, state::State, actions::Vector{<:Term})
+    trajectory = State[state]
+    for act in actions
+        state = step(domain, state, act)
+        push!(trajectory, state)
+    end
+    return trajectory
+end
+
+function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}})
+    trajectory = State[state]
+    for acts in actions
+        state = step(domain, state, acts)
+        push!(trajectory, state)
+    end
+    return trajectory
 end

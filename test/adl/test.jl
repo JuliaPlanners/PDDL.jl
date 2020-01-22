@@ -31,16 +31,16 @@ state = initialize(problem)
 # Commit charger to assembly of frob
 state = execute(@fol(commit(charger, frob)), state, domain)
 # Once commited, we can't commit again
-@test check(@fol(commit(charger, frob)), state, domain)[1] == false
+@test available(@fol(commit(charger, frob)), state, domain)[1] == false
 
 # We can't add a tube to the frob before adding the widget and fastener
-@test check(@fol(assemble(tube, frob)), state, domain)[1] == false
+@test available(@fol(assemble(tube, frob)), state, domain)[1] == false
 state = execute(@fol(assemble(widget, frob)), state, domain)
-@test check(@fol(assemble(tube, frob)), state, domain)[1] == false
+@test available(@fol(assemble(tube, frob)), state, domain)[1] == false
 state = execute(@fol(assemble(fastener, frob)), state, domain)
 
 # Having added both widget and fastener, now we can add the tube
-@test check(@fol(assemble(tube, frob)), state, domain)[1] == true
+@test available(@fol(assemble(tube, frob)), state, domain)[1] == true
 state = execute(@fol(assemble(tube, frob)), state, domain)
 
 # We've completely assembled a frob!

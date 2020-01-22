@@ -1,8 +1,8 @@
 # Functions for handling and executing actions on a state
 
-"Check whether an action can be executed on a state."
-function check(act::Action, args::Vector{<:Term}, state::State,
-               domain::Union{Domain,Nothing}=nothing)
+"Check whether an action is available (can be executed) in a state."
+function available(act::Action, args::Vector{<:Term}, state::State,
+                   domain::Union{Domain,Nothing}=nothing)
    if any([!is_ground(a) for a in args])
        error("Not all arguments are ground.")
    end
@@ -27,15 +27,35 @@ function check(act::Action, args::Vector{<:Term}, state::State,
    return sat, subst
 end
 
-check(act::Term, state::State, domain::Domain; options...) =
-    check(domain.actions[act.name], act.args, state, domain; options...)
+available(act::Term, state::State, domain::Domain) =
+    available(domain.actions[act.name], act.args, state, domain)
+
+"Return list of available actions in a state, given a domain."
+function available(state::State, domain::Domain)
+    # TODO : Handle preconditions with quantifiers
+    actions = Term[]
+    for act in values(domain.actions)
+        typecond = (all(ty == :object for ty in act.types) ? Term[] :
+                    [@fol($ty(:v)) for (v, ty) in zip(act.args, act.types)])
+        conds = [act.precond; typecond]
+        # Find all substitutions that satisfy preconditions
+        sat, subst = satisfy(conds, state, domain; mode=:all)
+        if !sat continue end
+        for s in subst
+            args = [s[v] for v in act.args if v in keys(s)]
+            if any([!is_ground(a) for a in args]) continue end
+            push!(actions, Compound(act.name, args))
+        end
+    end
+    return actions
+end
 
 "Execute an action with supplied args on a world state."
 function execute(act::Action, args::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing;
                  as_dist::Bool=false, as_diff::Bool=false)
     # Check whether references resolve and preconditions hold
-    sat, subst = check(act, args, state, domain)
+    sat, subst = available(act, args, state, domain)
     if !sat
         @debug "Precondition $precond does not hold."
         return nothing
