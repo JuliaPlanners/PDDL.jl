@@ -1,14 +1,12 @@
 # Test fluent functionality
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "fluents")
 
-domain_str = open(f->read(f, String), joinpath(path, "domain.pddl"))
-domain = parse_domain(domain_str)
+domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("zeno-travel")
 @test domain.functions[:distance] == @fol(distance(C1, C2))
 @test domain.functypes[:fuel] == [:aircraft]
 
-problem_str = open(f->read(f, String), joinpath(path, "problem.pddl"))
-problem = parse_problem(problem_str)
+problem = load_problem(joinpath(path, "problem.pddl"))
 tot_time, tot_fuel = Symbol("total-time"), Symbol("total-fuel-used")
 @test problem.metric == (-1, @fol(4*$tot_time + 5*$tot_fuel))
 

@@ -1,12 +1,9 @@
 # Test some ADL features in a grid flipping domain
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
 
-domain_str = open(f->read(f, String), joinpath(path, "flip-domain.pddl"))
-domain = parse_domain(domain_str)
+domain = load_domain(joinpath(path, "flip-domain.pddl"))
 @test domain.name == Symbol("flip")
-
-problem_str = open(f->read(f, String), joinpath(path, "flip-problem.pddl"))
-problem = parse_problem(problem_str, domain.requirements)
+problem = load_problem(joinpath(path, "flip-problem.pddl"))
 @test problem.name == Symbol("flip-problem")
 
 state = initialize(problem)
@@ -19,11 +16,8 @@ state = execute(@fol(flip_row(r2)), state, domain)
 # Test all ADL features in assembly domain
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
 
-domain_str = open(f->read(f, String), joinpath(path, "assembly-domain.pddl"))
-domain = parse_domain(domain_str)
-
-problem_str = open(f->read(f, String), joinpath(path, "assembly-problem.pddl"))
-problem = parse_problem(problem_str, domain.requirements)
+domain = load_domain(joinpath(path, "assembly-domain.pddl"))
+problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 
 # Our goal is to assemble a frob
 state = initialize(problem)

@@ -1,6 +1,7 @@
 module Parser
 
 export parse_domain, parse_problem, parse_pddl, @pddl
+export load_domain, load_problem
 
 using ParserCombinator
 using FOL
@@ -359,6 +360,18 @@ parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
 "Parse to PDDL structure based on initial keyword."
 macro pddl(str::String)
     return parse_pddl(str)
+end
+
+"Load PDDL domain from specified path."
+function load_domain(path::String)
+    str = open(f->read(f, String), path)
+    return parse_domain(str)
+end
+
+"Load PDDL problem from specified path."
+function load_problem(path::String)
+    str = open(f->read(f, String), path)
+    return parse_problem(str)
 end
 
 end

@@ -1,15 +1,13 @@
 # Test typing in a typed gripper domain
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "typing")
 
-domain_str = open(f->read(f, String), joinpath(path, "domain.pddl"))
-domain = parse_domain(domain_str)
+domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("gripper-typed")
 @test domain.predicates[:free] == @fol(free(G))
 @test domain.predtypes[:carry] == [:ball, :gripper]
 @test :gripper in keys(domain.types)
 
-problem_str = open(f->read(f, String), joinpath(path, "problem.pddl"))
-problem = parse_problem(problem_str, domain.requirements)
+problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")
 @test problem.objects == @fol [rooma, roomb, ball1, ball2, left, right]
 @test problem.objtypes[Const(:ball1)] == :ball

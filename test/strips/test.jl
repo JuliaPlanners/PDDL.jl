@@ -1,13 +1,11 @@
 # Test basic STRIPS functionality in a gripper domain
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "strips")
 
-domain_str = open(f->read(f, String), joinpath(path, "domain.pddl"))
-domain = parse_domain(domain_str)
+domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == :gripper
 @test domain.predicates[:room] == @fol(room(R))
 
-problem_str = open(f->read(f, String), joinpath(path, "problem.pddl"))
-problem = parse_problem(problem_str)
+problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")
 @test problem.objects == @fol [rooma, roomb, ball1, ball2, left, right]
 
