@@ -32,12 +32,17 @@ available(act::Term, state::State, domain::Domain) =
 
 "Return list of available actions in a state, given a domain."
 function available(state::State, domain::Domain)
-    # TODO : Handle preconditions with quantifiers
     actions = Term[]
     for act in values(domain.actions)
-        typecond = (all(ty == :object for ty in act.types) ? Term[] :
-                    [@fol($ty(:v)) for (v, ty) in zip(act.args, act.types)])
-        conds = [act.precond; typecond]
+        if (domain.requirements[:typing] ||
+            domain.requirements[Symbol("existential-preconditions")] ||
+            domain.requirements[Symbol("universal-preconditions")])
+            # Include type conditions when necessary for correctness
+            typecond = [@fol($ty(:v)) for (v, ty) in zip(act.args, act.types)]
+            conds = [typecond; act.precond]
+        else
+            conds = [act.precond]
+        end
         # Find all substitutions that satisfy preconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end

@@ -1,3 +1,5 @@
+# Functions for handling and triggering events
+
 "Trigger an event if its preconditions hold on a world state."
 function trigger(evt::Event, state::State,
                  domain::Union{Domain,Nothing}=nothing;
