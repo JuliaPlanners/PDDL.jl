@@ -28,10 +28,14 @@ end
 function trigger(events::Vector{Event}, state::State,
                  domain::Union{Domain,Nothing}=nothing;
                  as_dist::Bool=false, as_diff::Bool=false)
-    diffs = [trigger(e, state, domain; as_dist=as_dist, as_diff=true)
-             for e in events]
-    filter!(d -> d != nothing, diffs)
-    diff = combine(diffs...)
+    if length(events) == 0
+        diff = as_dist ? DiffDist() : Diff()
+    else
+        diffs = [trigger(e, state, domain; as_dist=as_dist, as_diff=true)
+                 for e in events]
+        filter!(d -> d != nothing, diffs)
+        diff = combine(diffs...)
+    end
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end

@@ -1,6 +1,6 @@
 ; Source : Thiebaux et al, 2005; DOI : 10.1016/j.artint.2005.05.004
 (define (domain blocksworld-axioms)
-  (:requirements :strips)
+  (:requirements :strips :quantified-preconditions)
   (:predicates (on-table ?x) (on ?x ?y) ; basic
                (holding ?x) (above ?x ?y) (clear ?x) (handempty)) ; derived
   (:derived (holding ?x)
@@ -10,7 +10,7 @@
   (:derived (clear ?x)
             (and (not (holding ?x)) (not (on ?y ?x))))
   (:derived (handempty)
-            (not (holding ?x)))
+            (forall (?x) (not (holding ?x))))
   (:action pickup
    :parameters (?ob)
    :precondition (and (clear ?ob) (on-table ?ob) (handempty))
