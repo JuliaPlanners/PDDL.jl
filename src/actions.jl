@@ -90,6 +90,7 @@ function execute(actions::Vector{<:Term}, state::State, domain::Domain;
     for act in actions
         diff = execute(domain.actions[act.name], act.args, state, domain;
                        as_dist=as_dist, as_diff=true)
+        if diff == nothing return nothing end
         update!(state, diff)
     end
     # Return either the difference or the final state
