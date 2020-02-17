@@ -5,6 +5,31 @@ function type_clauses(typetree::Dict{Symbol,Vector{Symbol}})
     return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
 end
 
+"Convert list of clauses to a state description."
+function clauses_to_state(clauses::Vector{Clause})
+    facts = Clause[]
+    fluents = Dict{Symbol,Any}()
+    for c in clauses
+        if c.head.name == :(==)
+            # Initialize fluents
+            term, val = c.head.args[1], c.head.args[2]
+            @assert !isa(term, Var) "Initial terms cannot be unbound variables."
+            @assert isa(val, Const) "Terms must be initialized to constants."
+            if isa(term, Const)
+                # Assign term to constant value
+                fluents[term.name] = val.name
+            else
+                # Assign entry in look-up table
+                lookup = get!(fluents, term.name, Dict())
+                lookup[Tuple(a.name for a in term.args)] = val.name
+            end
+        else
+            push!(facts, c)
+        end
+    end
+    return State(facts, fluents)
+end
+
 "Check whether formulas can be satisfied in a given state."
 function satisfy(formulas::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
@@ -31,27 +56,9 @@ end
 "Create initial state from problem definition."
 function initialize(problem::Problem)
     types = [@fol($ty(:o) <<= true) for (o, ty) in problem.objtypes]
-    facts = Clause[]
-    fluents = Dict{Symbol,Any}()
-    for clause in problem.init
-        if clause.head.name == :(==)
-            # Initialize fluents
-            term, val = clause.head.args[1], clause.head.args[2]
-            @assert !isa(term, Var) "Initial terms cannot be unbound variables."
-            @assert isa(val, Const) "Terms must be initialized to constants."
-            if isa(term, Const)
-                # Assign term to constant value
-                fluents[term.name] = val.name
-            else
-                # Assign entry in look-up table
-                lookup = get!(fluents, term.name, Dict())
-                lookup[Tuple(a.name for a in term.args)] = val.name
-            end
-        else
-            push!(facts, clause)
-        end
-    end
-    return State([facts; types], fluents)
+    state = clauses_to_state(problem.init)
+    append!(state.facts, types)
+    return state
 end
 
 "Simulate a step forward (action + triggered events) in a domain."

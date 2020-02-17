@@ -54,3 +54,4 @@ end
 Base.copy(s::State) = State(copy(s.facts), deepcopy(s.fluents))
 Base.:(==)(s1::State, s2::State) =
     Set(s1.facts) == Set(s2.facts) && s1.fluents == s2.fluents
+Base.hash(s::State, h::UInt) = hash(s.fluents, hash(Set(s.facts), h))
