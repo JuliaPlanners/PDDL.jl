@@ -4,7 +4,7 @@ authors = ["Xuan <tanqazx@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-FOL = "5d8bcb5e-2b2c-4a96-a2b1-d40b3d3c344f"
+Julog = "5d8bcb5e-2b2c-4a96-a2b1-d40b3d3c344f"
 ParserCombinator = "fae87a5f-d1ad-5cf0-8f61-c941e1580b46"
 
 [extras]

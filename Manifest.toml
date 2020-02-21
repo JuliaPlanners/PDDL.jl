@@ -12,16 +12,16 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
-[[FOL]]
-git-tree-sha1 = "00d26e79fdee8b42ac82616553a54cb987f1481e"
-repo-rev = "master"
-repo-url = "https://github.com/ztangent/FOL.jl"
-uuid = "5d8bcb5e-2b2c-4a96-a2b1-d40b3d3c344f"
-version = "0.1.2"
-
 [[InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+
+[[Julog]]
+git-tree-sha1 = "509125437e4fdf3a7109b39b185cfb6eeb4e5172"
+repo-rev = "master"
+repo-url = "https://github.com/ztangent/Julog.jl"
+uuid = "5d8bcb5e-2b2c-4a96-a2b1-d40b3d3c344f"
+version = "0.1.0"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"

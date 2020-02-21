@@ -20,7 +20,7 @@ function available(act::Action, args::Vector{<:Term}, state::State,
    subst = merge(arg_subst, ref_subst)
    # Construct type conditions of the form "type(val)"
    typecond = (all(ty == :object for ty in act.types) ? Term[] :
-               [@fol($ty(:v)) for (v, ty) in zip(args, act.types)])
+               [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])
    # Check whether preconditions hold
    precond = substitute(act.precond, subst)
    sat, _ = satisfy([precond; typecond], state, domain)
@@ -38,7 +38,7 @@ function available(state::State, domain::Domain)
             domain.requirements[Symbol("existential-preconditions")] ||
             domain.requirements[Symbol("universal-preconditions")])
             # Include type conditions when necessary for correctness
-            typecond = [@fol($ty(:v)) for (v, ty) in zip(act.args, act.types)]
+            typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
             conds = [typecond; act.precond]
         else
             conds = [act.precond]

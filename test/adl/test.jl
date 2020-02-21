@@ -7,9 +7,9 @@ problem = load_problem(joinpath(path, "flip-problem.pddl"))
 @test problem.name == Symbol("flip-problem")
 
 state = initialize(problem)
-state = execute(@fol(flip_column(c1)), state, domain)
-state = execute(@fol(flip_column(c3)), state, domain)
-state = execute(@fol(flip_row(r2)), state, domain)
+state = execute(@julog(flip_column(c1)), state, domain)
+state = execute(@julog(flip_column(c3)), state, domain)
+state = execute(@julog(flip_row(r2)), state, domain)
 
 @test satisfy(problem.goal, state, domain)[1] == true
 
@@ -23,19 +23,19 @@ problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 state = initialize(problem)
 
 # Commit charger to assembly of frob
-state = execute(@fol(commit(charger, frob)), state, domain)
+state = execute(@julog(commit(charger, frob)), state, domain)
 # Once commited, we can't commit again
-@test available(@fol(commit(charger, frob)), state, domain)[1] == false
+@test available(@julog(commit(charger, frob)), state, domain)[1] == false
 
 # We can't add a tube to the frob before adding the widget and fastener
-@test available(@fol(assemble(tube, frob)), state, domain)[1] == false
-state = execute(@fol(assemble(widget, frob)), state, domain)
-@test available(@fol(assemble(tube, frob)), state, domain)[1] == false
-state = execute(@fol(assemble(fastener, frob)), state, domain)
+@test available(@julog(assemble(tube, frob)), state, domain)[1] == false
+state = execute(@julog(assemble(widget, frob)), state, domain)
+@test available(@julog(assemble(tube, frob)), state, domain)[1] == false
+state = execute(@julog(assemble(fastener, frob)), state, domain)
 
 # Having added both widget and fastener, now we can add the tube
-@test available(@fol(assemble(tube, frob)), state, domain)[1] == true
-state = execute(@fol(assemble(tube, frob)), state, domain)
+@test available(@julog(assemble(tube, frob)), state, domain)[1] == true
+state = execute(@julog(assemble(tube, frob)), state, domain)
 
 # We've completely assembled a frob!
 @test satisfy(problem.goal, state, domain)[1] == true

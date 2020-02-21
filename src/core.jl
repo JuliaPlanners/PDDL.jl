@@ -1,6 +1,6 @@
-"Convert type hierarchy to list of FOL clauses."
+"Convert type hierarchy to list of Julog clauses."
 function type_clauses(typetree::Dict{Symbol,Vector{Symbol}})
-    clauses = [[Clause(@fol($ty(X)), Term[@fol($s(X))]) for s in subtys]
+    clauses = [[Clause(@julog($ty(X)), Term[@julog($s(X))]) for s in subtys]
                for (ty, subtys) in typetree if length(subtys) > 0]
     return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
 end
@@ -33,7 +33,7 @@ end
 "Check whether formulas can be satisfied in a given state."
 function satisfy(formulas::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
-    # Initialize FOL knowledge base to the set of facts
+    # Initialize Julog knowledge base to the set of facts
     clauses = state.facts
     # If domain is provided, add domain axioms and type clauses
     if domain != nothing
@@ -50,12 +50,12 @@ satisfy(formula::Term, state::State, domain::Union{Domain,Nothing}=nothing;
 "Evaluate formula within a given state."
 function evaluate(formula::Term, state::State,
                   domain::Union{Domain,Nothing}=nothing)
-    return eval_term(formula, FOL.Subst(), state.fluents)
+    return eval_term(formula, Julog.Subst(), state.fluents)
 end
 
 "Create initial state from problem definition."
 function initialize(problem::Problem)
-    types = [@fol($ty(:o) <<= true) for (o, ty) in problem.objtypes]
+    types = [@julog($ty(:o) <<= true) for (o, ty) in problem.objtypes]
     state = clauses_to_state(problem.init)
     append!(state.facts, types)
     return state

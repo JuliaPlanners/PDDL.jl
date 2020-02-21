@@ -1,6 +1,6 @@
 module PDDL
 
-using FOL
+using Julog
 
 export Domain, Problem, Action, Event, State
 export parse_domain, parse_problem, parse_pddl, @pddl

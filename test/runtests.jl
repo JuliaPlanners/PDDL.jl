@@ -1,5 +1,5 @@
 using Test
-using FOL
+using Julog
 using PDDL, PDDL.Parser
 
 include("strips/test.jl")

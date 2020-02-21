@@ -4,7 +4,7 @@ export parse_domain, parse_problem, parse_pddl, @pddl
 export load_domain, load_problem
 
 using ParserCombinator
-using FOL
+using Julog
 using ..PDDL: Domain, Problem, Action, Event
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
@@ -67,18 +67,18 @@ function parse_formula(expr::Vector)
         if name in [:exists, :forall]
             # Handle exists and forall separately
             vars, types = parse_typed_vars(expr[2])
-            typepreds = Term[@fol($ty(:v)) for (v, ty) in zip(vars, types)]
+            typepreds = Term[@julog($ty(:v)) for (v, ty) in zip(vars, types)]
             cond = Compound(:and, typepreds)
             body = parse_formula(expr[3:3])
             return Compound(name, Term[cond, body])
         else
-            # Convert = to == so that FOL can handle equality checks
+            # Convert = to == so that Julog can handle equality checks
             if name == :(=) name = :(==) end
             args = Term[parse_formula(expr[i:i]) for i in 2:length(expr)]
             return Compound(name, args)
         end
     else
-        error("Could not parse $expr to FOL formula.")
+        error("Could not parse $expr to Julog formula.")
     end
 end
 
