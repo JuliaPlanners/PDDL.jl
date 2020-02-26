@@ -49,8 +49,14 @@ satisfy(formula::Term, state::State, domain::Union{Domain,Nothing}=nothing;
 
 "Evaluate formula within a given state."
 function evaluate(formula::Term, state::State,
-                  domain::Union{Domain,Nothing}=nothing)
-    return eval_term(formula, Julog.Subst(), state.fluents)
+                  domain::Union{Domain,Nothing}=nothing; as_const::Bool=true)
+    # Evaluate formula as fully as possible
+    val = eval_term(formula, Julog.Subst(), state.fluents)
+    # Return if formula evaluates to a Const (unwrapping if as_const=false)
+    if isa(val, Const) return as_const ? val : val.name end
+    # If val is not a Const, check if holds true in the state
+    sat, _ = satisfy(Term[val], state, domain)
+    return as_const ? Const(sat) : sat # Wrap in Const if as_const=true
 end
 
 "Create initial state from problem definition."
@@ -95,4 +101,16 @@ function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}})
         push!(trajectory, state)
     end
     return trajectory
+end
+
+"Access the value of a fluent or fact in a state."
+function Base.getindex(state::State, f::Union{String,Number,Symbol,Expr})
+    f = isa(f, String) ? Parser.parse_formula(f) : eval(Julog.parse_term(f))
+    return evaluate(f, state, nothing, as_const=false)
+end
+
+function Base.getindex(state::State, domain::Domain,
+                       f::Union{String,Number,Symbol,Expr})
+    f = isa(f, String) ? Parser.parse_formula(f) : eval(Julog.parse_term(f))
+    return evaluate(f, state, domain, as_const=false)
 end

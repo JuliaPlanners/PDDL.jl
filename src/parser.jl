@@ -81,6 +81,8 @@ function parse_formula(expr::Vector)
         error("Could not parse $expr to Julog formula.")
     end
 end
+parse_formula(expr::Symbol) = Const(expr)
+parse_formula(str::String) = parse_formula(parse_one(str, top_level)[1])
 
 "Parse predicates with type signatures."
 function parse_typed_pred(expr::Vector)
