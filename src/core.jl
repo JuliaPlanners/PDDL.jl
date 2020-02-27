@@ -69,7 +69,7 @@ end
 
 "Simulate a step forward (action + triggered events) in a domain."
 function step(domain::Domain, state::State, action::Term)
-    state = execute(act, state, domain)
+    state = execute(action, state, domain)
     if length(domain.events) > 0
         state = trigger(domain.events, state, domain)
     end
@@ -85,32 +85,40 @@ function step(domain::Domain, state::State, actions::Set{<:Term})
 end
 
 "Simulate state trajectory for a given domain and sequence of actions."
-function simulate(domain::Domain, state::State, actions::Vector{<:Term})
+function simulate(domain::Domain, state::State, actions::Vector{<:Term};
+                  callback::Function=(d,s,a)->nothing)
     trajectory = State[state]
+    callback(domain, state, Const(:start))
     for act in actions
         state = step(domain, state, act)
         push!(trajectory, state)
+        callback(domain, state, act)
     end
     return trajectory
 end
 
-function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}})
+function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}};
+                  callback::Function=(d,s,a)->nothing)
     trajectory = State[state]
+    callback(domain, state, Set([Const(:start)]))
     for acts in actions
         state = step(domain, state, acts)
         push!(trajectory, state)
+        callback(domain, state, acts)
     end
     return trajectory
 end
 
 "Access the value of a fluent or fact in a state."
-function Base.getindex(state::State, f::Union{String,Number,Symbol,Expr})
-    f = isa(f, String) ? Parser.parse_formula(f) : eval(Julog.parse_term(f))
-    return evaluate(f, state, nothing, as_const=false)
-end
-
-function Base.getindex(state::State, domain::Domain,
-                       f::Union{String,Number,Symbol,Expr})
-    f = isa(f, String) ? Parser.parse_formula(f) : eval(Julog.parse_term(f))
-    return evaluate(f, state, domain, as_const=false)
-end
+Base.getindex(state::State, term::Term) =
+    evaluate(term, state; as_const=false)
+Base.getindex(state::State, term::String) =
+    evaluate(Parser.parse_formula(term), state; as_const=false)
+Base.getindex(state::State, term::Union{Number,Symbol,Expr}) =
+    evaluate(eval(Julog.parse_term(term)), state; as_const=false)
+Base.getindex(state::State, domain::Domain, term::Term) =
+    evaluate(term, state, domain; as_const=false)
+Base.getindex(state::State, domain::Domain, term::String) =
+    evaluate(Parser.parse_formula(term), state, domain; as_const=false)
+Base.getindex(state::State, domain::Domain, term::Union{Number,Symbol,Expr}) =
+    evaluate(eval(Julog.parse_term(term)), state, domain; as_const=false)
