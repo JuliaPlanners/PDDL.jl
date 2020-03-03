@@ -53,3 +53,19 @@ state = execute(@julog(zoom(plane1, city0, city1)), state, domain)
 
 # Check if goal is satisfied
 @test satisfy(problem.goal, state, domain)[1] == true
+
+# Test execution of entire plan
+state = initialize(problem)
+plan = @julog [
+    board(person1, plane1, city0),
+    fly(plane1, city0, city2),
+    debark(person1, plane1, city2),
+    refuel(plane1, city2),
+    board(person2, plane1, city2),
+    fly(plane1, city2, city0),
+    debark(person2, plane1, city0),
+    refuel(plane1, city0),
+    zoom(plane1, city0, city1)
+]
+state = execute(plan, state, domain)
+@test satisfy(problem.goal, state, domain)[1] == true

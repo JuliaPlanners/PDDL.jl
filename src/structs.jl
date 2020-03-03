@@ -40,18 +40,18 @@ mutable struct Problem
     domain::Symbol # Name of associated domain
     objects::Vector{Const} # List of objects
     objtypes::Dict{Const,Symbol} # Types of objects
-    init::Vector{Clause} # Predicates that hold in initial state
+    init::Vector{Term} # Predicates that hold in initial state
     goal::Term # Goal formula
     metric::Tuple{Int64,Term} # Metric direction (+/-1) and formula
 end
 
 "PDDL state description."
 mutable struct State
-    facts::Vector{Clause}
+    facts::Set{Term}
     fluents::Dict{Symbol,Any}
 end
 
 Base.copy(s::State) = State(copy(s.facts), deepcopy(s.fluents))
 Base.:(==)(s1::State, s2::State) =
-    Set(s1.facts) == Set(s2.facts) && s1.fluents == s2.fluents
-Base.hash(s::State, h::UInt) = hash(s.fluents, hash(Set(s.facts), h))
+    s1.facts == s2.facts && s1.fluents == s2.fluents
+Base.hash(s::State, h::UInt) = hash(s.fluents, hash(s.facts, h))

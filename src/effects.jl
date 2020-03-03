@@ -75,8 +75,8 @@ end
 
 "Update a world state (in-place) with a state difference."
 function update!(state::State, diff::Diff)
-    facts = filter!(c -> !(c.head in diff.del), state.facts)
-    facts = unique!(append!(state.facts, diff.add))
+    filter!(c -> !(c in diff.del), state.facts)
+    union!(state.facts, diff.add)
     for (term, (op, val)) in diff.ops
         if isa(term, Const)
             oldval = get(state.fluents, term.name, 0)

@@ -16,6 +16,7 @@ include("parser.jl")
 using .Parser
 
 include("core.jl")
+include("states.jl")
 include("effects.jl")
 include("actions.jl")
 include("events.jl")

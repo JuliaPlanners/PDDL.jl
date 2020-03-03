@@ -315,9 +315,9 @@ parse_objects(expr::Nothing) = Const[], Dict{Const,Symbol}()
 "Parse initial formula literals in planning problem."
 function parse_init(expr::Vector)
     @assert (expr[1].name == :init) ":init keyword is missing."
-    return [Clause(parse_formula(e), []) for e in expr[2:end]]
+    return [parse_formula(e) for e in expr[2:end]]
 end
-parse_init(expr::Nothing) = Clause[]
+parse_init(expr::Nothing) = Term[]
 
 "Parse goal formula in planning problem."
 function parse_goal(expr::Vector)
