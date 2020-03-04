@@ -12,7 +12,7 @@ function satisfy(formulas::Vector{<:Term}, state::State,
     if all(f -> f in state.facts, formulas) return true, Subst() end
     # Initialize Julog knowledge base
     if domain == nothing
-        clauses = [Clause(f, Term[]) for f in facts]
+        clauses = [Clause(f, Term[]) for f in state.facts]
     else
         clauses = Clause[collect(state.facts);
                          domain.axioms; type_clauses(domain.types)]
