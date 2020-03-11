@@ -45,8 +45,8 @@ function initialize(problem::Problem)
     return state
 end
 
-"Simulate a step forward (action + triggered events) in a domain."
-function step(domain::Domain, state::State, action::Term)
+"Simulate a single state transition (action + triggered events) in a domain."
+function transition(domain::Domain, state::State, action::Term)
     state = execute(action, state, domain)
     if length(domain.events) > 0
         state = trigger(domain.events, state, domain)
@@ -54,7 +54,7 @@ function step(domain::Domain, state::State, action::Term)
     return state
 end
 
-function step(domain::Domain, state::State, actions::Set{<:Term})
+function transition(domain::Domain, state::State, actions::Set{<:Term})
     state = execpar(actions, state, domain) # Execute in parallel
     if length(domain.events) > 0
         state = trigger(domain.events, state, domain)
@@ -68,7 +68,7 @@ function simulate(domain::Domain, state::State, actions::Vector{<:Term};
     trajectory = State[state]
     callback(domain, state, Const(:start))
     for act in actions
-        state = step(domain, state, act)
+        state = transition(domain, state, act)
         push!(trajectory, state)
         callback(domain, state, act)
     end
@@ -80,7 +80,7 @@ function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}};
     trajectory = State[state]
     callback(domain, state, Set([Const(:start)]))
     for acts in actions
-        state = step(domain, state, acts)
+        state = transition(domain, state, acts)
         push!(trajectory, state)
         callback(domain, state, acts)
     end
