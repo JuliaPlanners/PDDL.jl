@@ -66,8 +66,15 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
         val = state == nothing ? val : evaluate(val, state, domain)
         diff.ops[term] = (assign_ops[effect.name], val.name)
     elseif effect.name in [:not, :!]
-        push!(diff.del, effect.args[1])
+        effect = effect.args[1]
+        if state != nothing # Evaluated all nested functions
+            effect = eval_term(effect, Subst(), state.fluents)
+        end
+        push!(diff.del, effect)
     else
+        if state != nothing # Evaluated all nested functions
+            effect = eval_term(effect, Subst(), state.fluents)
+        end
         push!(diff.add, effect)
     end
     return diff
