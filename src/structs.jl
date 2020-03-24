@@ -8,9 +8,9 @@ struct Action
     effect::Term # Effect of action
 end
 
-Action(term::Term, precond::Term, effect::Term) =
+Action(term::Compound, precond::Term, effect::Term) =
     Action(term.name, term.args, Symbol[], Dict{Var,Term}(), precond, effect)
-Action(term::Term, refs::Dict{Var,Term}, precond::Term, effect::Term) =
+Action(term::Compound, refs::Dict{Var,Term}, precond::Term, effect::Term) =
     Action(term.name, term.args, Symbol[], refs, precond, effect)
 
 "PDDL event description."

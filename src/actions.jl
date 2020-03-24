@@ -1,5 +1,7 @@
 # Functions for handling and executing actions on a state
 
+const no_op = Action(Compound(Symbol("--"), []), @julog(true), @julog(and()))
+
 "Check whether an action is available (can be executed) in a state."
 function available(act::Action, args::Vector{<:Term}, state::State,
                    domain::Union{Domain,Nothing}=nothing)
@@ -80,8 +82,15 @@ function execute(act::Action, args::Vector{<:Term}, state::State,
     return as_diff ? diff : update(state, diff)
 end
 
-execute(act::Term, state::State, domain::Domain; options...) =
-    execute(domain.actions[act.name], act.args, state, domain; options...)
+function execute(act::Term, state::State, domain::Domain; options...)
+    if act.name in keys(domain.actions)
+        execute(domain.actions[act.name], act.args, state, domain; options...)
+    elseif act.name == Symbol("--")
+        execute(no_op, Term[], state, domain; options...)
+    else
+        error("Unknown action: $act")
+    end
+end
 
 "Execute a list of actions in sequence on a state."
 function execute(actions::Vector{<:Term}, state::State, domain::Domain;
