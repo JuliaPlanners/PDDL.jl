@@ -15,7 +15,7 @@ Install this package from the Julia REPL by running:
 - Execution of PDDL actions and plans
 - Support for most of PDDL 1.2, and some additional features
 
-`PDDL.jl` does not include any planning algorithms. Rather, it aims to provide an 
+`PDDL.jl` does not include any planning algorithms. Rather, it aims to provide an
 interface so that planners for PDDL domains can easily be written in Julia.
 
 ## Example
@@ -67,9 +67,9 @@ problem = load_problem("flip-problem.pddl"))
 Actions defined by the domain can be executed to solve the problem:
 ```julia
 state = initialize(problem)
-state = execute(@pddl("(flip_column c1)"), state, domain)
-state = execute(@pddl("(flip_column c3)"), state, domain)
-state = execute(@pddl("(flip_row r2)"), state, domain)
+state = execute(pddl"(flip_column c1)", state, domain)
+state = execute(pddl"(flip_column c3)", state, domain)
+state = execute(pddl"(flip_row r2)", state, domain)
 ```
 We can then check that the problem is successfully solved in the final state:
 ```julia

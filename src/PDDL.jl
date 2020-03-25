@@ -3,7 +3,7 @@ module PDDL
 using Julog
 
 export Domain, Problem, Action, Event, State
-export parse_domain, parse_problem, parse_pddl, @pddl
+export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 export satisfy, evaluate, initialize, transition, simulate
 export get_diff, get_dist, update!, update

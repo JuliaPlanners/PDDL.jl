@@ -1,6 +1,6 @@
 module Parser
 
-export parse_domain, parse_problem, parse_pddl, @pddl
+export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
 using ParserCombinator
@@ -359,8 +359,13 @@ function parse_pddl(expr::Vector)
 end
 parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
 
-"Parse to PDDL structure based on initial keyword."
+"Parse string to PDDL construct."
 macro pddl(str::String)
+    return parse_pddl(str)
+end
+
+"Parse string to PDDL construct."
+macro pddl_str(str::String)
     return parse_pddl(str)
 end
 
