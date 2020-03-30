@@ -2,6 +2,22 @@
 
 const no_op = Action(Compound(Symbol("--"), []), @julog(true), @julog(and()))
 
+"Get list of preconditions of an action."
+function get_preconds(act::Action, args::Vector{<:Term})
+    subst = Subst(var => val for (var, val) in zip(act.args, args))
+    precond = substitute(act.precond, subst)
+    if precond.name == :and
+        return precond.args
+    else
+        return Term[precond]
+    end
+end
+
+function get_preconds(act::Term, domain::Domain)
+    args = isa(act, Compound) ? act.args : Term[]
+    return get_preconds(domain.actions[act.name], act.args)
+end
+
 "Check whether an action is available (can be executed) in a state."
 function available(act::Action, args::Vector{<:Term}, state::State,
                    domain::Union{Domain,Nothing}=nothing)
