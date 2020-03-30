@@ -3,15 +3,12 @@ struct Action
     name::Symbol # Name of action
     args::Vector{Var} # Action parameters
     types::Vector{Symbol} # Parameter types
-    refs::Dict{Var,Term} # Deictic references
     precond::Term # Precondition of action
     effect::Term # Effect of action
 end
 
 Action(term::Compound, precond::Term, effect::Term) =
-    Action(term.name, term.args, Symbol[], Dict{Var,Term}(), precond, effect)
-Action(term::Compound, refs::Dict{Var,Term}, precond::Term, effect::Term) =
-    Action(term.name, term.args, Symbol[], refs, precond, effect)
+    Action(term.name, term.args, Symbol[], precond, effect)
 
 "PDDL event description."
 struct Event

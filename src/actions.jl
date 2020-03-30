@@ -24,18 +24,7 @@ function available(act::Action, args::Vector{<:Term}, state::State,
    if any([!is_ground(a) for a in args])
        error("Not all arguments are ground.")
    end
-   arg_subst = Subst(var => val for (var, val) in zip(act.args, args))
-   ref_subst = Subst()
-   # Resolve deictic references
-   for (var, term) in act.refs
-       term = substitute(term, arg_subst)
-       sat, var_subst = satisfy([term], state, domain)
-       if !sat
-           error("Unresolvable deictic reference: $var : $term.")
-       end
-       ref_subst[var] = var_subst[1][var]
-   end
-   subst = merge(arg_subst, ref_subst)
+   subst = Subst(var => val for (var, val) in zip(act.args, args))
    # Construct type conditions of the form "type(val)"
    typecond = (all(ty == :object for ty in act.types) ? Term[] :
                [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])

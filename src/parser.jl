@@ -258,7 +258,7 @@ function parse_action(expr::Vector)
     params, types = parse_parameters(get(args, :parameters, []))
     precondition = parse_precondition(get(args, :precondition, []))
     effect = parse_effect(args[:effect])
-    return Action(name, params, types, Dict{Var,Term}(), precondition, effect)
+    return Action(name, params, types, precondition, effect)
 end
 
 "Parse event definition."
