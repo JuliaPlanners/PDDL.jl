@@ -31,6 +31,17 @@ mutable struct Domain
     events::Vector{Event} # Event definitions
 end
 
+Base.copy(d::Domain) =
+    Domain(d.name, d.requirements, d.types, d.predicates, d.predtypes,
+           d.functions, d.functypes, d.axioms, d.actions, d.events)
+
+"Get domain type hierarchy as a list of clauses."
+function get_type_clauses(domain::Domain)
+    clauses = [[Clause(@julog($ty(X)), Term[@julog($s(X))]) for s in subtys]
+               for (ty, subtys) in domain.types if length(subtys) > 0]
+    return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
+end
+
 "PDDL planning problem."
 mutable struct Problem
     name::Symbol # Name of problem
@@ -40,6 +51,14 @@ mutable struct Problem
     init::Vector{Term} # Predicates that hold in initial state
     goal::Term # Goal formula
     metric::Tuple{Int64,Term} # Metric direction (+/-1) and formula
+end
+
+Base.copy(p::Problem) =
+    Problem(p.name, p.domain, p.objects, p.objtypes, p.init, p.goal, p.metric)
+
+"Get object type declarations as a list of clauses."
+function get_objtype_clauses(problem::Problem)
+    return [@julog($ty(:o) <<= true) for (o, ty) in problem.objtypes]
 end
 
 "PDDL state description."

@@ -1,9 +1,4 @@
-"Convert type hierarchy to list of Julog clauses."
-function type_clauses(typetree::Dict{Symbol,Vector{Symbol}})
-    clauses = [[Clause(@julog($ty(X)), Term[@julog($s(X))]) for s in subtys]
-               for (ty, subtys) in typetree if length(subtys) > 0]
-    return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
-end
+# Core functions for evaluating PDDL formulae and state transitions
 
 "Check whether formulas can be satisfied in a given state."
 function satisfy(formulas::Vector{<:Term}, state::State,
@@ -15,7 +10,7 @@ function satisfy(formulas::Vector{<:Term}, state::State,
         clauses = [Clause(f, Term[]) for f in state.facts]
     else
         clauses = Clause[collect(state.facts);
-                         domain.axioms; type_clauses(domain.types)]
+                         domain.axioms; get_type_clauses(domain)]
     end
     # Pass in fluents as a dictionary of functions
     funcs = state.fluents
