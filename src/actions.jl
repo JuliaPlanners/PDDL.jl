@@ -10,8 +10,7 @@ function get_preconds(act::Action, args::Vector{<:Term})
 end
 
 function get_preconds(act::Term, domain::Domain)
-    args = isa(act, Compound) ? act.args : Term[]
-    return get_preconds(domain.actions[act.name], act.args)
+    return get_preconds(domain.actions[act.name], get_args(act))
 end
 
 function unpack_precond(term::Term)::Vector{Term}
@@ -60,7 +59,8 @@ function available(state::State, domain::Domain)
         for s in subst
             args = [s[v] for v in act.args if v in keys(s)]
             if any([!is_ground(a) for a in args]) continue end
-            push!(actions, Compound(act.name, args))
+            term = isempty(args) ? Const(act.name) : Compound(act.name, args)
+            push!(actions, term)
         end
     end
     return actions
@@ -93,7 +93,8 @@ end
 
 function execute(act::Term, state::State, domain::Domain; options...)
     if act.name in keys(domain.actions)
-        execute(domain.actions[act.name], act.args, state, domain; options...)
+        act_def, act_args = domain.actions[act.name], get_args(act)
+        execute(act_def, act_args, state, domain; options...)
     elseif act.name == Symbol("--")
         execute(no_op, Term[], state, domain; options...)
     else
@@ -106,7 +107,7 @@ function execute(actions::Vector{<:Term}, state::State, domain::Domain;
                  as_dist::Bool=false, as_diff::Bool=false)
     state = copy(state)
     for act in actions
-        diff = execute(domain.actions[act.name], act.args, state, domain;
+        diff = execute(domain.actions[act.name], get_args(act), state, domain;
                        as_dist=as_dist, as_diff=true)
         if diff == nothing return nothing end
         update!(state, diff)
@@ -122,7 +123,7 @@ execseq(actions::Vector{<:Term}, state::State, domain::Domain; options...) =
 "Execute a set of actions in parallel on a state."
 function execute(actions::Set{<:Term}, state::State, domain::Domain;
                  as_dist::Bool=false, as_diff::Bool=false)
-    diffs = [execute(domain.actions[act.name], act.args, state, domain;
+    diffs = [execute(domain.actions[act.name], get_args(act), state, domain;
                      as_dist=as_dist, as_diff=true) for act in actions]
     filter!(d -> d != nothing, diffs)
     diff = combine(diffs...)

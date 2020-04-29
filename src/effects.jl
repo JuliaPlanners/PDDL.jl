@@ -32,10 +32,8 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
         Symbol("scale-up") => *, Symbol("scale-down") => /)
     diff = Diff()
     if effect.name == :and
-        if isa(effect, Compound)
-            for eff in effect.args
-                combine!(diff, get_diff(eff, state, domain))
-            end
+        for eff in get_args(effect)
+            combine!(diff, get_diff(eff, state, domain))
         end
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
@@ -53,7 +51,7 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
             end
         end
     elseif effect.name == :probabilistic
-        n_effs = Int(length(effect.args)/2)
+        n_effs = Int(length(get_args(effect))/2)
         r, cum_prob = rand(), 0.0
         for i in 1:n_effs
             # Sample a random effect

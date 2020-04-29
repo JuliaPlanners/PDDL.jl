@@ -7,8 +7,8 @@ struct Action
     effect::Term # Effect of action
 end
 
-Action(term::Compound, precond::Term, effect::Term) =
-    Action(term.name, term.args, Symbol[], precond, effect)
+Action(term::Term, precond::Term, effect::Term) =
+    Action(term.name, get_args(term), Symbol[], precond, effect)
 
 "PDDL event description."
 struct Event
