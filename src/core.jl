@@ -24,9 +24,10 @@ satisfy(formula::Term, state::State, domain::Union{Domain,Nothing}=nothing;
 function evaluate(formula::Term, state::State,
                   domain::Union{Domain,Nothing}=nothing; as_const::Bool=true)
     # Evaluate formula as fully as possible
-    val = eval_term(formula, Julog.Subst(), state.fluents)
+    val = eval_term(formula, Subst(), state.fluents)
     # Return if formula evaluates to a Const (unwrapping if as_const=false)
-    if isa(val, Const) return as_const ? val : val.name end
+    if isa(val, Const) && !isa(val.name, Symbol)
+        return as_const ? val : val.name end
     # If val is not a Const, check if holds true in the state
     sat, _ = satisfy(Term[val], state, domain)
     return as_const ? Const(sat) : sat # Wrap in Const if as_const=true
