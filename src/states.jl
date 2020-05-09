@@ -15,6 +15,35 @@ function State(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
     return state
 end
 
+"Returns the list of all terms in a state."
+function get_terms(state::State)
+    return Term[get_types(state); get_facts(state); get_fluents(state)]
+end
+
+"Returns the list of all type declarations in a state."
+function get_types(state::State)
+    return collect(state.types)
+end
+
+"Returns the list of all facts in a state."
+function get_facts(state::State)
+    return collect(state.facts)
+end
+
+"Returns the list of all fluent terms (but not their values) in a state."
+function get_fluents(state::State)
+    terms = Term[]
+    for (name, val) in state.fluents
+        if isa(val, Dict)
+            append!(terms, [Compound(name, Const.(collect(args)))
+                            for args in keys(val)])
+        else
+            push!(terms, Const(name))
+        end
+    end
+    return terms
+end
+
 "Access the value of a fluent or fact in a state."
 Base.getindex(state::State, term::Term) =
     evaluate(term, state; as_const=false)

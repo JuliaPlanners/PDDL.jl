@@ -32,6 +32,24 @@ function evaluate(formula::Term, state::State,
     return as_const ? Const(sat) : sat # Wrap in Const if as_const=true
 end
 
+"Find all matching formulae within a state."
+function find_matches(formula::Term, state::State,
+                      domain::Union{Domain,Nothing}=nothing)
+    if formula.name in keys(state.fluents)
+        clauses = Vector{Clause}(get_fluents(state))
+        _, subst = resolve(formula, clauses; mode=:all)
+    else
+        clauses = domain == nothing ?
+            Clause[collect(state.facts); collect(state.types)] :
+            Clause[collect(state.facts); collect(state.types);
+                   domain.axioms; get_type_clauses(domain)]
+        funcs = state.fluents
+        _, subst = resolve(formula, clauses; funcs=funcs, mode=:all)
+    end
+    matches = Term[substitute(formula, s) for s in subst]
+    return matches
+end
+
 "Create initial state from problem definition."
 function initialize(problem::Problem)
     types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]

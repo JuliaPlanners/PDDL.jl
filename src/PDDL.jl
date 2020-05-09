@@ -5,7 +5,7 @@ using Julog
 export Domain, Problem, Action, Event, State
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem, preprocess
-export satisfy, evaluate, initialize, transition, simulate
+export satisfy, evaluate, find_matches, initialize, transition, simulate
 export get_preconditions, get_effect
 export get_diff, get_dist, update!, update
 export available, relevant, execute, execpar, execseq, trigger
