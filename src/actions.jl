@@ -14,6 +14,15 @@ end
 get_preconditions(act::Term, domain::Domain; kwargs...) =
     get_preconditions(domain.actions[act.name], get_args(act), kwargs...)
 
+"Get effect term of an action with variables substituted by arguments."
+function get_effect(act::Action, args::Vector{<:Term})
+    subst = Subst(var => val for (var, val) in zip(act.args, args))
+    return substitute(act.effect, subst)
+end
+
+get_effect(act::Term, domain::Domain) =
+    get_effect(domain.actions[act.name], get_args(act))
+
 "Check whether an action is available (can be executed) in a state."
 function available(act::Action, args::Vector{<:Term}, state::State,
                    domain::Union{Domain,Nothing}=nothing)
@@ -61,7 +70,7 @@ end
 
 "Execute an action with supplied args on a world state."
 function execute(act::Action, args::Vector{<:Term}, state::State,
-                 domain::Union{Domain,Nothing}=nothing;
+                 domain::Union{Domain,Nothing}=nothing; check::Bool=true,
                  as_dist::Bool=false, as_diff::Bool=false)
     # Check whether references resolve and preconditions hold
     sat, subst = available(act, args, state, domain)
