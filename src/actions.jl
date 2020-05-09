@@ -2,24 +2,17 @@
 
 const no_op = Action(Compound(Symbol("--"), []), @julog(true), @julog(and()))
 
-"Get list of preconditions of an action."
-function get_preconds(act::Action, args::Vector{<:Term})
+"Get preconditions of an action a list of conjunctions or disjunctions."
+function get_preconditions(act::Action, args::Vector{<:Term};
+                           format::Symbol=:dnf)
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     precond = substitute(act.precond, subst)
-    return unpack_precond(precond)
+    converter = format == :cnf ? to_cnf : to_dnf
+    return [clause.args for clause in converter(precond).args]
 end
 
-function get_preconds(act::Term, domain::Domain)
-    return get_preconds(domain.actions[act.name], get_args(act))
-end
-
-function unpack_precond(term::Term)::Vector{Term}
-    if term.name in [:and, :or]
-        return reduce(vcat, unpack_precond.(term.args))
-    else
-        return Term[term]
-    end
-end
+get_preconditions(act::Term, domain::Domain; kwargs...) =
+    get_preconditions(domain.actions[act.name], get_args(act), kwargs...)
 
 "Check whether an action is available (can be executed) in a state."
 function available(act::Action, args::Vector{<:Term}, state::State,
