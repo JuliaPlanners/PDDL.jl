@@ -4,14 +4,13 @@
 function satisfy(formulas::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
     # Do quick check as to whether formulas are in the set of facts
-    if all(f -> f in state.facts, formulas) return true, Subst() end
+    if all(f -> f in union(state.facts, state.types), formulas)
+        return true, Subst() end
     # Initialize Julog knowledge base
-    if domain == nothing
-        clauses = [Clause(f, Term[]) for f in state.facts]
-    else
-        clauses = Clause[collect(state.facts);
-                         domain.axioms; get_type_clauses(domain)]
-    end
+    clauses = domain == nothing ?
+        Clause[collect(state.facts); collect(state.types)] :
+        Clause[collect(state.facts); collect(state.types);
+               domain.axioms; get_type_clauses(domain)]
     # Pass in fluents as a dictionary of functions
     funcs = state.fluents
     return resolve(formulas, clauses; funcs=funcs, mode=mode)
@@ -35,9 +34,8 @@ end
 
 "Create initial state from problem definition."
 function initialize(problem::Problem)
-    types = [@julog($ty(:o)) for (o, ty) in problem.objtypes]
-    state = State(problem.init)
-    union!(state.facts, types)
+    types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
+    state = State(problem.init, types)
     return state
 end
 

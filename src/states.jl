@@ -1,6 +1,6 @@
 "Construct state from a list of terms (e.g. initial predicates and fluents)."
-function State(terms::Vector{Term})
-    state = State(Set{Term}(), Dict{Symbol,Any}())
+function State(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
+    state = State(Set{Term}(types), Set{Term}(), Dict{Symbol,Any}())
     for t in terms
         if t.name == :(==)
             # Initialize fluents

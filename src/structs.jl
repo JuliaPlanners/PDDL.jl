@@ -63,11 +63,14 @@ end
 
 "PDDL state description."
 mutable struct State
-    facts::Set{Term}
-    fluents::Dict{Symbol,Any}
+    types::Set{Term} # Object type declarations
+    facts::Set{Term} # Boolean-valued fluents
+    fluents::Dict{Symbol,Any} # All other fluents
 end
 
-Base.copy(s::State) = State(copy(s.facts), deepcopy(s.fluents))
+Base.copy(s::State) =
+    State(copy(s.types), copy(s.facts), deepcopy(s.fluents))
 Base.:(==)(s1::State, s2::State) =
-    s1.facts == s2.facts && s1.fluents == s2.fluents
-Base.hash(s::State, h::UInt) = hash(s.fluents, hash(s.facts, h))
+    s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
+Base.hash(s::State, h::UInt) =
+    hash(s.fluents, hash(s.facts, hash(s.types, h)))
