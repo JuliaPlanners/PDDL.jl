@@ -22,6 +22,8 @@ mutable struct Domain
     name::Symbol # Name of domain
     requirements::Dict{Symbol,Bool} # PDDL requirements used
     types::Dict{Symbol,Vector{Symbol}} # Types and their subtypes
+    constants::Vector{Const} # List of constants
+    constypes::Dict{Const,Symbol} # Types of constants
     predicates::Dict{Symbol,Term} # Dictionary of predicates
     predtypes::Dict{Symbol,Vector{Symbol}} # Predicate type signatures
     functions::Dict{Symbol,Term} # Dictionary of function declarations
@@ -32,8 +34,9 @@ mutable struct Domain
 end
 
 Base.copy(d::Domain) =
-    Domain(d.name, d.requirements, d.types, d.predicates, d.predtypes,
-           d.functions, d.functypes, d.axioms, d.actions, d.events)
+    Domain(d.name, d.requirements, d.types, d.constants, d.constypes,
+           d.predicates, d.predtypes, d.functions, d.functypes,
+           d.axioms, d.actions, d.events)
 
 "Get domain type hierarchy as a list of clauses."
 function get_type_clauses(domain::Domain)

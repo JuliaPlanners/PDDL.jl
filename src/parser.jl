@@ -149,6 +149,7 @@ function parse_domain(expr::Vector)
     defs = Dict(e[1].name => e for e in expr[3:end])
     requirements = parse_requirements(get(defs, :requirements, nothing))
     types = parse_types(get(defs, :types, nothing))
+    constants, constypes = parse_constants(get(defs, :constants, nothing))
     predicates, predtypes = parse_predicates(get(defs, :predicates, nothing))
     functions, functypes = parse_functions(get(defs, :functions, nothing))
     # Parse domain body (actions, events, etc.)
@@ -166,8 +167,9 @@ function parse_domain(expr::Vector)
             push!(events, parse_event(def))
         end
     end
-    return Domain(name, requirements, types, predicates, predtypes,
-                  functions, functypes, axioms, actions, events)
+    return Domain(name, requirements, types, constants, constypes,
+                  predicates, predtypes, functions, functypes,
+                  axioms, actions, events)
 end
 parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
 
@@ -211,6 +213,15 @@ function parse_types(expr::Vector)
     return types
 end
 parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
+
+"Parse constants in a planning domain."
+function parse_constants(expr::Vector)
+    @assert (expr[1].name == :constants) ":constants keyword is missing."
+    objs, types = parse_typed_consts(expr[2:end])
+    types = Dict{Const,Symbol}(o => t for (o, t) in zip(objs, types))
+    return objs, types
+end
+parse_constants(expr::Nothing) = Const[], Dict{Const,Symbol}()
 
 "Parse predicate list."
 function parse_predicates(expr::Vector)
@@ -336,7 +347,7 @@ parse_metric(expr::Nothing) = (-1, Const(Symbol("total-cost")))
 
 "List of PDDL keywords."
 keywords = [:domain, :problem,
-            :requirements, :types, :predicates, :functions,
+            :requirements, :types, :constants, :predicates, :functions,
             :axiom, :derived, :action, :event,
             :objects, :init, :goal, :metric]
 
@@ -357,6 +368,7 @@ function parse_pddl(expr::Vector)
         return parse_formula(expr)
     end
 end
+parse_pddl(sym::Symbol) = parse_formula(sym)
 parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
 
 "Parse string to PDDL construct."
