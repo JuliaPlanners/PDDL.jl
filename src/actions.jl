@@ -68,6 +68,51 @@ function available(state::State, domain::Domain)
     return actions
 end
 
+"Check whether an action is relevant (can lead) to a state."
+function relevant(act::Action, args::Vector{<:Term}, state::State,
+                  domain::Union{Domain,Nothing}=nothing; strict::Bool=false)
+   if any([!is_ground(a) for a in args])
+       error("Not all arguments are ground.")
+   end
+   subst = Subst(var => val for (var, val) in zip(act.args, args))
+   # Compute postconditions from the action's effect
+   diff = get_diff(substitute(act.effect, subst))
+   postcond = Term[strict ? diff.add : Compound(:or, diff.add);
+                   [@julog(not(:t)) for t in diff.del]]
+   # Construct type conditions of the form "type(val)"
+   typecond = (all(ty == :object for ty in act.types) ? Term[] :
+               [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])
+   # Check whether postconditions hold
+   sat, _ = satisfy([postcond; typecond], state, domain)
+   return sat, subst
+end
+
+relevant(act::Term, state::State, domain::Domain; kwargs...) =
+    relevant(domain.actions[act.name], act.args, state, domain; kwargs...)
+
+"Return list of actions relevant to achieving a state, given a domain."
+function relevant(state::State, domain::Domain; strict::Bool=false)
+    actions = Term[]
+    for act in values(domain.actions)
+        # Compute postconditions from the action's effect
+        diff = get_diff(act.effect)
+        postcond = Term[strict ? diff.add : Compound(:or, diff.add);
+                        [@julog(not(:t)) for t in diff.del]]
+        typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
+        conds = [typecond; postcond]
+        # Find all substitutions that satisfy the postconditions
+        sat, subst = satisfy(conds, state, domain; mode=:all)
+        if !sat continue end
+        for s in subst
+            args = [s[v] for v in act.args if v in keys(s)]
+            if any([!is_ground(a) for a in args]) continue end
+            term = isempty(args) ? Const(act.name) : Compound(act.name, args)
+            push!(actions, term)
+        end
+    end
+    return actions
+end
+
 "Execute an action with supplied args on a world state."
 function execute(act::Action, args::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; check::Bool=true,

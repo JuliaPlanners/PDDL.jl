@@ -49,6 +49,8 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
             for s in subst
                 combine!(diff, get_diff(substitute(eff, s), state, domain))
             end
+        else
+            push!(diff.add, effect)
         end
     elseif effect.name == :probabilistic
         n_effs = Int(length(get_args(effect))/2)
