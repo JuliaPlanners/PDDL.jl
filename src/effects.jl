@@ -9,6 +9,13 @@ end
 
 Diff() = Diff(Term[], Term[], Dict{Term,Any}())
 
+"Returns true if the diff contains a matching term."
+function contains_term(diff::Diff, term::Term)
+    return (any(has_subterm(d, term) for d in diff.add) ||
+            any(has_subterm(d, term) for d in diff.del) ||
+            any(has_subterm(d, term) for d in keys(diff.ops)))
+end
+
 "Combine state differences, modifying the first diff in place."
 function combine!(d::Diff, diffs::Diff...)
     d1 = diffs[1]

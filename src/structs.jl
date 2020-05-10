@@ -45,6 +45,26 @@ function get_type_clauses(domain::Domain)
     return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
 end
 
+"Get list of predicates that are never modified by actions in the domain."
+function get_static_predicates(domain::Domain)
+    ground = t ->
+        substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
+    diffs = [get_diff(ground(act.effect)) for act in values(domain.actions)]
+    derived = p -> any(unify(p, ax.head) != nothing for ax in domain.axioms)
+    modified = p -> any(contains_term(d, p) for d in diffs)
+    return Term[p for p in values(domain.predicates)
+                if !derived(p) && !modified(p)]
+end
+
+"Get list of functions that are never modified by actions in the domain."
+function get_static_functions(domain::Domain)
+    ground = t ->
+        substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
+    diffs = [get_diff(ground(act.effect)) for act in values(domain.actions)]
+    modified = p -> any(contains_term(d, p) for d in diffs)
+    return Term[p for p in values(domain.functions) if !modified(p)]
+end
+
 "PDDL planning problem."
 mutable struct Problem
     name::Symbol # Name of problem

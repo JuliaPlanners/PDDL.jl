@@ -6,6 +6,10 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.functions[:distance] == @julog(distance(C1, C2))
 @test domain.functypes[:fuel] == [:aircraft]
 
+# Test for static functions
+@test @julog(capacity(A)) in get_static_functions(domain)
+@test length(get_static_functions(domain)) == 5
+
 problem = load_problem(joinpath(path, "problem.pddl"))
 tot_time, tot_fuel = Symbol("total-time"), Symbol("total-fuel-used")
 @test problem.metric == (-1, @julog(4*$tot_time + 5*$tot_fuel))
