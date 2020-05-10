@@ -7,10 +7,8 @@ function satisfy(formulas::Vector{<:Term}, state::State,
     if all(f -> f in union(state.facts, state.types), formulas)
         return true, Subst() end
     # Initialize Julog knowledge base
-    clauses = domain == nothing ?
-        Clause[collect(state.facts); collect(state.types)] :
-        Clause[collect(state.facts); collect(state.types);
-               domain.axioms; get_type_clauses(domain)]
+    clauses = domain == nothing ? Clause[] : get_clauses(domain)
+    clauses = Clause[clauses; collect(state.types); collect(state.facts)]
     # Pass in fluents as a dictionary of functions
     funcs = state.fluents
     return resolve(formulas, clauses; funcs=funcs, mode=mode)
@@ -39,10 +37,8 @@ function find_matches(formula::Term, state::State,
         clauses = Vector{Clause}(get_fluents(state))
         _, subst = resolve(formula, clauses; mode=:all)
     else
-        clauses = domain == nothing ?
-            Clause[collect(state.facts); collect(state.types)] :
-            Clause[collect(state.facts); collect(state.types);
-                   domain.axioms; get_type_clauses(domain)]
+        clauses = domain == nothing ? Clause[] : get_clauses(domain)
+        clauses = Clause[clauses; collect(state.types); collect(state.facts)]
         funcs = state.fluents
         _, subst = resolve(formula, clauses; funcs=funcs, mode=:all)
     end

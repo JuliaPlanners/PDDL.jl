@@ -38,11 +38,21 @@ Base.copy(d::Domain) =
            d.predicates, d.predtypes, d.functions, d.functypes,
            d.axioms, d.actions, d.events)
 
+"Get domain constant type declarations as a list of clauses."
+function get_const_clauses(domain::Domain)
+   return [@julog($ty(:o) <<= true) for (o, ty) in domain.constypes]
+end
+
 "Get domain type hierarchy as a list of clauses."
 function get_type_clauses(domain::Domain)
     clauses = [[Clause(@julog($ty(X)), Term[@julog($s(X))]) for s in subtys]
                for (ty, subtys) in domain.types if length(subtys) > 0]
     return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
+end
+
+"Get all proof-relevant Horn clauses for PDDL domain."
+function get_clauses(domain::Domain)
+   return [domain.axioms; get_const_clauses(domain); get_type_clauses(domain)]
 end
 
 "Get list of predicates that are never modified by actions in the domain."
@@ -80,7 +90,7 @@ Base.copy(p::Problem) =
     Problem(p.name, p.domain, p.objects, p.objtypes, p.init, p.goal, p.metric)
 
 "Get object type declarations as a list of clauses."
-function get_objtype_clauses(problem::Problem)
+function get_obj_clauses(problem::Problem)
     return [@julog($ty(:o) <<= true) for (o, ty) in problem.objtypes]
 end
 

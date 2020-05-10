@@ -7,7 +7,7 @@ function preprocess(domain::Domain, problem::Union{Problem,Nothing}=nothing;
     # Get object type declarations
     objtypes = get(options, :objtypes, nothing)
     if problem != nothing && objtypes == nothing
-        objtypes = get_objtype_clauses(problem)
+        objtypes = get_obj_clauses(problem)
     end
     # Unpack flags
     regularize = get(options, :regularize, true)
