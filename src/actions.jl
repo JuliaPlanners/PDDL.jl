@@ -46,14 +46,14 @@ available(act::Term, state::State, domain::Domain) =
 function available(state::State, domain::Domain)
     actions = Term[]
     for act in values(domain.actions)
-        if (domain.requirements[:typing] ||
-            domain.requirements[Symbol("existential-preconditions")] ||
-            domain.requirements[Symbol("universal-preconditions")])
-            # Include type conditions when necessary for correctness
-            typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
-            conds = [typecond; act.precond]
-        else
-            conds = [act.precond]
+        conds = flatten_conjs(act.precond)
+        typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
+        # Include type conditions when necessary for correctness
+        if domain.requirements[:typing]
+            append!(conds, typecond)
+        elseif (domain.requirements[Symbol("existential-preconditions")] ||
+                domain.requirements[Symbol("universal-preconditions")])
+            prepend!(conds, typecond)
         end
         # Find all substitutions that satisfy preconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
@@ -99,7 +99,13 @@ function relevant(state::State, domain::Domain; strict::Bool=false)
         postcond = Term[strict ? diff.add : Compound(:or, diff.add);
                         [@julog(not(:t)) for t in diff.del]]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
-        conds = [typecond; postcond]
+        conds = postcond
+        # Include type conditions when necessary for correctness
+        if domain.requirements[:typing]
+            append!(conds, typecond)
+        elseif domain.requirements[Symbol("conditional-effects")]
+            prepend!(conds, typecond)
+        end
         # Find all substitutions that satisfy the postconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end
