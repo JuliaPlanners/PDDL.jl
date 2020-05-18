@@ -3,8 +3,7 @@ module Parser
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
-using ParserCombinator
-using Julog
+using ParserCombinator, Julog
 using ..PDDL: Domain, Problem, Action, Event
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
@@ -194,6 +193,7 @@ parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
 function parse_types(expr::Vector)
     @assert (expr[1].name == :types) ":types keyword is missing."
     types = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
+    all_subtypes = Set{Symbol}()
     accum = Symbol[]
     is_supertype = false
     for e in expr[2:end]
@@ -204,12 +204,15 @@ function parse_types(expr::Vector)
         subtypes = get!(types, e, Symbol[])
         if is_supertype
             append!(subtypes, accum)
+            union!(all_subtypes, accum)
             accum = Symbol[]
             is_supertype = false
         else
             push!(accum, e)
         end
     end
+    maxtypes = setdiff(keys(types), all_subtypes, [:object])
+    append!(types[:object], collect(maxtypes))
     return types
 end
 parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
@@ -343,7 +346,7 @@ function parse_metric(expr::Vector)
     @assert (expr[2] in [:minimize, :maximize]) "Unrecognized optimization."
     return (expr[2] == :maximize ? 1 : -1, parse_formula(expr[3]))
 end
-parse_metric(expr::Nothing) = (-1, Const(Symbol("total-cost")))
+parse_metric(expr::Nothing) = nothing
 
 "List of PDDL keywords."
 keywords = [:domain, :problem,

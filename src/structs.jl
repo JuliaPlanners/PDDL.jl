@@ -10,12 +10,19 @@ end
 Action(term::Term, precond::Term, effect::Term) =
     Action(term.name, get_args(term), Symbol[], precond, effect)
 
+Base.:(==)(a1::Action, a2::Action) = (a1.name == a2.name &&
+    Set(a1.args) == Set(a2.args) && Set(a1.types) == Set(a2.types) &&
+    a1.precond == a2.precond && a1.effect == a2.effect)
+
 "PDDL event description."
 struct Event
     name::Symbol # Name of event
     precond::Term # Precondition / trigger of event
     effect::Term # Effect of event
 end
+
+Base.:(==)(e1::Event, e2::Event) = (e1.name == e2.name &&
+    e1.precond == e2.precond && e1.effect == e2.effect)
 
 "PDDL planning domain with events and axioms."
 mutable struct Domain
@@ -83,7 +90,7 @@ mutable struct Problem
     objtypes::Dict{Const,Symbol} # Types of objects
     init::Vector{Term} # Predicates that hold in initial state
     goal::Term # Goal formula
-    metric::Tuple{Int64,Term} # Metric direction (+/-1) and formula
+    metric::Union{Tuple{Int,Term},Nothing} # Metric direction (+/-) and formula
 end
 
 Base.copy(p::Problem) =
