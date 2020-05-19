@@ -8,7 +8,6 @@ function get_preconditions(act::Action, args::Vector{<:Term};
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     precond = substitute(act.precond, subst)
     converter = format == :cnf ? to_cnf : to_dnf
-    println(converter(precond))
     return [get_args(clause) for clause in get_args(converter(precond))]
 end
 
