@@ -126,7 +126,7 @@ function execute(act::Action, args::Vector{<:Term}, state::State,
                  check::Bool=true, fail_mode::Symbol=:error)
     # Check whether references resolve and preconditions hold
     if check && !available(act, args, state, domain)
-        if fail_mode == :no_op return as_diff ? Diff() : state end
+        if fail_mode == :no_op return as_diff ? no_effect(as_dist) : state end
         error("Precondition $(act.precond) does not hold.") # Error by default
     end
     # Substitute arguments and preconditions

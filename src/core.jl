@@ -54,16 +54,19 @@ function initialize(problem::Problem)
 end
 
 "Simulate a single state transition (action + triggered events) in a domain."
-function transition(domain::Domain, state::State, action::Term)
-    state = execute(action, state, domain)
+function transition(domain::Domain, state::State, action::Term;
+                    check::Bool=true, fail_mode::Symbol=:error)
+    state = execute(action, state, domain; check=check, fail_mode=fail_mode)
     if length(domain.events) > 0
         state = trigger(domain.events, state, domain)
     end
     return state
 end
 
-function transition(domain::Domain, state::State, actions::Set{<:Term})
-    state = execpar(actions, state, domain) # Execute in parallel
+function transition(domain::Domain, state::State, actions::Set{<:Term};
+                    check::Bool=true, fail_mode::Symbol=:error)
+    # Execute all actions in parallel
+    state = execpar(actions, state, domain, check=check, fail_mode=fail_mode)
     if length(domain.events) > 0
         state = trigger(domain.events, state, domain)
     end
@@ -72,11 +75,12 @@ end
 
 "Simulate state trajectory for a given domain and sequence of actions."
 function simulate(domain::Domain, state::State, actions::Vector{<:Term};
+                  check::Bool=true, fail_mode::Symbol=:error,
                   callback::Function=(d,s,a)->nothing)
     trajectory = State[state]
     callback(domain, state, Const(:start))
     for act in actions
-        state = transition(domain, state, act)
+        state = transition(domain, state, act; check=check, fail_mode=fail_mode)
         push!(trajectory, state)
         callback(domain, state, act)
     end
@@ -84,11 +88,13 @@ function simulate(domain::Domain, state::State, actions::Vector{<:Term};
 end
 
 function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}};
+                  check::Bool=true, fail_mode::Symbol=:error,
                   callback::Function=(d,s,a)->nothing)
     trajectory = State[state]
     callback(domain, state, Set([Const(:start)]))
     for acts in actions
-        state = transition(domain, state, acts)
+        state = transition(domain, state, acts;
+                           check=check, fail_mode=fail_mode)
         push!(trajectory, state)
         callback(domain, state, acts)
     end
