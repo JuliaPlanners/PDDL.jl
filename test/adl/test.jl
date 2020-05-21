@@ -29,16 +29,16 @@ state = initialize(problem)
 # Commit charger to assembly of frob
 state = execute(@julog(commit(charger, frob)), state, domain)
 # Once commited, we can't commit again
-@test available(@julog(commit(charger, frob)), state, domain)[1] == false
+@test available(@julog(commit(charger, frob)), state, domain) == false
 
 # We can't add a tube to the frob before adding the widget and fastener
-@test available(@julog(assemble(tube, frob)), state, domain)[1] == false
+@test available(@julog(assemble(tube, frob)), state, domain) == false
 state = execute(@julog(assemble(widget, frob)), state, domain)
-@test available(@julog(assemble(tube, frob)), state, domain)[1] == false
+@test available(@julog(assemble(tube, frob)), state, domain) == false
 state = execute(@julog(assemble(fastener, frob)), state, domain)
 
 # Having added both widget and fastener, now we can add the tube
-@test available(@julog(assemble(tube, frob)), state, domain)[1] == true
+@test available(@julog(assemble(tube, frob)), state, domain) == true
 state = execute(@julog(assemble(tube, frob)), state, domain)
 
 # We've completely assembled a frob!

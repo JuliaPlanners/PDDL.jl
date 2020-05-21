@@ -26,7 +26,7 @@ get_effect(act::Term, domain::Domain) =
 "Check whether an action is available (can be executed) in a state."
 function available(act::Action, args::Vector{<:Term}, state::State,
                    domain::Union{Domain,Nothing}=nothing)
-   if any([!is_ground(a) for a in args])
+   if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
    end
    subst = Subst(var => val for (var, val) in zip(act.args, args))
@@ -36,7 +36,7 @@ function available(act::Action, args::Vector{<:Term}, state::State,
    # Check whether preconditions hold
    precond = substitute(act.precond, subst)
    sat, _ = satisfy([precond; typecond], state, domain)
-   return sat, subst
+   return sat
 end
 
 available(act::Term, state::State, domain::Domain) =
@@ -71,7 +71,7 @@ end
 "Check whether an action is relevant (can lead) to a state."
 function relevant(act::Action, args::Vector{<:Term}, state::State,
                   domain::Union{Domain,Nothing}=nothing; strict::Bool=false)
-   if any([!is_ground(a) for a in args])
+   if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
    end
    subst = Subst(var => val for (var, val) in zip(act.args, args))
@@ -84,7 +84,7 @@ function relevant(act::Action, args::Vector{<:Term}, state::State,
                [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])
    # Check whether postconditions hold
    sat, _ = satisfy([postcond; typecond], state, domain)
-   return sat, subst
+   return sat
 end
 
 relevant(act::Term, state::State, domain::Domain; kwargs...) =
@@ -121,16 +121,17 @@ end
 
 "Execute an action with supplied args on a world state."
 function execute(act::Action, args::Vector{<:Term}, state::State,
-                 domain::Union{Domain,Nothing}=nothing; check::Bool=true,
-                 as_dist::Bool=false, as_diff::Bool=false)
+                 domain::Union{Domain,Nothing}=nothing;
+                 as_dist::Bool=false, as_diff::Bool=false,
+                 check::Bool=true, fail_mode::Symbol=:error)
     # Check whether references resolve and preconditions hold
-    sat, subst = available(act, args, state, domain)
-    if !sat
-        @debug "Precondition $precond does not hold."
-        return nothing
+    if check && !available(act, args, state, domain)
+        if fail_mode == :no_op return as_diff ? Diff() : state end
+        error("Precondition $(act.precond) does not hold.") # Error by default
     end
     # Substitute arguments and preconditions
     # TODO : Check for non-ground terms outside of quantified formulas
+    subst = Subst(var => val for (var, val) in zip(act.args, args))
     effect = substitute(act.effect, subst)
     # Compute effects in the appropriate form
     if as_dist
@@ -157,12 +158,11 @@ end
 
 "Execute a list of actions in sequence on a state."
 function execute(actions::Vector{<:Term}, state::State, domain::Domain;
-                 as_dist::Bool=false, as_diff::Bool=false)
+                 as_dist::Bool=false, as_diff::Bool=false, options...)
     state = copy(state)
     for act in actions
         diff = execute(domain.actions[act.name], get_args(act), state, domain;
-                       as_dist=as_dist, as_diff=true)
-        if diff == nothing return nothing end
+                       as_dist=as_dist, as_diff=true, options...)
         update!(state, diff)
     end
     # Return either the difference or the final state
@@ -175,10 +175,10 @@ execseq(actions::Vector{<:Term}, state::State, domain::Domain; options...) =
 
 "Execute a set of actions in parallel on a state."
 function execute(actions::Set{<:Term}, state::State, domain::Domain;
-                 as_dist::Bool=false, as_diff::Bool=false)
+                 as_dist::Bool=false, as_diff::Bool=false, options...)
     diffs = [execute(domain.actions[act.name], get_args(act), state, domain;
-                     as_dist=as_dist, as_diff=true) for act in actions]
-    filter!(d -> d != nothing, diffs)
+                     as_dist=as_dist, as_diff=true, options...)
+             for act in actions]
     diff = combine(diffs...)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
