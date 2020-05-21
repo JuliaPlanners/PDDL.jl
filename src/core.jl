@@ -4,7 +4,7 @@
 function satisfy(formulas::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
     # Do quick check as to whether formulas are in the set of facts
-    if all(f -> f in union(state.facts, state.types), formulas)
+    if all(f -> f in state.facts || f in state.types, formulas)
         return true, Subst() end
     # Initialize Julog knowledge base
     clauses = domain == nothing ? Clause[] : get_clauses(domain)
