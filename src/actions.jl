@@ -2,14 +2,16 @@
 
 const no_op = Action(Compound(Symbol("--"), []), @julog(true), @julog(and()))
 
-"Get preconditions of an action a list of conjunctions or disjunctions."
+"Get preconditions of an action as a list."
 function get_preconditions(act::Action, args::Vector{<:Term};
-                           format::Symbol=:dnf)
+                           converter::Function=flatten_conjs)
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     precond = substitute(act.precond, subst)
-    converter = format == :cnf ? to_cnf : to_dnf
-    return [get_args(clause) for clause in get_args(converter(precond))]
+    return converter(precond)
 end
+
+get_preconditions(act::Action; converter::Function=flatten_conjs) =
+    converter(precond)
 
 get_preconditions(act::Term, domain::Domain; kwargs...) =
     get_preconditions(domain.actions[act.name], get_args(act), kwargs...)
