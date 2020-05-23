@@ -14,7 +14,7 @@ get_preconditions(act::Action; converter::Function=flatten_conjs) =
     converter(precond)
 
 get_preconditions(act::Term, domain::Domain; kwargs...) =
-    get_preconditions(domain.actions[act.name], get_args(act), kwargs...)
+    get_preconditions(domain.actions[act.name], get_args(act); kwargs...)
 
 "Get effect term of an action with variables substituted by arguments."
 function get_effect(act::Action, args::Vector{<:Term})
