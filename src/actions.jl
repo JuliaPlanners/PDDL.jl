@@ -44,8 +44,23 @@ end
 available(act::Term, state::State, domain::Domain) =
     available(domain.actions[act.name], act.args, state, domain)
 
+"Cache of available actions for a given domain and state."
+const available_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
+
+"Clear cache of available actions."
+clear_available_action_cache!() = empty!(available_action_cache)
+clear_available_action_cache!(domain::Domain) =
+    empty!(available_action_cache[objectid(domain)])
+
 "Return list of available actions in a state, given a domain."
-function available(state::State, domain::Domain)
+function available(state::State, domain::Domain; use_cache::Bool=true)
+    if use_cache # Look up actions in cache
+        cache = get!(available_action_cache, objectid(domain),
+                     Dict{UInt,Vector{Term}}())
+        state_hash = hash(state)
+        if haskey(cache, state_hash) return copy(cache[state_hash]) end
+    end
+    # Ground all action definitions with arguments
     actions = Term[]
     for act in values(domain.actions)
         conds = flatten_conjs(act.precond)
@@ -67,6 +82,7 @@ function available(state::State, domain::Domain)
             push!(actions, term)
         end
     end
+    if use_cache cache[state_hash] = copy(actions) end
     return actions
 end
 
@@ -92,8 +108,23 @@ end
 relevant(act::Term, state::State, domain::Domain; kwargs...) =
     relevant(domain.actions[act.name], act.args, state, domain; kwargs...)
 
+"Cache of relevant actions for a given domain and state."
+const relevant_action_cache = Dict{Symbol,Dict{UInt,Vector{Term}}}()
+
+"Clear cache of relevant actions."
+clear_relevant_action_cache!() = empty!(relevant_action_cache)
+clear_relevant_action_cache!(domain::Domain) =
+    empty!(relevant_action_cache[objectid(domain)])
+
 "Return list of actions relevant to achieving a state, given a domain."
-function relevant(state::State, domain::Domain; strict::Bool=false)
+function relevant(state::State, domain::Domain;
+                  strict::Bool=false, use_cache::Bool=true)
+    if use_cache # Look up actions in cache
+        cache = get!(relevant_action_cache, hash(strict, objectid(domain)),
+                     Dict{UInt,Vector{Term}}())
+        state_hash = hash(state)
+        if haskey(cache, state_hash) return copy(cache[state_hash]) end
+    end
     actions = Term[]
     for act in values(domain.actions)
         # Compute postconditions from the action's effect
@@ -118,6 +149,7 @@ function relevant(state::State, domain::Domain; strict::Bool=false)
             push!(actions, term)
         end
     end
+    if use_cache cache[state_hash] = copy(actions) end
     return actions
 end
 

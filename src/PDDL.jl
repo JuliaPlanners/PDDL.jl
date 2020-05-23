@@ -13,6 +13,7 @@ export initialize, transition, simulate
 export get_preconditions, get_effect
 export get_diff, get_dist, update!, update
 export available, relevant, execute, execpar, execseq, trigger
+export clear_available_action_cache!, clear_relevant_action_cache!
 
 include("requirements.jl")
 include("structs.jl")
