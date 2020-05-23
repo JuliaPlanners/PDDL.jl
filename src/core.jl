@@ -10,7 +10,7 @@ function satisfy(formulas::Vector{<:Term}, state::State,
             return eval_term(f, Subst(), state.fluents).name == true end
         return false
     end
-    if all(f -> f.name == :not ? in_facts(f.args[1]) : in_facts(f), formulas)
+    if all(f -> f.name == :not ? !in_facts(f.args[1]) : in_facts(f), formulas)
         return true, Subst() end
     # Initialize Julog knowledge base
     clauses = domain == nothing ? Clause[] : get_clauses(domain)
