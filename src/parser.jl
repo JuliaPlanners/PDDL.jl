@@ -349,13 +349,13 @@ end
 parse_metric(expr::Nothing) = nothing
 
 "List of PDDL keywords."
-keywords = [:domain, :problem,
-            :requirements, :types, :constants, :predicates, :functions,
-            :axiom, :derived, :action, :event,
-            :objects, :init, :goal, :metric]
+const keywords = [:domain, :problem,
+                  :requirements, :types, :constants, :predicates, :functions,
+                  :axiom, :derived, :action, :event,
+                  :objects, :init, :goal, :metric]
 
 "Dictionary of parsing functions."
-parse_funcs = Dict{Symbol,Function}(
+const parse_funcs = Dict{Symbol,Function}(
     kw => getfield(@__MODULE__, Symbol(:parse_, kw)) for kw in keywords
 )
 
