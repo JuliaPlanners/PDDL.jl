@@ -11,7 +11,7 @@ function satisfy(formulas::Vector{<:Term}, state::State,
         return false
     end
     if all(f -> f.name == :not ? !in_facts(f.args[1]) : in_facts(f), formulas)
-        return true, Subst() end
+        return true, [Subst()] end
     # Initialize Julog knowledge base
     clauses = domain == nothing ? Clause[] : get_clauses(domain)
     clauses = Clause[clauses; collect(state.types); collect(state.facts)]
