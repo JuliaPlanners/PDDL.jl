@@ -1,7 +1,7 @@
 "PDDL action description."
 struct Action
     name::Symbol # Name of action
-    args::Vector{Var} # Action parameters
+    args::Vector{Term} # Action parameters
     types::Vector{Symbol} # Parameter types
     precond::Term # Precondition of action
     effect::Term # Effect of action
