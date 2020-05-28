@@ -1,3 +1,17 @@
+"PDDL state description."
+mutable struct State
+    types::Set{Term} # Object type declarations
+    facts::Set{Term} # Boolean-valued fluents
+    fluents::Dict{Symbol,Any} # All other fluents
+end
+
+Base.copy(s::State) =
+    State(copy(s.types), copy(s.facts), deepcopy(s.fluents))
+Base.:(==)(s1::State, s2::State) =
+    s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
+Base.hash(s::State, h::UInt) =
+    hash(s.fluents, hash(s.facts, hash(s.types, h)))
+
 "PDDL action description."
 struct Action
     name::Symbol # Name of action
@@ -93,6 +107,16 @@ mutable struct Problem
     metric::Union{Tuple{Int,Term},Nothing} # Metric direction (+/-) and formula
 end
 
+function Problem(state::State, goal::Term=@julog(and()),
+                 metric::Union{Tuple{Int,Term},Nothing}=nothing;
+                 name=:problem, domain=:domain)
+    objtypes = Dict{Const,Symbol}(get_args(t)[1] => t.name for t in state.types)
+    objects = collect(keys(objtypes))
+    init = Term[get_facts(state); get_assignments(state)]
+    return Problem(Symbol(name), Symbol(domain),
+                   objects, objtypes, init, goal, metric)
+end
+
 Base.copy(p::Problem) =
     Problem(p.name, p.domain, p.objects, p.objtypes, p.init, p.goal, p.metric)
 
@@ -100,17 +124,3 @@ Base.copy(p::Problem) =
 function get_obj_clauses(problem::Problem)
     return [@julog($ty(:o) <<= true) for (o, ty) in problem.objtypes]
 end
-
-"PDDL state description."
-mutable struct State
-    types::Set{Term} # Object type declarations
-    facts::Set{Term} # Boolean-valued fluents
-    fluents::Dict{Symbol,Any} # All other fluents
-end
-
-Base.copy(s::State) =
-    State(copy(s.types), copy(s.facts), deepcopy(s.fluents))
-Base.:(==)(s1::State, s2::State) =
-    s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
-Base.hash(s::State, h::UInt) =
-    hash(s.fluents, hash(s.facts, hash(s.types, h)))

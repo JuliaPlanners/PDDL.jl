@@ -44,6 +44,24 @@ function get_fluents(state::State)
     return terms
 end
 
+"Returns the list of all fluent assignments in a state."
+function get_assignments(state::State)
+    terms = Term[]
+    for (name, val) in state.fluents
+        if isa(val, Dict)
+            for (args, v) in val
+                fluent = Compound(name, Const.(collect(args)))
+                assignment = @julog(:fluent == $v)
+                push!(terms, assignment)
+            end
+        else
+            assignment = @julog($name == $val)
+            push!(terms, assignment)
+        end
+    end
+    return terms
+end
+
 "Access the value of a fluent or fact in a state."
 Base.getindex(state::State, term::Term) =
     evaluate(term, state; as_const=false)
