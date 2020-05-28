@@ -69,13 +69,19 @@ function write_formula(f::Compound)
         var_str = write_typed_list(flatten_conjs(typecond))
         body_str = write_formula(body)
         return "($(f.name) ($var_str) $body_str)"
-    else
+    elseif f.name in [:and, :or, :not, :when, :imply,
+                      :(==), :>, :<, :!=, :>=, :<=, :+, :-, :*, :/,
+                      :assign, :increase, :decrease,
+                      Symbol("scale-up"), Symbol("scale-down")]
         name = f.name == :(==) ? "=" : string(f.name)
-        args = join([write_subformula(a) for a in f.args], " ")
+        args = join([write_formula(a) for a in f.args], " ")
         return "($name $args)"
+    else
+        args = join([write_subformula(a) for a in f.args], " ")
+        return "($(f.name) $args)"
     end
 end
-write_formula(f::Var) = "(?" * lowercasefirst(repr(f)) * ")"
+write_formula(f::Var) = "?" * lowercasefirst(repr(f))
 write_formula(f::Const) = "(" * repr(f) * ")"
 
 write_subformula(f::Compound) = write_formula(f)
