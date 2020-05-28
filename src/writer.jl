@@ -204,13 +204,13 @@ write_metric(::Nothing) = ""
 "Save PDDL domain to specified path."
 function save_domain(path::String, domain::Domain)
     open(f->write(f, write_domain(domain)), path, "w")
-    return nothing
+    return path
 end
 
 "Save PDDL problem to specified path."
 function save_problem(path::String, problem::Problem)
     open(f->write(f, write_problem(problem)), path, "w")
-    return nothing
+    return path
 end
 
 end
