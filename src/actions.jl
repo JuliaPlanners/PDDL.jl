@@ -66,10 +66,14 @@ function available(state::State, domain::Domain; use_cache::Bool=true)
     actions = Term[]
     for act in values(domain.actions)
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
-        # Prepend type conditions when necessary for correctness
-        conds = has_fluent(act.precond, domain) || has_quantifier(act.precond) ?
-            [typecond; flatten_conjs(act.precond)] :
-            [flatten_conjs(act.precond); typecond]
+        # Include type conditions when necessary for correctness
+        if has_fluent(act.precond, domain) || has_quantifier(act.precond)
+            conds = [typecond; flatten_conjs(act.precond)]
+        elseif domain.requirements[:typing]
+            conds = [flatten_conjs(act.precond); typecond]
+        else
+            conds = flatten_conjs(act.precond)
+        end
         # Find all substitutions that satisfy preconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end
@@ -130,12 +134,13 @@ function relevant(state::State, domain::Domain;
         postcond = Term[strict ? diff.add : Compound(:or, diff.add);
                         [@julog(not(:t)) for t in diff.del]]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
-        conds = postcond
         # Include type conditions when necessary for correctness
-        if domain.requirements[:typing]
-            append!(conds, typecond)
-        elseif domain.requirements[Symbol("conditional-effects")]
-            prepend!(conds, typecond)
+        if any(has_fluent(c, domain) || has_quantifier(c) for c in postcond)
+            conds = [typecond; postcond]
+        elseif domain.requirements[:typing]
+            conds = [postcond; typecond]
+        else
+            conds = postcond
         end
         # Find all substitutions that satisfy the postconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
