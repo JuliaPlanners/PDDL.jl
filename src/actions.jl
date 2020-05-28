@@ -28,17 +28,19 @@ get_effect(act::Term, domain::Domain) =
 "Check whether an action is available (can be executed) in a state."
 function available(act::Action, args::Vector{<:Term}, state::State,
                    domain::Union{Domain,Nothing}=nothing)
-   if any(!is_ground(a) for a in args)
+    if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
-   end
-   subst = Subst(var => val for (var, val) in zip(act.args, args))
-   # Construct type conditions of the form "type(val)"
-   typecond = (all(ty == :object for ty in act.types) ? Term[] :
+    end
+    subst = Subst(var => val for (var, val) in zip(act.args, args))
+    # Construct type conditions of the form "type(val)"
+    typecond = (all(ty == :object for ty in act.types) ? Term[] :
                [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])
-   # Check whether preconditions hold
-   precond = substitute(act.precond, subst)
-   sat, _ = satisfy([precond; typecond], state, domain)
-   return sat
+    # Check whether preconditions hold
+    precond = substitute(act.precond, subst)
+    conds = has_fluent(precond, state) || has_quantifier(precond) ?
+        [typecond; precond] : [precond; typecond]
+    sat, _ = satisfy(conds, state, domain)
+    return sat
 end
 
 available(act::Term, state::State, domain::Domain) =
@@ -63,15 +65,11 @@ function available(state::State, domain::Domain; use_cache::Bool=true)
     # Ground all action definitions with arguments
     actions = Term[]
     for act in values(domain.actions)
-        conds = flatten_conjs(act.precond)
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
-        # Include type conditions when necessary for correctness
-        if domain.requirements[:typing]
-            append!(conds, typecond)
-        elseif (domain.requirements[Symbol("existential-preconditions")] ||
-                domain.requirements[Symbol("universal-preconditions")])
-            prepend!(conds, typecond)
-        end
+        # Prepend type conditions when necessary for correctness
+        conds = has_fluent(act.precond, domain) || has_quantifier(act.precond) ?
+            [typecond; flatten_conjs(act.precond)] :
+            [flatten_conjs(act.precond); typecond]
         # Find all substitutions that satisfy preconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end

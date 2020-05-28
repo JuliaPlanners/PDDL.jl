@@ -22,6 +22,7 @@ include("writer.jl")
 
 using .Parser, .Writer
 
+include("utils.jl")
 include("core.jl")
 include("preprocess.jl")
 include("states.jl")
