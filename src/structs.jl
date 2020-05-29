@@ -59,6 +59,11 @@ Base.copy(d::Domain) =
            d.predicates, d.predtypes, d.functions, d.functypes,
            d.axioms, d.actions, d.events)
 
+"Get domain constant type declarations as a set of facts."
+function get_const_facts(domain::Domain)
+  return Set([@julog($ty(:o)) for (o, ty) in domain.constypes])
+end
+
 "Get domain constant type declarations as a list of clauses."
 function get_const_clauses(domain::Domain)
    return [@julog($ty(:o) <<= true) for (o, ty) in domain.constypes]

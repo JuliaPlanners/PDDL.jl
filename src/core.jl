@@ -5,8 +5,12 @@ function satisfy(formulas::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
     # Do quick check as to whether formulas are in the set of facts
     function in_facts(f::Term)
-        if !isempty(state.fluents) f = eval_term(f, Subst(), state.fluents) end
-        if f in state.facts || f in state.types return true end
+        if !isempty(state.fluents)
+            f = eval_term(f, Subst(), state.fluents) end
+        if f in state.facts || f in state.types
+            return true end
+        if domain != nothing && f in get_const_facts(domain)
+            return true end
         if f.name in Julog.comp_ops || f.name in keys(state.fluents)
             return eval_term(f, Subst(), state.fluents).name == true end
         return false
