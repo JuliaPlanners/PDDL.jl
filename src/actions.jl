@@ -50,7 +50,8 @@ available(act::Term, state::State, domain::Domain) =
 const available_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
 
 "Clear cache of available actions."
-clear_available_action_cache!() = empty!(available_action_cache)
+clear_available_action_cache!() =
+    (map(empty!, values(available_action_cache)); empty!(available_action_cache))
 clear_available_action_cache!(domain::Domain) =
     empty!(available_action_cache[objectid(domain)])
 
@@ -114,7 +115,8 @@ relevant(act::Term, state::State, domain::Domain; kwargs...) =
 const relevant_action_cache = Dict{Symbol,Dict{UInt,Vector{Term}}}()
 
 "Clear cache of relevant actions."
-clear_relevant_action_cache!() = empty!(relevant_action_cache)
+clear_relevant_action_cache!() =
+    (map(empty!, values(relevant_action_cache)); empty!(relevant_action_cache))
 clear_relevant_action_cache!(domain::Domain) =
     empty!(relevant_action_cache[objectid(domain)])
 
