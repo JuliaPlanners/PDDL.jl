@@ -1,4 +1,4 @@
-# Functions for handling effect formulas
+# Functions for handling effect formulae
 
 "Representation of an effect as additions, deletions, and assignments."
 mutable struct Diff

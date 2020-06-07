@@ -3,6 +3,7 @@ module PDDL
 using Julog
 
 export Domain, Problem, Action, Event, State
+export Term, Compound, Var, Const
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export write_domain, write_problem, write_pddl
 export load_domain, load_problem, preprocess

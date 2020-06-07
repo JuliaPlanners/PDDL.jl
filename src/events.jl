@@ -1,17 +1,23 @@
 # Functions for handling and triggering events
 
-"Trigger an event if its preconditions hold on a world state."
-function trigger(evt::Event, state::State,
+"""
+    trigger(event::Event, state, domain=nothing; kwargs...)
+    trigger(events::Vector{Event}, state, domain=nothing; kwargs...)
+
+Trigger an `event` or list of `events` if their preconditions hold in the given
+`state` and `domain`. See [`execute`](@ref) for keyword arguments.
+"""
+function trigger(event::Event, state::State,
                  domain::Union{Domain,Nothing}=nothing;
                  as_dist::Bool=false, as_diff::Bool=false)
     # Check whether preconditions hold
-    sat, subst = satisfy([evt.precond], state, domain; mode=:all)
+    sat, subst = satisfy([event.precond], state, domain; mode=:all)
     if !sat
-        @debug "Precondition $(evt.precond) does not hold."
+        @debug "Precondition $(event.precond) does not hold."
         return as_diff ? no_effect(as_dist) : state
     end
     # Update state with effects for each matching substitution
-    effects = [substitute(evt.effect, s) for s in subst]
+    effects = [substitute(event.effect, s) for s in subst]
     if as_dist
         # Compute product distribution
         eff_dists = [get_dist(e, state) for e in effects]
@@ -24,7 +30,6 @@ function trigger(evt::Event, state::State,
     return as_diff ? diff : update(state, diff)
 end
 
-"Trigger a set of events on a world state."
 function trigger(events::Vector{Event}, state::State,
                  domain::Union{Domain,Nothing}=nothing;
                  as_dist::Bool=false, as_diff::Bool=false)

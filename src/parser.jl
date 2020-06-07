@@ -51,7 +51,7 @@ lisp.matcher = doubley | floaty | inty | uchary | achary | chary | stringy | boo
 
 top_level    = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
 
-"Parse to first-order-logic formulas."
+"Parse to first-order-logic formula."
 function parse_formula(expr::Vector)
     if length(expr) == 0
         return Const(:true)

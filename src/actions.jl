@@ -25,7 +25,12 @@ end
 get_effect(act::Term, domain::Domain) =
     get_effect(domain.actions[act.name], get_args(act))
 
-"Check whether an action is available (can be executed) in a state."
+"""
+    available(act::Action, args, state, domain=nothing)
+    available(act::Term, state, domain)
+
+Check whether `act` can be executed in the given `state` and `domain`.
+"""
 function available(act::Action, args::Vector{<:Term}, state::State,
                    domain::Union{Domain,Nothing}=nothing)
     if any(!is_ground(a) for a in args)
@@ -55,7 +60,12 @@ clear_available_action_cache!() =
 clear_available_action_cache!(domain::Domain) =
     empty!(available_action_cache[objectid(domain)])
 
-"Return list of available actions in a state, given a domain."
+"""
+    available(state, domain; use_cache=true)
+
+Return the list of available actions in a given `state` and `domain`.
+If `use_cache` is true, memoize the results in a global cache.
+"""
 function available(state::State, domain::Domain; use_cache::Bool=true)
     if use_cache # Look up actions in cache
         cache = get!(available_action_cache, objectid(domain),
@@ -89,7 +99,13 @@ function available(state::State, domain::Domain; use_cache::Bool=true)
     return actions
 end
 
-"Check whether an action is relevant (can lead) to a state."
+"""
+    relevant(act::Action, args, state, domain=nothing; strict=false)
+    relevant(act::Term, state, domain; strict=false)
+
+Check whether `act` is relevant (can lead to) a `state` in the given `domain`.
+If `strict` is true, check that all added facts are true in `state`.
+"""
 function relevant(act::Action, args::Vector{<:Term}, state::State,
                   domain::Union{Domain,Nothing}=nothing; strict::Bool=false)
    if any(!is_ground(a) for a in args)
@@ -120,7 +136,13 @@ clear_relevant_action_cache!() =
 clear_relevant_action_cache!(domain::Domain) =
     empty!(relevant_action_cache[objectid(domain)])
 
-"Return list of actions relevant to achieving a state, given a domain."
+"""
+    relevant(state, domain; strict=false, use_cache=true)
+
+Return the list of actions relevant to achieving a `state` in a given `domain`.
+If `strict` is true, check that all added facts are true in `state`.
+If `use_cache` is true, memoize the results in a global cache.
+"""
 function relevant(state::State, domain::Domain;
                   strict::Bool=false, use_cache::Bool=true)
     if use_cache # Look up actions in cache
@@ -158,7 +180,22 @@ function relevant(state::State, domain::Domain;
     return actions
 end
 
-"Execute an action with supplied args on a world state."
+"""
+    execute(act::Action, args, state, domain=nothing; kwargs...)
+    execute(act::Term, state, domain; kwargs...)
+
+Execute the action `act` on the given `state`. If `act` is an `Action`
+definition, `args` must be supplied for the action's parameters. If `act` is
+a `Term`, parameters will be extracted from its arguments, but `domain` must
+be supplied.
+
+Returns the resulting state by default, but this can modified by keyword
+arguments `as_dist=true` (returns a distribution), `as_diff=true` (returns a
+`Diff` between states), or both (returns a distribution over `Diff`s).
+By default, also `check`s that action preconditions hold, failing with
+an error if `fail_mode=:error`, or treating the action as a `no_op` if
+`fail_mode=:no_op`.
+"""
 function execute(act::Action, args::Vector{<:Term}, state::State,
                  domain::Union{Domain,Nothing}=nothing;
                  as_dist::Bool=false, as_diff::Bool=false,
@@ -169,7 +206,7 @@ function execute(act::Action, args::Vector{<:Term}, state::State,
         error("Precondition $(act.precond) does not hold.") # Error by default
     end
     # Substitute arguments and preconditions
-    # TODO : Check for non-ground terms outside of quantified formulas
+    # TODO : Check for non-ground terms outside of quantified formulae
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     effect = substitute(act.effect, subst)
     # Compute effects in the appropriate form
@@ -195,7 +232,6 @@ function execute(act::Term, state::State, domain::Domain; options...)
     end
 end
 
-"Execute a list of actions in sequence on a state."
 function execute(actions::Vector{<:Term}, state::State, domain::Domain;
                  as_dist::Bool=false, as_diff::Bool=false, options...)
     state = copy(state)
@@ -212,7 +248,6 @@ end
 execseq(actions::Vector{<:Term}, state::State, domain::Domain; options...) =
     execute(actions, state, domain; options...)
 
-"Execute a set of actions in parallel on a state."
 function execute(actions::Set{<:Term}, state::State, domain::Domain;
                  as_dist::Bool=false, as_diff::Bool=false, options...)
     diffs = [execute(domain.actions[act.name], get_args(act), state, domain;
