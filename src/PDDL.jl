@@ -1,5 +1,6 @@
 module PDDL
 
+using Base: @kwdef
 using Julog
 
 export Domain, Problem, Action, Event, State

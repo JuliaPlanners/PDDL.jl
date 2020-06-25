@@ -39,19 +39,28 @@ Base.:(==)(e1::Event, e2::Event) = (e1.name == e2.name &&
     e1.precond == e2.precond && e1.effect == e2.effect)
 
 "PDDL planning domain with events and axioms."
-mutable struct Domain
+@kwdef mutable struct Domain
     name::Symbol # Name of domain
-    requirements::Dict{Symbol,Bool} # PDDL requirements used
-    types::Dict{Symbol,Vector{Symbol}} # Types and their subtypes
-    constants::Vector{Const} # List of constants
-    constypes::Dict{Const,Symbol} # Types of constants
-    predicates::Dict{Symbol,Term} # Dictionary of predicates
-    predtypes::Dict{Symbol,Vector{Symbol}} # Predicate type signatures
-    functions::Dict{Symbol,Term} # Dictionary of function declarations
-    functypes::Dict{Symbol,Vector{Symbol}} # Function type signatures
-    axioms::Vector{Clause} # Axioms / derived predicates
-    actions::Dict{Symbol,Action} # Action definitions
-    events::Vector{Event} # Event definitions
+    requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
+    types::Dict{Symbol,Vector{Symbol}} = Dict() # Types and their subtypes
+    constants::Vector{Const} = [] # List of constants
+    constypes::Dict{Const,Symbol} = Dict() # Types of constants
+    predicates::Dict{Symbol,Term} = Dict() # Dictionary of predicates
+    predtypes::Dict{Symbol,Vector{Symbol}} = Dict() # Predicate type signatures
+    functions::Dict{Symbol,Term} = Dict() # Dictionary of function declarations
+    functypes::Dict{Symbol,Vector{Symbol}} = Dict() # Function type signatures
+    axioms::Vector{Clause} = [] # Axioms / derived predicates
+    actions::Dict{Symbol,Action} = Dict() # Action definitions
+    events::Vector{Event} = [] # Event definitions
+end
+
+function Domain(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
+    header = filter(item -> first(item) in fieldnames(Domain), header)
+    axioms = Clause[get(body, :axioms, []); get(body, :deriveds, [])]
+    body = filter(item -> first(item) in fieldnames(Domain), body)
+    body[:axioms] = axioms
+    body[:actions] = Dict(act.name => act for act in body[:actions])
+    return Domain(;name=name, header..., body...)
 end
 
 Base.copy(d::Domain) =
@@ -102,7 +111,7 @@ function get_static_functions(domain::Domain)
 end
 
 "PDDL planning problem."
-mutable struct Problem
+@kwdef mutable struct Problem
     name::Symbol # Name of problem
     domain::Symbol # Name of associated domain
     objects::Vector{Const} # List of objects
@@ -110,6 +119,12 @@ mutable struct Problem
     init::Vector{Term} # Predicates that hold in initial state
     goal::Term # Goal formula
     metric::Union{Tuple{Int,Term},Nothing} # Metric direction (+/-) and formula
+end
+
+function Problem(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
+    header = filter(item -> first(item) in fieldnames(Problem), header)
+    body = filter(item -> first(item) in fieldnames(Problem), body)
+    return Problem(;name=name, header..., body...)
 end
 
 function Problem(state::State, goal::Term=@julog(and()),

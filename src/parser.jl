@@ -12,6 +12,8 @@ struct Keyword
 end
 Base.show(io::IO, kw::Keyword) = print(io, "KW:", kw.name)
 
+## Parser combinator from strings to Julia expressions
+
 reader_table = Dict{Symbol, Function}()
 
 "Parser combinator for Lisp syntax."
@@ -50,6 +52,8 @@ lisp.matcher = doubley | floaty | inty | uchary | achary | chary | stringy | boo
                dispatchy | sexpr | hashy | curly | bracket
 
 top_level    = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
+
+## Parsers for PDDL formulae
 
 "Parse to first-order-logic formula."
 function parse_formula(expr::Vector)
@@ -139,42 +143,59 @@ function parse_typed_consts(expr::Vector)
     return consts, types
 end
 
-"Parse planning domain."
-function parse_domain(expr::Vector)
+## Parsers for PDDL domain and problem definitions
+
+"Parsers for top-level PDDL descirptions."
+const top_level_parsers = Dict{Symbol,Function}()
+
+"Header field parsers for top-level PDDL descriptions (domains, problems, etc.)."
+const head_field_parsers = Dict{Symbol,Dict{Symbol,Function}}(
+    :domain => Dict{Symbol,Function}(), :problem => Dict{Symbol,Function}()
+)
+
+"Body field parsers for top-level PDDL descriptions (domains, problems, etc.)."
+const body_field_parsers = Dict{Symbol,Dict{Symbol,Function}}(
+    :domain => Dict{Symbol,Function}(), :problem => Dict{Symbol,Function}()
+)
+
+"Parse top-level PDDL descriptions (domains, problems, etc.)."
+function parse_description(desc::Symbol, expr::Vector)
     @assert (expr[1] == :define) "'define' keyword is missing."
-    @assert (expr[2][1] == :domain) "'domain' keyword is missing."
+    @assert (expr[2][1] == desc) "'$desc' keyword is missing."
     name = expr[2][2]
-    # Parse domain header (requirements, types, etc.)
-    defs = Dict(e[1].name => e for e in expr[3:end])
-    requirements = parse_requirements(get(defs, :requirements, nothing))
-    types = parse_types(get(defs, :types, nothing))
-    constants, constypes = parse_constants(get(defs, :constants, nothing))
-    predicates, predtypes = parse_predicates(get(defs, :predicates, nothing))
-    functions, functypes = parse_functions(get(defs, :functions, nothing))
-    # Parse domain body (actions, events, etc.)
-    defs = [(e[1].name, e) for e in expr[3:end]]
-    axioms = Clause[]
-    actions = Dict{Symbol,Action}()
-    events = Event[]
-    for (kw, def) in defs
-        if kw in [:axiom, :derived]
-            push!(axioms, parse_axiom(def))
-        elseif kw == :action
-            action = parse_action(def)
-            actions[action.name] = action
-        elseif kw == :event
-            push!(events, parse_event(def))
+    # Parse description header (requirements, types, etc.)
+    header = Dict{Symbol,Any}()
+    exprs = Dict(e[1].name => e for e in expr[3:end])
+    for (fieldname, parser) in head_field_parsers[desc]
+        field = parser(get(exprs, fieldname, nothing))
+        if isa(field, NamedTuple)
+            merge!(header, Dict(pairs(field)))
+        else
+            header[fieldname] = field
         end
     end
-    return Domain(name, requirements, types, constants, constypes,
-                  predicates, predtypes, functions, functypes,
-                  axioms, actions, events)
+    # Parse description body (actions, events, etc.)
+    body = Dict{Symbol,Any}()
+    exprs = [(e[1].name, e) for e in expr[3:end]]
+    for (fieldname, e) in exprs
+        if !haskey(body_field_parsers[desc], fieldname) continue end
+        parser = body_field_parsers[desc][fieldname]
+        fieldname = Symbol(string(fieldname) * "s")
+        fields = get!(body, fieldname, [])
+        push!(fields, parser(e))
+    end
+    return name, header, body
 end
+parse_description(desc::Symbol, str::String) =
+    parse_description(desc, parse_one(str, top_level)[1])
+
+"Parse PDDL domain description."
+parse_domain(expr::Vector) = Domain(parse_description(:domain, expr)...)
 parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
+top_level_parsers[:domain] = parse_domain
 
 "Parse domain requirements."
 function parse_requirements(expr::Vector)
-    @assert (expr[1].name == :requirements) ":requirements keyword is missing."
     reqs = Dict{Symbol,Bool}(e.name => true for e in expr[2:end])
     reqs = merge(DEFAULT_REQUIREMENTS, reqs)
     unchecked = [k for (k, v) in reqs if v == true]
@@ -188,6 +209,7 @@ function parse_requirements(expr::Vector)
     return reqs
 end
 parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
+head_field_parsers[:domain][:requirements] = parse_requirements
 
 "Parse type hierarchy."
 function parse_types(expr::Vector)
@@ -216,15 +238,18 @@ function parse_types(expr::Vector)
     return types
 end
 parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
+head_field_parsers[:domain][:types] = parse_types
 
 "Parse constants in a planning domain."
 function parse_constants(expr::Vector)
     @assert (expr[1].name == :constants) ":constants keyword is missing."
     objs, types = parse_typed_consts(expr[2:end])
     types = Dict{Const,Symbol}(o => t for (o, t) in zip(objs, types))
-    return objs, types
+    return (constants=objs, constypes=types)
 end
-parse_constants(expr::Nothing) = Const[], Dict{Const,Symbol}()
+parse_constants(::Nothing) =
+    (constants=Const[], constypes=Dict{Const,Symbol}())
+head_field_parsers[:domain][:constants] = parse_constants
 
 "Parse predicate list."
 function parse_predicates(expr::Vector)
@@ -235,10 +260,11 @@ function parse_predicates(expr::Vector)
         preds[pred.name] = pred
         types[pred.name] = ty
     end
-    return preds, types
+    return (predicates=preds, predtypes=types)
 end
-parse_predicates(expr::Nothing) =
-    Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
+parse_predicates(::Nothing) =
+    (predicates=Dict{Symbol,Term}(), predtypes=Dict{Symbol,Vector{Symbol}}())
+head_field_parsers[:domain][:predicates] = parse_predicates
 
 "Parse list of function (i.e. fluent) declarations."
 function parse_functions(expr::Vector)
@@ -249,10 +275,11 @@ function parse_functions(expr::Vector)
         funcs[func.name] = func
         types[func.name] = ty
     end
-    return funcs, types
+    return (functions=funcs, functypes=types)
 end
-parse_functions(expr::Nothing) =
-    Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
+parse_functions(::Nothing) =
+    (functions=Dict{Symbol,Term}(), functypes=Dict{Symbol,Vector{Symbol}}())
+head_field_parsers[:domain][:functions] = parse_functions
 
 "Parse axioms (a.k.a. derived predicates)."
 function parse_axiom(expr::Vector)
@@ -261,19 +288,23 @@ function parse_axiom(expr::Vector)
     body = parse_formula(expr[3])
     return Clause(head, Term[body])
 end
+body_field_parsers[:domain][:axiom] = parse_axiom
+
 "Parse axioms (a.k.a. derived predicates)."
 parse_derived(expr::Vector) = parse_axiom(expr)
+body_field_parsers[:domain][:derived] = parse_derived
 
 "Parse action definition."
 function parse_action(expr::Vector)
     args = Dict(expr[i].name => expr[i+1] for i in 1:2:length(expr))
     @assert (:action in keys(args)) ":action keyword is missing"
     name = args[:action]
-    params, types = parse_parameters(get(args, :parameters, []))
-    precondition = parse_precondition(get(args, :precondition, []))
-    effect = parse_effect(args[:effect])
+    params, types = parse_typed_vars(get(args, :parameters, []))
+    precondition = parse_formula(get(args, :precondition, []))
+    effect = parse_formula(args[:effect])
     return Action(name, params, types, precondition, effect)
 end
+body_field_parsers[:domain][:action] = parse_action
 
 "Parse event definition."
 function parse_event(expr::Vector)
@@ -284,61 +315,40 @@ function parse_event(expr::Vector)
     effect = parse_effect(args[:effect])
     return Event(name, precondition, effect)
 end
+body_field_parsers[:domain][:event] = parse_event
 
-"Parse action parameters."
-function parse_parameters(expr::Vector)
-    return parse_typed_vars(expr)
-end
-
-"Parse precondition of an action or event."
-function parse_precondition(expr::Vector)
-    return parse_formula(expr)
-end
-
-"Parse effect of an action or event."
-function parse_effect(expr::Vector)
-    return parse_formula(expr)
-end
-
-"Parse planning problem."
-function parse_problem(expr::Vector, requirements::Dict=Dict())
-    requirements = merge(DEFAULT_REQUIREMENTS, Dict{Symbol,Bool}(requirements))
-    @assert (expr[1] == :define) "'define' keyword is missing."
-    @assert (expr[2][1] == :problem) "'problem' keyword is missing."
-    name = expr[2][2]
-    defs = Dict(e[1].name => e for e in expr[3:end])
-    domain = defs[:domain][2]
-    objects, objtypes = parse_objects(get(defs, :objects, nothing))
-    init = parse_init(get(defs, :init, nothing))
-    goal = parse_goal(get(defs, :goal, nothing))
-    metric = parse_metric(get(defs, :metric, nothing))
-    return Problem(name, domain, objects, objtypes, init, goal, metric)
-end
-parse_problem(str::String, requirements::Dict=Dict()) =
-    parse_problem(parse_one(str, top_level)[1], requirements)
+"Parse PDDL problem description."
+parse_problem(expr::Vector) = Problem(parse_description(:problem, expr)...)
+parse_problem(str::String) = parse_problem(parse_one(str, top_level)[1])
+top_level_parsers[:problem] = parse_problem
+head_field_parsers[:problem][:domain] = e -> e[2]
 
 "Parse objects in planning problem."
 function parse_objects(expr::Vector)
     @assert (expr[1].name == :objects) ":objects keyword is missing."
     objs, types = parse_typed_consts(expr[2:end])
     types = Dict{Const,Symbol}(o => t for (o, t) in zip(objs, types))
-    return objs, types
+    return (objects=objs, objtypes=types)
 end
-parse_objects(expr::Nothing) = Const[], Dict{Const,Symbol}()
+parse_objects(::Nothing) =
+    (objects=Const[], objtypes=Dict{Const,Symbol}())
+head_field_parsers[:problem][:objects] = parse_objects
 
 "Parse initial formula literals in planning problem."
 function parse_init(expr::Vector)
     @assert (expr[1].name == :init) ":init keyword is missing."
     return [parse_formula(e) for e in expr[2:end]]
 end
-parse_init(expr::Nothing) = Term[]
+parse_init(::Nothing) = Term[]
+head_field_parsers[:problem][:init] = parse_init
 
 "Parse goal formula in planning problem."
 function parse_goal(expr::Vector)
     @assert (expr[1].name == :goal) ":goal keyword is missing."
     return parse_formula(expr[2])
 end
-parse_goal(expr::Nothing) = Const(true)
+parse_goal(::Nothing) = Const(true)
+head_field_parsers[:problem][:goal] = parse_goal
 
 "Parse metric expression in planning problem."
 function parse_metric(expr::Vector)
@@ -347,26 +357,23 @@ function parse_metric(expr::Vector)
     return (expr[2] == :maximize ? 1 : -1, parse_formula(expr[3]))
 end
 parse_metric(expr::Nothing) = nothing
-
-"List of PDDL keywords."
-const keywords = [:domain, :problem,
-                  :requirements, :types, :constants, :predicates, :functions,
-                  :axiom, :derived, :action, :event,
-                  :objects, :init, :goal, :metric]
-
-"Dictionary of parsing functions."
-const parse_funcs = Dict{Symbol,Function}(
-    kw => getfield(@__MODULE__, Symbol(:parse_, kw)) for kw in keywords
-)
+head_field_parsers[:problem][:metric] = parse_metric
 
 "Parse to PDDL structure based on initial keyword."
 function parse_pddl(expr::Vector)
     if isa(expr[1], Keyword)
         kw = expr[1].name
-        return parse_funcs[kw](expr)
+        for desc in keys(top_level_parsers)
+            if kw in keys(head_field_parsers[desc])
+                return head_field_parsers[desc][kw](expr)
+            elseif kw in keys(body_field_parsers[desc])
+                return body_field_parsers[desc][kw](expr)
+            end
+        end
+        error("Keyword $kw not recognized.")
     elseif expr[1] == :define
         kw = expr[2][1]
-        return parse_funcs[kw](expr)
+        return top_level_parsers[kw](expr)
     else
         return parse_formula(expr)
     end
