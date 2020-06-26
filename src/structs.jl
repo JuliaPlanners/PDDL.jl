@@ -64,9 +64,7 @@ function Domain(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
 end
 
 Base.copy(d::Domain) =
-    Domain(d.name, d.requirements, d.types, d.constants, d.constypes,
-           d.predicates, d.predtypes, d.functions, d.functypes,
-           d.axioms, d.actions, d.events)
+    Domain(; Dict(fn => getfield(d, fn) for fn in fieldnames(typeof(d)))...)
 
 "Get domain constant type declarations as a set of facts."
 function get_const_facts(domain::Domain)
@@ -138,7 +136,7 @@ function Problem(state::State, goal::Term=@julog(and()),
 end
 
 Base.copy(p::Problem) =
-    Problem(p.name, p.domain, p.objects, p.objtypes, p.init, p.goal, p.metric)
+    Problem(; Dict(fn => getfield(p, fn) for fn in fieldnames(typeof(p)))...)
 
 "Get object type declarations as a list of clauses."
 function get_obj_clauses(problem::Problem)
