@@ -62,6 +62,18 @@ function get_assignments(state::State)
     return terms
 end
 
+Base.copy(s::State) =
+    State(copy(s.types), copy(s.facts), deepcopy(s.fluents))
+Base.:(==)(s1::State, s2::State) =
+    s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
+Base.hash(s::State, h::UInt) =
+    hash(s.fluents, hash(s.facts, hash(s.types, h)))
+Base.issubset(s1::State, s2::State) =
+    s1.types ⊆ s2.types && s1.facts ⊆ s2.facts &&
+    (let f1 = get_fluents(s1), f2 = get_fluents(s2)
+        all(f in f2 && s1[f] == s2[f] for f in f1)
+    end)
+
 "Access the value of a fluent or fact in a state."
 Base.getindex(state::State, term::Term) =
     evaluate(term, state; as_const=false)

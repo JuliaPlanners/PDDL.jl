@@ -5,13 +5,6 @@ mutable struct State
     fluents::Dict{Symbol,Any} # All other fluents
 end
 
-Base.copy(s::State) =
-    State(copy(s.types), copy(s.facts), deepcopy(s.fluents))
-Base.:(==)(s1::State, s2::State) =
-    s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
-Base.hash(s::State, h::UInt) =
-    hash(s.fluents, hash(s.facts, hash(s.types, h)))
-
 "PDDL action description."
 struct Action
     name::Symbol # Name of action
@@ -92,7 +85,7 @@ end
 function get_static_predicates(domain::Domain)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
-    diffs = [get_diff(ground(act.effect)) for act in values(domain.actions)]
+    diffs = [effect_diff(ground(act.effect)) for act in values(domain.actions)]
     derived = p -> any(unify(p, ax.head) != nothing for ax in domain.axioms)
     modified = p -> any(contains_term(d, p) for d in diffs)
     return Term[p for p in values(domain.predicates)
@@ -103,7 +96,7 @@ end
 function get_static_functions(domain::Domain)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
-    diffs = [get_diff(ground(act.effect)) for act in values(domain.actions)]
+    diffs = [effect_diff(ground(act.effect)) for act in values(domain.actions)]
     modified = p -> any(contains_term(d, p) for d in diffs)
     return Term[p for p in values(domain.functions) if !modified(p)]
 end

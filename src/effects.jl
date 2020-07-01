@@ -31,22 +31,22 @@ function combine(diffs::Diff...)
     return combine!(Diff(), diffs...)
 end
 
-"Convert effect forumla to a state difference (additions, deletions, etc.)"
-function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
-                  domain::Union{Domain,Nothing}=nothing)
+"Convert effect formula to a state difference (additions, deletions, etc.)"
+function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
+                     domain::Union{Domain,Nothing}=nothing)
     assign_ops = Dict{Symbol,Function}(
         :assign => (x, y) -> y, :increase => +, :decrease => -,
         Symbol("scale-up") => *, Symbol("scale-down") => /)
     diff = Diff()
     if effect.name == :and
         for eff in get_args(effect)
-            combine!(diff, get_diff(eff, state, domain))
+            combine!(diff, effect_diff(eff, state, domain))
         end
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
         if state == nothing || satisfy([cond], state, domain)[1] == true
             # Return eff if cond is satisfied
-            combine!(diff, get_diff(eff, state, domain))
+            combine!(diff, effect_diff(eff, state, domain))
         end
     elseif effect.name == :forall
         cond, eff = effect.args[1], effect.args[2]
@@ -54,7 +54,7 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
             # Find objects matching cond and apply effects for each
             _, subst = satisfy([cond], state, domain; mode=:all)
             for s in subst
-                combine!(diff, get_diff(substitute(eff, s), state, domain))
+                combine!(diff, effect_diff(substitute(eff, s), state, domain))
             end
         else
             push!(diff.add, effect)
@@ -66,7 +66,7 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
             # Sample a random effect
             prob, eff = effect.args[2*i-1].name, effect.args[2*i]
             if cum_prob <= r < (cum_prob + prob)
-                diff = combine!(diff, get_diff(eff, state, domain))
+                diff = combine!(diff, effect_diff(eff, state, domain))
             end
             cum_prob += prob
         end
@@ -85,6 +85,34 @@ function get_diff(effect::Term, state::Union{State,Nothing}=nothing,
             effect = eval_term(effect, Subst(), state.fluents)
         end
         push!(diff.add, effect)
+    end
+    return diff
+end
+
+"Convert precondition formula to a state difference."
+function precond_diff(precond::Term, state::Union{State,Nothing}=nothing)
+    diff = Diff()
+    # TODO: Handle disjunctions and numeric conditions
+    if precond.name == :and
+        for eff in get_args(precond)
+            combine!(diff, precond_diff(eff, state))
+        end
+    elseif precond.name == :forall
+        cond, eff = precond.args[1], precond.args[2]
+        if state != nothing
+            # Find objects matching cond and apply effects for each
+            _, subst = satisfy([cond], state; mode=:all)
+            for s in subst
+                combine!(diff, precond_diff(substitute(eff, s), state))
+            end
+        else
+            push!(diff.add, precond)
+        end
+    elseif precond.name in [:not, :!]
+        precond = precond.args[1]
+        push!(diff.del, precond)
+    else
+        push!(diff.add, precond)
     end
     return diff
 end
@@ -138,28 +166,29 @@ function combine(dists::DiffDist...)
 end
 
 "Return distribution over possible effects, given a state."
-function get_dist(effect::Term, state::State,
-                  domain::Union{Domain,Nothing}=nothing)
+function effect_dist(effect::Term, state::State,
+                     domain::Union{Domain,Nothing}=nothing)
     if effect.name == :and
-        sub_dists = [get_dist(arg, state, domain) for arg in effect.args]
+        sub_dists = [effect_dist(arg, state, domain) for arg in effect.args]
         dist = combine(sub_dists...)
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
         if satisfy([cond], state, domain)[1] == true
-            dist = get_dist(eff, state, domain)
+            dist = effect_dist(eff, state, domain)
         end
     elseif effect.name == :forall
         cond, eff = effect.args[1], effect.args[2]
         # Find objects matching cond and apply effects for each
         _, subst = satisfy([cond], state, domain; mode=:all)
-        sub_dists = [get_dist(substitute(eff, s), state, domain) for s in subst]
+        sub_dists = [effect_dist(substitute(eff, s), state, domain)
+                     for s in subst]
         dist = combine(sub_dists...)
     elseif effect.name == :probabilistic
         n_effs = Int(length(effect.args)/2)
         probs, diffs = Float64[], Diff[]
         for i in 1:n_effs
             prob, eff = effect.args[2*i-1].name, effect.args[2*i]
-            sub_dist = get_dist(eff, state, domain)
+            sub_dist = effect_dist(eff, state, domain)
             for (p, diff) in sub_dist
                 push!(probs, prob * p)
                 push!(diffs, diff)
@@ -168,7 +197,7 @@ function get_dist(effect::Term, state::State,
         dist = DiffDist(probs, diffs)
     else
         # Bottom out at deterministic additions, deletions, or assignments
-        diff = get_diff(effect, state, domain)
+        diff = effect_diff(effect, state, domain)
         dist = DiffDist([1.0], [diff])
     end
     return dist

@@ -11,10 +11,10 @@ export load_domain, load_problem, preprocess
 export save_domain, save_problem
 export get_static_predicates, get_static_functions
 export satisfy, evaluate, find_matches
-export initialize, transition, simulate
+export init_state, goal_state, initialize, transition, simulate
 export get_preconditions, get_effect
-export get_diff, get_dist, update!, update
-export available, relevant, execute, execpar, execseq, trigger
+export effect_diff, precond_diff, effect_dist, update!, update
+export available, relevant, execute, execpar, execseq, regress, trigger
 export clear_available_action_cache!, clear_relevant_action_cache!
 
 include("requirements.jl")

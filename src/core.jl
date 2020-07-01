@@ -76,12 +76,22 @@ function find_matches(formula::Term, state::State,
     return matches
 end
 
-"Create initial state from problem definition."
-function initialize(problem::Problem)
+"Construct initial state from problem definition."
+function init_state(problem::Problem)
     types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
     state = State(problem.init, types)
     return state
 end
+
+"Construct goal state from problem definition."
+function goal_state(problem::Problem)
+    types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
+    state = State(flatten_conjs(problem.goal), types)
+    return state
+end
+
+"Construct initial state from problem definition."
+initialize(problem::Problem) = init_state(problem)
 
 """
     transition(domain, state, action::Term; kwargs...)

@@ -113,7 +113,7 @@ function relevant(act::Action, args::Vector{<:Term}, state::State,
    end
    subst = Subst(var => val for (var, val) in zip(act.args, args))
    # Compute postconditions from the action's effect
-   diff = get_diff(substitute(act.effect, subst))
+   diff = effect_diff(substitute(act.effect, subst))
    postcond = Term[strict ? diff.add : Compound(:or, diff.add);
                    [@julog(not(:t)) for t in diff.del]]
    # Construct type conditions of the form "type(val)"
@@ -154,7 +154,7 @@ function relevant(state::State, domain::Domain;
     actions = Term[]
     for act in values(domain.actions)
         # Compute postconditions from the action's effect
-        diff = get_diff(act.effect)
+        diff = effect_diff(act.effect)
         postcond = Term[strict ? diff.add : Compound(:or, diff.add);
                         [@julog(not(:t)) for t in diff.del]]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
@@ -212,10 +212,10 @@ function execute(act::Action, args::Vector{<:Term}, state::State,
     # Compute effects in the appropriate form
     if as_dist
         # Compute categorical distribution over differences
-        diff = get_dist(effect, state, domain)
+        diff = effect_dist(effect, state, domain)
     else
         # Sample a possible difference
-        diff = get_diff(effect, state, domain)
+        diff = effect_diff(effect, state, domain)
     end
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
@@ -263,3 +263,41 @@ execpar(actions::Set{<:Term}, state::State, domain::Domain; options...) =
     execute(actions, state, domain; options...)
 execpar(actions::Vector{<:Term}, state::State, domain::Domain; options...) =
     execute(Set(actions), state, domain; options...)
+
+"""
+    regress(act::Action, args, state, domain=nothing; kwargs...)
+    regress(act::Term, state, domain; kwargs...)
+
+Return the predecessor(s) that would lead to `state` upon executing `act`.
+If `act` is an `Action` definition, `args` must be supplied for the action's
+parameters. If `act` is a `Term`, parameters will be extracted from its
+arguments, but `domain` must be supplied.
+"""
+function regress(act::Action, args::Vector{<:Term}, state::State,
+                 domain::Union{Domain,Nothing}=nothing; as_diff::Bool=false,
+                 check::Bool=true, fail_mode::Symbol=:error)
+    # Check whether action is relevant
+    if check && !relevant(act, args, state, domain)
+        if fail_mode == :no_op return as_diff ? Diff() : state end
+        error("Effect $(act.effect) is not relevant.") # Error by default
+    end
+    subst = Subst(var => val for (var, val) in zip(act.args, args))
+    precond = substitute(act.precond, subst)
+    effect = substitute(act.effect, subst)
+    # Compute effects in the appropriate form
+    pre_diff = precond_diff(precond, state)
+    eff_diff = effect_diff(effect, state)
+    append!(pre_diff.del, eff_diff.add)
+    return as_diff ? pre_diff : update(state, pre_diff)
+end
+
+function regress(act::Term, state::State, domain::Domain; options...)
+    if act.name in keys(domain.actions)
+        act_def, act_args = domain.actions[act.name], get_args(act)
+        regress(act_def, act_args, state, domain; options...)
+    elseif act.name == Symbol("--")
+        regress(no_op, Term[], state, domain; options...)
+    else
+        error("Unknown action: $act")
+    end
+end

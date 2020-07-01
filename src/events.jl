@@ -20,11 +20,11 @@ function trigger(event::Event, state::State,
     effects = [substitute(event.effect, s) for s in subst]
     if as_dist
         # Compute product distribution
-        eff_dists = [get_dist(e, state) for e in effects]
+        eff_dists = [effect_dist(e, state) for e in effects]
         diff = combine(eff_dists...)
     else
         # Accumulate effect diffs
-        diff = combine([get_diff(e, state) for e in effects]...)
+        diff = combine([effect_diff(e, state) for e in effects]...)
     end
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
