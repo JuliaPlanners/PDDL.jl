@@ -284,7 +284,8 @@ function regress(act::Action, args::Vector{<:Term}, state::State,
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     precond = substitute(act.precond, subst)
     effect = substitute(act.effect, subst)
-    # Compute effects in the appropriate form
+    # Compute regression difference as Precond - Additions
+    # TODO: Handle conditional effects, disjunctive preconditions, etc.
     pre_diff = precond_diff(precond, state)
     eff_diff = effect_diff(effect, state)
     append!(pre_diff.del, eff_diff.add)

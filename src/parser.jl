@@ -381,9 +381,13 @@ end
 parse_pddl(sym::Symbol) = parse_formula(sym)
 parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
 
-"Parse string to PDDL construct."
+"Parse string(s) to PDDL construct."
 macro pddl(str::String)
     return parse_pddl(str)
+end
+
+macro pddl(strs::String...)
+    return collect(parse_pddl.(strs))
 end
 
 "Parse string to PDDL construct."
