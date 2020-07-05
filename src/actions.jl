@@ -128,7 +128,7 @@ relevant(act::Term, state::State, domain::Domain; kwargs...) =
     relevant(domain.actions[act.name], act.args, state, domain; kwargs...)
 
 "Cache of relevant actions for a given domain and state."
-const relevant_action_cache = Dict{Symbol,Dict{UInt,Vector{Term}}}()
+const relevant_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
 
 "Clear cache of relevant actions."
 clear_relevant_action_cache!() =
