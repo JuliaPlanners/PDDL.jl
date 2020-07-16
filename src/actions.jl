@@ -155,22 +155,22 @@ function relevant(state::State, domain::Domain;
     for act in values(domain.actions)
         # Compute postconditions from the action's effect
         diff = effect_diff(act.effect)
-        postcond = Term[strict ? diff.add : Compound(:or, diff.add);
-                        [@julog(not(:t)) for t in diff.del]]
+        addcond = strict ? diff.add : [Compound(:or, diff.add)]
+        delcond = [@julog(not(:t)) for t in diff.del]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
         # Include type conditions when necessary for correctness
-        if any(has_fluent(c, domain) || has_quantifier(c) for c in postcond)
-            conds = [typecond; postcond]
-        elseif domain.requirements[:typing]
-            conds = [postcond; typecond]
+        if any(has_fluent(c, domain) ||
+               has_quantifier(c) for c in [addcond; delcond])
+            conds = [typecond; addcond; delcond]
         else
-            conds = postcond
+            conds = [addcond; typecond; delcond]
         end
+        if act.name == :drop println(conds) end
         # Find all substitutions that satisfy the postconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end
         for s in subst
-            args = [s[v] for v in act.args if v in keys(s)]
+            args = [get(s, var, var) for var in act.args]
             if any([!is_ground(a) for a in args]) continue end
             term = isempty(args) ? Const(act.name) : Compound(act.name, args)
             push!(actions, term)
