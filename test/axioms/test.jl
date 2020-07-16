@@ -8,7 +8,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("blocksworld-problem")
-@test problem.objects == @julog [a, b, c]
+@test problem.objects == @pddl("a", "b", "c")
 
 state = init_state(problem)
 state = execute(pddl"(pickup b)", state, domain)

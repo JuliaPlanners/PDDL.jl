@@ -7,7 +7,7 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("taxi-problem")
 
 # Check that constants are loaded correctly
-@test domain.constants == @julog [red, green, yellow, blue, intaxi]
+@test domain.constants == @pddl("red", "green", "yellow", "blue", "intaxi")
 
 # Check that types of constants only resolve when domain is provided
 state = init_state(problem)

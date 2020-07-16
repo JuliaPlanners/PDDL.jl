@@ -9,7 +9,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")
-@test problem.objects == @julog [rooma, roomb, ball1, ball2, left, right]
+@test problem.objects == @pddl("rooma", "roomb", "ball1", "ball2", "left", "right")
 @test problem.objtypes[Const(:ball1)] == :ball
 
 state = init_state(problem)
