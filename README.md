@@ -6,7 +6,7 @@ A Julia parser and interpreter for the Planning Domain Definition Language (PDDL
 
 Press `]` at the Julia REPL to enter the package manager, then run:
 ```
-add https://github.com/ztangent/PDDL.jl.git
+add https://github.com/JuliaPlanners/PDDL.jl.git
 ```
 
 ## Features
