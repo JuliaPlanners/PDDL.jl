@@ -4,18 +4,28 @@ A Julia parser and interpreter for the Planning Domain Definition Language (PDDL
 
 ## Installation
 
-Install this package from the Julia REPL by running:
+Press `]` at the Julia REPL to enter the package manager, then run:
 ```
-]add https://github.com/ztangent/PDDL.jl.git
+add https://github.com/ztangent/PDDL.jl.git
 ```
 
 ## Features
 
 - Parsing of PDDL domain and problem files
 - Execution of PDDL actions and plans
-- Support for most of PDDL 1.2, and some additional features
+- Support for the following PDDL requirements:
+  - `:strips` - the most restricted functionality
+  - `:typing` - (hierarchically) typed objects
+  - `:equality` - comparing equality `=` of objects
+  - `:quantified-preconditions` - `forall` and `exists`
+  - `:disjunctive-preconditions` - `or` predicates
+  - `:conditional-effects` - `when` and `forall` effects
+  - `:adl` - shorthand for the above 6 requirements
+  - `:fluents` - numeric fluents
+  - `:derived-predicates` - a.k.a. domain axioms / Horn clauses
 
-`PDDL.jl` does not include any planning algorithms. Rather, it aims to provide an
+
+`PDDL.jl` does *not* include any planning algorithms. Rather, it aims to provide an
 interface so that planners for PDDL domains can easily be written in Julia.
 
 ## Example

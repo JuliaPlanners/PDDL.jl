@@ -9,7 +9,8 @@ const DEFAULT_REQUIREMENTS = Dict{Symbol,Bool}(
     Symbol("universal-preconditions") => false,
     Symbol("quantified-preconditions") => false,
     Symbol("conditional-effects") => false,
-    Symbol("adl") => false
+    Symbol("adl") => false,
+    Symbol("derived-predicates") => false
 )
 
 const IMPLIED_REQUIREMENTS = Dict{Symbol,Vector{Symbol}}(

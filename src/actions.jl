@@ -165,7 +165,6 @@ function relevant(state::State, domain::Domain;
         else
             conds = [addcond; typecond; delcond]
         end
-        if act.name == :drop println(conds) end
         # Find all substitutions that satisfy the postconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end
