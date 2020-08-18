@@ -24,9 +24,9 @@ add https://github.com/JuliaPlanners/PDDL.jl.git
   - `:fluents` - numeric fluents
   - `:derived-predicates` - a.k.a. domain axioms / Horn clauses
 
-
-`PDDL.jl` does *not* include any planning algorithms. Rather, it aims to provide an
-interface so that planners for PDDL domains can easily be written in Julia.
+`PDDL.jl` does not include any planning algorithms. Rather, it aims to provide an
+interface so that planners for PDDL domains can easily be written in Julia, as
+in [`SymbolicPlanners.jl`](https://github.com/JuliaPlanners/SymbolicPlanners.jl).
 
 ## Example
 
