@@ -25,6 +25,61 @@ end
 get_effect(act::Term, domain::Domain) =
     get_effect(domain.actions[act.name], get_args(act))
 
+"Global flag for whether to cache available actions."
+const _use_available_cache = Ref(true)
+"Cache of available actions for a given domain and state."
+const _available_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
+
+"Globally enable or disable available action cache."
+use_available_action_cache!(val::Bool=true) = _use_available_cache[] = val
+
+"Clear cache of available actions."
+clear_available_action_cache!() =
+    (map(empty!, values(_available_action_cache));
+     empty!(_available_action_cache))
+clear_available_action_cache!(domain::Domain) =
+    empty!(_available_action_cache[objectid(domain)])
+
+"""
+    available(state, domain; use_cache)
+
+Return the list of available actions in a given `state` and `domain`.
+If `use_cache` is true, memoize the results in a global cache.
+"""
+function available(state::State, domain::Domain;
+                   use_cache::Bool=_use_available_cache[])
+    if use_cache # Look up actions in cache
+        cache = get!(_available_action_cache, objectid(domain),
+                     Dict{UInt,Vector{Term}}())
+        state_hash = hash(state)
+        if haskey(cache, state_hash) return copy(cache[state_hash]) end
+    end
+    # Ground all action definitions with arguments
+    actions = Term[]
+    for act in values(domain.actions)
+        typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
+        # Include type conditions when necessary for correctness
+        if has_fluent(act.precond, domain) || has_quantifier(act.precond)
+            conds = [typecond; flatten_conjs(act.precond)]
+        elseif domain.requirements[:typing]
+            conds = [flatten_conjs(act.precond); typecond]
+        else
+            conds = flatten_conjs(act.precond)
+        end
+        # Find all substitutions that satisfy preconditions
+        sat, subst = satisfy(conds, state, domain; mode=:all)
+        if !sat continue end
+        for s in subst
+            args = [s[v] for v in act.args if v in keys(s)]
+            if any([!is_ground(a) for a in args]) continue end
+            term = isempty(args) ? Const(act.name) : Compound(act.name, args)
+            push!(actions, term)
+        end
+    end
+    if use_cache cache[state_hash] = copy(actions) end
+    return actions
+end
+
 """
     available(act::Action, args, state, domain=nothing)
     available(act::Term, state, domain)
@@ -51,45 +106,55 @@ end
 available(act::Term, state::State, domain::Domain) =
     available(domain.actions[act.name], act.args, state, domain)
 
-"Cache of available actions for a given domain and state."
-const available_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
+"Global flag for whether to cache relevant actions."
+const _use_relevant_cache = Ref(true)
+"Cache of relevant actions for a given domain and state."
+const _relevant_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
 
-"Clear cache of available actions."
-clear_available_action_cache!() =
-    (map(empty!, values(available_action_cache)); empty!(available_action_cache))
-clear_available_action_cache!(domain::Domain) =
-    empty!(available_action_cache[objectid(domain)])
+"Globally enable or disable available action cache."
+use_relevant_action_cache!(val::Bool=true) = _use_relevant_cache[] = val
+
+"Clear cache of relevant actions."
+clear_relevant_action_cache!() =
+    (map(empty!, values(_relevant_action_cache));
+     empty!(_relevant_action_cache))
+clear_relevant_action_cache!(domain::Domain) =
+    empty!(_relevant_action_cache[objectid(domain)])
 
 """
-    available(state, domain; use_cache=true)
+    relevant(state, domain; strict=false, use_cache)
 
-Return the list of available actions in a given `state` and `domain`.
+Return the list of actions relevant to achieving a `state` in a given `domain`.
+If `strict` is true, check that all added facts are true in `state`.
 If `use_cache` is true, memoize the results in a global cache.
 """
-function available(state::State, domain::Domain; use_cache::Bool=true)
+function relevant(state::State, domain::Domain;
+                  strict::Bool=false, use_cache::Bool=_use_relevant_cache[])
     if use_cache # Look up actions in cache
-        cache = get!(available_action_cache, objectid(domain),
+        cache = get!(_relevant_action_cache, hash(strict, objectid(domain)),
                      Dict{UInt,Vector{Term}}())
         state_hash = hash(state)
         if haskey(cache, state_hash) return copy(cache[state_hash]) end
     end
-    # Ground all action definitions with arguments
     actions = Term[]
     for act in values(domain.actions)
+        # Compute postconditions from the action's effect
+        diff = effect_diff(act.effect)
+        addcond = strict ? diff.add : [Compound(:or, diff.add)]
+        delcond = [@julog(not(:t)) for t in diff.del]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
         # Include type conditions when necessary for correctness
-        if has_fluent(act.precond, domain) || has_quantifier(act.precond)
-            conds = [typecond; flatten_conjs(act.precond)]
-        elseif domain.requirements[:typing]
-            conds = [flatten_conjs(act.precond); typecond]
+        if any(has_fluent(c, domain) ||
+               has_quantifier(c) for c in [addcond; delcond])
+            conds = [typecond; addcond; delcond]
         else
-            conds = flatten_conjs(act.precond)
+            conds = [addcond; typecond; delcond]
         end
-        # Find all substitutions that satisfy preconditions
+        # Find all substitutions that satisfy the postconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
         if !sat continue end
         for s in subst
-            args = [s[v] for v in act.args if v in keys(s)]
+            args = [get(s, var, var) for var in act.args]
             if any([!is_ground(a) for a in args]) continue end
             term = isempty(args) ? Const(act.name) : Compound(act.name, args)
             push!(actions, term)
@@ -126,58 +191,6 @@ end
 
 relevant(act::Term, state::State, domain::Domain; kwargs...) =
     relevant(domain.actions[act.name], act.args, state, domain; kwargs...)
-
-"Cache of relevant actions for a given domain and state."
-const relevant_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
-
-"Clear cache of relevant actions."
-clear_relevant_action_cache!() =
-    (map(empty!, values(relevant_action_cache)); empty!(relevant_action_cache))
-clear_relevant_action_cache!(domain::Domain) =
-    empty!(relevant_action_cache[objectid(domain)])
-
-"""
-    relevant(state, domain; strict=false, use_cache=true)
-
-Return the list of actions relevant to achieving a `state` in a given `domain`.
-If `strict` is true, check that all added facts are true in `state`.
-If `use_cache` is true, memoize the results in a global cache.
-"""
-function relevant(state::State, domain::Domain;
-                  strict::Bool=false, use_cache::Bool=true)
-    if use_cache # Look up actions in cache
-        cache = get!(relevant_action_cache, hash(strict, objectid(domain)),
-                     Dict{UInt,Vector{Term}}())
-        state_hash = hash(state)
-        if haskey(cache, state_hash) return copy(cache[state_hash]) end
-    end
-    actions = Term[]
-    for act in values(domain.actions)
-        # Compute postconditions from the action's effect
-        diff = effect_diff(act.effect)
-        addcond = strict ? diff.add : [Compound(:or, diff.add)]
-        delcond = [@julog(not(:t)) for t in diff.del]
-        typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
-        # Include type conditions when necessary for correctness
-        if any(has_fluent(c, domain) ||
-               has_quantifier(c) for c in [addcond; delcond])
-            conds = [typecond; addcond; delcond]
-        else
-            conds = [addcond; typecond; delcond]
-        end
-        # Find all substitutions that satisfy the postconditions
-        sat, subst = satisfy(conds, state, domain; mode=:all)
-        if !sat continue end
-        for s in subst
-            args = [get(s, var, var) for var in act.args]
-            if any([!is_ground(a) for a in args]) continue end
-            term = isempty(args) ? Const(act.name) : Compound(act.name, args)
-            push!(actions, term)
-        end
-    end
-    if use_cache cache[state_hash] = copy(actions) end
-    return actions
-end
 
 """
     execute(act::Action, args, state, domain=nothing; kwargs...)
