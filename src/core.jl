@@ -27,8 +27,9 @@ function satisfy(formulae::Vector{<:Term}, state::State,
     # Initialize Julog knowledge base
     clauses = domain == nothing ? Clause[] : get_clauses(domain)
     clauses = Clause[clauses; collect(state.types); collect(state.facts)]
-    # Pass in fluents as a dictionary of functions
-    funcs = state.fluents
+    # Pass in fluents and function definitions as a dictionary of functions
+    funcs = domain == nothing ?
+        state.fluents : merge(state.fluents, domain.funcdefs)
     return resolve(formulae, clauses; funcs=funcs, mode=mode)
 end
 
@@ -46,7 +47,9 @@ Julia value.
 function evaluate(formula::Term, state::State,
                   domain::Union{Domain,Nothing}=nothing; as_const::Bool=true)
     # Evaluate formula as fully as possible
-    val = eval_term(formula, Subst(), state.fluents)
+    funcs = domain == nothing ?
+        state.fluents : merge(state.fluents, domain.funcdefs)
+    val = eval_term(formula, Subst(), funcs)
     # Return if formula evaluates to a Const (unwrapping if as_const=false)
     if isa(val, Const) && !isa(val.name, Symbol)
         return as_const ? val : val.name end

@@ -42,6 +42,7 @@ Base.:(==)(e1::Event, e2::Event) = (e1.name == e2.name &&
     predtypes::Dict{Symbol,Vector{Symbol}} = Dict() # Predicate type signatures
     functions::Dict{Symbol,Term} = Dict() # Dictionary of function declarations
     functypes::Dict{Symbol,Vector{Symbol}} = Dict() # Function type signatures
+    funcdefs::Dict{Symbol,Any} = Dict() # Dictionary of function definitions
     axioms::Vector{Clause} = [] # Axioms / derived predicates
     actions::Dict{Symbol,Action} = Dict() # Action definitions
     events::Vector{Event} = [] # Event definitions

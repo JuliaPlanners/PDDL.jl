@@ -1,0 +1,17 @@
+(define (domain ball-throw)
+  (:requirements :fluents)
+  (:predicates (has-ball ?ball) (on-floor ?ball))
+  (:functions (throw-speed) (wall-height) (wall-dist) (loc ?ball)
+              (range ?speed ?theta) (height ?speed ?theta ?dist))
+  (:action pick
+   :parameters (?ball)
+   :precondition (and (on-floor ?ball))
+   :effect (and (has-ball ?ball) (not (on-floor ?ball)))
+  )
+  (:action throw
+   :parameters (?ball ?theta)
+   :precondition (and (has-ball ?ball)
+                      (> (height throw-speed ?theta wall-dist) (wall-height)))
+   :effect (increase (loc ?ball) (range throw-speed ?theta))
+  )
+)
