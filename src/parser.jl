@@ -192,6 +192,10 @@ parse_description(desc::Symbol, str::String) =
 "Parse PDDL domain description."
 parse_domain(expr::Vector) = Domain(parse_description(:domain, expr)...)
 parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
+parse_domain(expr::Vector, domain_type::Type) =
+    domain_type(parse_description(:domain, expr)...)
+parse_domain(str::String, domain_type::Type) =
+    parse_domain(parse_one(str, top_level)[1], domain_type)
 top_level_parsers[:domain] = parse_domain
 
 "Parse domain requirements."

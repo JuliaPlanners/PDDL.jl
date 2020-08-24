@@ -46,19 +46,34 @@ Base.:(==)(e1::Event, e2::Event) = (e1.name == e2.name &&
     axioms::Vector{Clause} = [] # Axioms / derived predicates
     actions::Dict{Symbol,Action} = Dict() # Action definitions
     events::Vector{Event} = [] # Event definitions
+    _extras::Dict{Symbol,Any} # Extra fields
 end
 
 function Domain(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
+    h_extras = filter(item -> !(first(item) in fieldnames(Domain)), header)
+    b_extras = filter(item -> !(first(item) in fieldnames(Domain)), body)
+    extras = merge!(h_extras, b_extras)
     header = filter(item -> first(item) in fieldnames(Domain), header)
     axioms = Clause[get(body, :axioms, []); get(body, :deriveds, [])]
     body = filter(item -> first(item) in fieldnames(Domain), body)
     body[:axioms] = axioms
     body[:actions] = Dict(act.name => act for act in body[:actions])
-    return Domain(;name=name, header..., body...)
+    return Domain(;name=name, _extras=extras, header..., body...)
 end
 
 Base.copy(d::Domain) =
     Domain(; Dict(fn => getfield(d, fn) for fn in fieldnames(typeof(d)))...)
+
+Base.getproperty(d::Domain, s::Symbol) =
+    hasfield(Domain, s) ? getfield(d, s) : d._extras[s]
+
+Base.setproperty!(d::Domain, s::Symbol, val) =
+    hasfield(Domain, s) && s != :_extras ?
+        setfield!(d, s, val) : setindex!(d._extras, val, s)
+
+Base.propertynames(d::Domain, private=false) = private ?
+    tuple(fieldnames(Domain)..., keys(d._extras)...) :
+    tuple(filter(f->f != :_extras, fieldnames(Domain))..., keys(d._extras)...)
 
 "Get domain constant type declarations as a set of facts."
 function get_const_facts(domain::Domain)
