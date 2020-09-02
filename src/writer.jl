@@ -39,8 +39,8 @@ function indent_const_list(str::String, indent::Int, maxchars::Int=80)
     while length(str) > 0
         l_end = min(maxchars - indent, length(str))
         if l_end != length(str) l_end = findlast(' ', str[1:l_end]) end
-        if l_end == nothing l_end = findfirst(' ', str) end
-        if l_end == nothing l_end = length(str) end
+        if isnothing(l_end) l_end = findfirst(' ', str) end
+        if isnothing(l_end) l_end = length(str) end
         push!(lines, str[1:l_end])
         str = str[l_end+1:end]
     end
@@ -54,7 +54,7 @@ function indent_typed_list(str::String, indent::Int, maxchars::Int=80)
     substrs = String[]
     while length(str) > 0
         idxs = findnext(r" - (\S+)", str, 1)
-        if idxs == nothing idxs = [length(str)] end
+        if isnothing(idxs) idxs = [length(str)] end
         push!(substrs, str[1:idxs[end]])
         str = strip(str[idxs[end]+1:end])
     end

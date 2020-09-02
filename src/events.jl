@@ -38,7 +38,7 @@ function trigger(events::Vector{Event}, state::State,
     else
         diffs = [trigger(e, state, domain; as_dist=as_dist, as_diff=true)
                  for e in events]
-        filter!(d -> d != nothing, diffs)
+        filter!(d -> d !== nothing, diffs)
         diff = combine(diffs...)
     end
     # Return either the difference or the updated state

@@ -44,13 +44,13 @@ function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
         end
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
-        if state == nothing || satisfy([cond], state, domain)[1] == true
+        if isnothing(state) || satisfy([cond], state, domain)[1] == true
             # Return eff if cond is satisfied
             combine!(diff, effect_diff(eff, state, domain))
         end
     elseif effect.name == :forall
         cond, eff = effect.args[1], effect.args[2]
-        if state != nothing
+        if !isnothing(state)
             # Find objects matching cond and apply effects for each
             _, subst = satisfy([cond], state, domain; mode=:all)
             for s in subst
@@ -72,16 +72,16 @@ function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
         end
     elseif effect.name in keys(assign_ops)
         term, val = effect.args[1], effect.args[2]
-        val = state == nothing ? val : evaluate(val, state, domain)
+        val = state === nothing ? val : evaluate(val, state, domain)
         diff.ops[term] = (assign_ops[effect.name], val.name)
     elseif effect.name in [:not, :!]
         effect = effect.args[1]
-        if state != nothing # Evaluated all nested functions
+        if !isnothing(state)  # Evaluated all nested functions
             effect = eval_term(effect, Subst(), state.fluents)
         end
         push!(diff.del, effect)
     else
-        if state != nothing # Evaluated all nested functions
+        if !isnothing(state)  # Evaluated all nested functions
             effect = eval_term(effect, Subst(), state.fluents)
         end
         push!(diff.add, effect)
@@ -99,7 +99,7 @@ function precond_diff(precond::Term, state::Union{State,Nothing}=nothing)
         end
     elseif precond.name == :forall
         cond, eff = precond.args[1], precond.args[2]
-        if state != nothing
+        if !isnothing(state)
             # Find objects matching cond and apply effects for each
             _, subst = satisfy([cond], state; mode=:all)
             for s in subst
