@@ -79,14 +79,18 @@ Base.getindex(state::State, term::Term) =
     evaluate(term, state; as_const=false)
 Base.getindex(state::State, term::String) =
     evaluate(Parser.parse_formula(term), state; as_const=false)
-Base.getindex(state::State, term::Union{Number,Symbol,Expr}) =
-    evaluate(eval(Julog.parse_term(term)), state; as_const=false)
+Base.getindex(state::State, term::Symbol) =
+    evaluate(Const(term), state; as_const=false)
+Base.getindex(state::State, term::Expr) =
+    evaluate(eval(Julog.parse_term(term, identity)), state; as_const=false)
 Base.getindex(state::State, domain::Domain, term::Term) =
     evaluate(term, state, domain; as_const=false)
 Base.getindex(state::State, domain::Domain, term::String) =
     evaluate(Parser.parse_formula(term), state, domain; as_const=false)
-Base.getindex(state::State, domain::Domain, term::Union{Number,Symbol,Expr}) =
-    evaluate(eval(Julog.parse_term(term)), state, domain; as_const=false)
+Base.getindex(state::State, domain::Domain, term::Symbol) =
+    evaluate(Const(term), state, domain; as_const=false)
+Base.getindex(state::State, domain::Domain, term::Expr) =
+    evaluate(eval(Julog.parse_term(term, identity)), state, domain; as_const=false)
 
 "Set the value of a fluent or fact in a state."
 Base.setindex!(state::State, val::Bool, term::Const) =
@@ -98,5 +102,7 @@ Base.setindex!(state::State, val::Any, term::Const) =
 Base.setindex!(state::State, val::Any, term::Compound) =
     (d = get!(state.fluents, term.name, Dict());
      d[Tuple(a.name for a in term.args)] = val)
-Base.setindex!(state::State, val::Any, term::Union{Number,Symbol,Expr}) =
-    Base.setindex!(state, val, eval(Julog.parse_term(term)))
+Base.setindex!(state::State, val::Any, term::Symbol) =
+    Base.setindex!(state, val, Const(term))
+Base.setindex!(state::State, val::Any, term::Expr) =
+    Base.setindex!(state, val, eval(Julog.parse_term(term, identity)))
