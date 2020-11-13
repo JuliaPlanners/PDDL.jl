@@ -6,14 +6,14 @@ function preprocess(domain::Domain, problem::Union{Problem,Nothing}=nothing;
     domain = copy(domain)
     # Get object type declarations
     objtypes = get(options, :objtypes, nothing)
-    if problem != nothing && objtypes == nothing
+    if !isnothing(problem) && isnothing(objtypes)
         objtypes = get_obj_clauses(problem)
     end
     # Unpack flags
     regularize = get(options, :regularize, true)
-    instantiate = get(options, :instantiate, objtypes != nothing)
+    instantiate = get(options, :instantiate, !isnothing(objtypes))
     # Remove universal quantifiers in axioms
-    if instantiate && objtypes != nothing
+    if instantiate && !isnothing(objtypes)
         domain.axioms = [deuniversalize(ax, objtypes) for ax in domain.axioms]
     end
     # Regularize all axiom bodies to conjunctions of literals
@@ -29,9 +29,9 @@ end
 
 function preprocess(act::Action, objtypes=nothing; options...)
     regularize = get(options, :regularize, true)
-    instantiate = get(options, :instantiate, objtypes != nothing)
+    instantiate = get(options, :instantiate, !isnothing(objtypes))
     precond, effect = act.precond, act.effect
-    if instantiate && objtypes != nothing
+    if instantiate && !isnothing(objtypes)
         precond = deuniversalize(precond, objtypes)
         effect = deuniversalize(effect, objtypes)
     end
@@ -43,9 +43,9 @@ end
 
 function preprocess(event::Event, objtypes=nothing; options...)
     regularize = get(options, :regularize, true)
-    instantiate = get(options, :instantiate, objtypes != nothing)
+    instantiate = get(options, :instantiate, !isnothing(objtypes))
     precond, effect = event.precond, event.effect
-    if instantiate && objtypes != nothing
+    if instantiate && !isnothing(objtypes)
         precond = deuniversalize(precond, objtypes)
         effect = deuniversalize(effect, objtypes)
     end

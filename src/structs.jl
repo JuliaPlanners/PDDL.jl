@@ -102,7 +102,7 @@ function get_static_predicates(domain::Domain)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
     diffs = [effect_diff(ground(act.effect)) for act in values(domain.actions)]
-    derived = p -> any(unify(p, ax.head) != nothing for ax in domain.axioms)
+    derived = p -> any(unify(p, ax.head) !== nothing for ax in domain.axioms)
     modified = p -> any(contains_term(d, p) for d in diffs)
     return Term[p for p in values(domain.predicates)
                 if !derived(p) && !modified(p)]

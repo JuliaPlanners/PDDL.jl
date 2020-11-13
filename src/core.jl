@@ -16,7 +16,7 @@ function satisfy(formulae::Vector{<:Term}, state::State,
             f = eval_term(f, Subst(), state.fluents) end
         if f in state.facts || f in state.types
             return true end
-        if domain != nothing && f in get_const_facts(domain)
+        if !isnothing(domain) && f in get_const_facts(domain)
             return true end
         if f.name in Julog.comp_ops || f.name in keys(state.fluents)
             return eval_term(f, Subst(), state.fluents).name == true end
@@ -25,10 +25,10 @@ function satisfy(formulae::Vector{<:Term}, state::State,
     if all(f -> f.name == :not ? !in_facts(f.args[1]) : in_facts(f), formulae)
         return true, [Subst()] end
     # Initialize Julog knowledge base
-    clauses = domain == nothing ? Clause[] : get_clauses(domain)
+    clauses = isnothing(domain) ? Clause[] : get_clauses(domain)
     clauses = Clause[clauses; collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = domain == nothing ?
+    funcs = isnothing(domain) ?
         state.fluents : merge(state.fluents, domain.funcdefs)
     return resolve(formulae, clauses; funcs=funcs, mode=mode)
 end
@@ -47,7 +47,7 @@ Julia value.
 function evaluate(formula::Term, state::State,
                   domain::Union{Domain,Nothing}=nothing; as_const::Bool=true)
     # Evaluate formula as fully as possible
-    funcs = domain == nothing ?
+    funcs = isnothing(domain) ?
         state.fluents : merge(state.fluents, domain.funcdefs)
     val = eval_term(formula, Subst(), funcs)
     # Return if formula evaluates to a Const (unwrapping if as_const=false)
@@ -70,7 +70,7 @@ function find_matches(formula::Term, state::State,
         clauses = Vector{Clause}(get_fluents(state))
         _, subst = resolve(formula, clauses; mode=:all)
     else
-        clauses = domain == nothing ? Clause[] : get_clauses(domain)
+        clauses = isnothing(domain) ? Clause[] : get_clauses(domain)
         clauses = Clause[clauses; collect(state.types); collect(state.facts)]
         funcs = state.fluents
         _, subst = resolve(formula, clauses; funcs=funcs, mode=:all)
