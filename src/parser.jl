@@ -53,6 +53,12 @@ lisp.matcher = doubley | floaty | inty | uchary | achary | chary | stringy | boo
 
 top_level    = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
 
+## Convert expressions back to strings
+unparse(expr) = string(expr)
+unparse(expr::Vector) = "(" * join(unparse.(expr), " ") * ")"
+unparse(expr::Var) = "?" * lowercase(string(expr.name))
+unparse(expr::Keyword) = ":" * string(expr.name)
+
 ## Parsers for PDDL formulae
 
 "Parse to first-order-logic formula."
@@ -67,11 +73,12 @@ function parse_formula(expr::Vector)
         return Const(expr[1])
     elseif length(expr) > 1 && isa(expr[1], Symbol)
         name = expr[1]
-        if name in [:exists, :forall]
+        if (name in (:exists, :forall) &&
+            (any(e == :- for e in expr[2]) || all(e isa Var for e in expr[2])))
             # Handle exists and forall separately
             vars, types = parse_typed_vars(expr[2])
-            typepreds = Term[@julog($ty(:v)) for (v, ty) in zip(vars, types)]
-            cond = Compound(:and, typepreds)
+            tpreds = Term[@julog($ty(:v)) for (v, ty) in zip(vars, types)]
+            cond = length(tpreds) > 1 ? Compound(:and, tpreds) : tpreds[1]
             body = parse_formula(expr[3:3])
             return Compound(name, Term[cond, body])
         else
@@ -81,7 +88,7 @@ function parse_formula(expr::Vector)
             return Compound(name, args)
         end
     else
-        error("Could not parse $expr to Julog formula.")
+        error("Could not parse $(unparse(expr)) to Julog formula.")
     end
 end
 parse_formula(expr::Symbol) = Const(expr)
@@ -96,7 +103,7 @@ function parse_typed_pred(expr::Vector)
         args, types = parse_typed_vars(expr[2:end])
         return Compound(name, Vector{Term}(args)), types
     else
-        error("Could not parse $expr to typed predicate.")
+        error("Could not parse $(unparse(expr)) to typed predicate.")
     end
 end
 
@@ -107,18 +114,18 @@ function parse_typed_vars(expr::Vector)
     count, is_type = 0, false
     for e in expr
         if e == :-
+            if is_type error("Repeated hyphens in $(unparse(expr)).") end
             is_type = true
             continue
-        end
-        if is_type
-            append!(types, repeat([e], count))
+        elseif is_type
+            append!(types, fill(e, count))
             count, is_type = 0, false
         else
             push!(vars, e)
             count += 1
         end
     end
-    append!(types, repeat([:object], count))
+    append!(types, fill(:object, count))
     return vars, types
 end
 
