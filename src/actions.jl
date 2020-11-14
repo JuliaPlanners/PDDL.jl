@@ -57,7 +57,7 @@ function available(state::State, domain::Domain;
     # Ground all action definitions with arguments
     actions = Term[]
     for act in values(domain.actions)
-        typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
+        typecond = (@julog($ty(:v)) for (v, ty) in zip(act.args, act.types))
         # Include type conditions when necessary for correctness
         p = act.precond
         if has_fluent(p, domain) || has_axiom(p, domain) || has_quantifier(p)
@@ -72,7 +72,7 @@ function available(state::State, domain::Domain;
         if !sat continue end
         for s in subst
             args = [s[v] for v in act.args if v in keys(s)]
-            if any([!is_ground(a) for a in args]) continue end
+            if any(!is_ground(a) for a in args) continue end
             term = isempty(args) ? Const(act.name) : Compound(act.name, args)
             push!(actions, term)
         end
@@ -156,7 +156,7 @@ function relevant(state::State, domain::Domain;
         if !sat continue end
         for s in subst
             args = [get(s, var, var) for var in act.args]
-            if any([!is_ground(a) for a in args]) continue end
+            if any(!is_ground(a) for a in args) continue end
             term = isempty(args) ? Const(act.name) : Compound(act.name, args)
             push!(actions, term)
         end
