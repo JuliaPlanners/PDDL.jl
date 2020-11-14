@@ -12,6 +12,10 @@ has_fluent(formula::Term, state::State) =
 has_fluent(formula::Term, domain::Domain) =
     has_pred(formula, keys(domain.functions))
 
+"Check if formula contains an axiom reference."
+has_axiom(formula::Term, domain::Domain) = length(domain.axioms) > 0 &&
+    has_pred(formula, (ax.head.name for ax in domain.axioms))
+
 "Check if formula contains a universal or existential quantifier."
 has_quantifier(formula::Term) =
     has_pred(formula, Set(Symbol[:forall, :exists]))

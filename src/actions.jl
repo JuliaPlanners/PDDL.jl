@@ -59,12 +59,13 @@ function available(state::State, domain::Domain;
     for act in values(domain.actions)
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
         # Include type conditions when necessary for correctness
-        if has_fluent(act.precond, domain) || has_quantifier(act.precond)
-            conds = [typecond; flatten_conjs(act.precond)]
+        p = act.precond
+        if has_fluent(p, domain) || has_axiom(p, domain) || has_quantifier(p)
+            conds = prepend!(flatten_conjs(p), typecond)
         elseif domain.requirements[:typing]
-            conds = [flatten_conjs(act.precond); typecond]
+            conds = append!(flatten_conjs(p), typecond)
         else
-            conds = flatten_conjs(act.precond)
+            conds = flatten_conjs(p)
         end
         # Find all substitutions that satisfy preconditions
         sat, subst = satisfy(conds, state, domain; mode=:all)
