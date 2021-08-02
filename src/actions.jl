@@ -166,26 +166,19 @@ relevant(domain::GenericDomain, state::GenericState, act::Term; kwargs...) =
     relevant(domain, state, domain.actions[act.name], act.args; kwargs...)
 
 function execute(domain::GenericDomain, state::GenericState,
-                 act::GenericAction, args;
-                 as_dist::Bool=false, as_diff::Bool=false,
+                 act::GenericAction, args; as_diff::Bool=false,
                  check::Bool=true, fail_mode::Symbol=:error)
     # Check whether references resolve and preconditions hold
     if check && !available(domain, state, act, args)
-        if fail_mode == :no_op return as_diff ? no_effect(as_dist) : state end
+        if fail_mode == :no_op return as_diff ? no_effect() : state end
         error("Precondition $(act.precond) does not hold.") # Error by default
     end
     # Substitute arguments and preconditions
     # TODO : Check for non-ground terms outside of quantified formulae
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     effect = substitute(act.effect, subst)
-    # Compute effects in the appropriate form
-    if as_dist
-        # Compute categorical distribution over differences
-        diff = effect_dist(effect, state, domain)
-    else
-        # Sample a possible difference
-        diff = effect_diff(effect, state, domain)
-    end
+    # Compute effect as a state diffference
+    diff = effect_diff(effect, state, domain)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end
@@ -203,11 +196,11 @@ end
 
 function execute(domain::GenericDomain, state::GenericState,
                  actions::AbstractVector{<:Term};
-                 as_dist::Bool=false, as_diff::Bool=false, options...)
+                 as_diff::Bool=false, options...)
     state = copy(state)
     for act in actions
         diff = execute(domain, state, domain.actions[act.name], act.args;
-                       as_dist=as_dist, as_diff=true, options...)
+                       as_diff=true, options...)
         if !as_diff update!(state, diff) end
     end
     # Return either the difference or the final state

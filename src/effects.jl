@@ -9,6 +9,9 @@ end
 
 Diff() = Diff(Term[], Term[], Dict{Term,Any}())
 
+"Return the effect of a null operation."
+no_effect() = Diff()
+
 "Returns true if the diff contains a matching term."
 function contains_term(diff::Diff, term::Term)
     return (any(has_subterm(d, term) for d in diff.add) ||
@@ -59,22 +62,11 @@ function effect_diff(effect::Term, state::Union{GenericState,Nothing}=nothing,
         else
             push!(diff.add, effect)
         end
-    elseif effect.name == :probabilistic
-        n_effs = Int(length(get_args(effect))/2)
-        r, cum_prob = rand(), 0.0
-        for i in 1:n_effs
-            # Sample a random effect
-            prob, eff = effect.args[2*i-1].name, effect.args[2*i]
-            if cum_prob <= r < (cum_prob + prob)
-                diff = combine!(diff, effect_diff(eff, state, domain))
-            end
-            cum_prob += prob
-        end
     elseif effect.name in keys(assign_ops)
         term, val = effect.args[1], effect.args[2]
         val = isnothing(state) ? val : Const(evaluate(domain, state, val))
         diff.ops[term] = (assign_ops[effect.name], val.name)
-    elseif effect.name in [:not, :!]
+    elseif effect.name == :not
         effect = effect.args[1]
         if !isnothing(state) # Evaluated all nested functions
             effect = eval_term(effect, Subst(), state.fluents)
@@ -138,81 +130,4 @@ end
 "Update a world state with a state difference."
 function update(state::GenericState, diff::Diff)
     return update!(copy(state), diff)
-end
-
-"A (categorical) distribution over possible state differences."
-mutable struct DiffDist
-    probs::Vector{Float64}
-    diffs::Vector{Diff}
-end
-
-DiffDist() = DiffDist([1.0], [Diff()])
-
-"Returns Cartesian product of two distributions over state differences."
-function product(d1::DiffDist, d2::DiffDist)
-    probs, diffs = Float64[], Diff[]
-    for (p1, diff1) in zip(d1.probs, d1.diffs)
-        for (p2, diff2) in zip(d2.probs, d2.diffs)
-            push!(probs, p1 * p2)
-            push!(diffs, combine(diff1, diff2))
-        end
-    end
-    return DiffDist(probs, diffs)
-end
-
-"Combine distributions over state differences via Cartesian product."
-function combine(dists::DiffDist...)
-    return foldl(product, dists; init=DiffDist())
-end
-
-"Return distribution over possible effects, given a state."
-function effect_dist(effect::Term, state::GenericState,
-                     domain::Union{GenericDomain,Nothing}=nothing)
-    if effect.name == :and
-        sub_dists = [effect_dist(arg, state, domain) for arg in effect.args]
-        dist = combine(sub_dists...)
-    elseif effect.name == :when
-        cond, eff = effect.args[1], effect.args[2]
-        if satisfy(domain, state, cond)
-            dist = effect_dist(eff, state, domain)
-        end
-    elseif effect.name == :forall
-        cond, eff = effect.args[1], effect.args[2]
-        # Find objects matching cond and apply effects for each
-        subst = satisfiers(domain, state, cond)
-        sub_dists = [effect_dist(substitute(eff, s), state, domain)
-                     for s in subst]
-        dist = combine(sub_dists...)
-    elseif effect.name == :probabilistic
-        n_effs = Int(length(effect.args)/2)
-        probs, diffs = Float64[], Diff[]
-        for i in 1:n_effs
-            prob, eff = effect.args[2*i-1].name, effect.args[2*i]
-            sub_dist = effect_dist(eff, state, domain)
-            for (p, diff) in sub_dist
-                push!(probs, prob * p)
-                push!(diffs, diff)
-            end
-        end
-        dist = DiffDist(probs, diffs)
-    else
-        # Bottom out at deterministic additions, deletions, or assignments
-        diff = effect_diff(effect, state, domain)
-        dist = DiffDist([1.0], [diff])
-    end
-    return dist
-end
-
-"Return the effect of a null operation as either a difference or distribution."
-function no_effect(as_dist::Bool=false)
-    if as_dist
-        return DiffDist()
-    else
-        return Diff()
-    end
-end
-
-"Update a state with a distribution over state differences."
-function update(state::GenericState, dist::DiffDist)
-    return [(p, update(state, d)) for (p, d) in zip(dist.probs, dist.diffs)]
 end

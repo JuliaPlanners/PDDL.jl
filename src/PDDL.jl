@@ -14,7 +14,7 @@ export get_static_predicates, get_static_functions
 export satisfy, satisfiers, evaluate, find_matches
 export init_state, goal_state, initialize, transition, simulate
 export get_preconditions, get_effect
-export effect_diff, precond_diff, effect_dist, update!, update
+export effect_diff, precond_diff, update!, update
 export available, relevant, execute, regress, trigger
 export use_available_action_cache!, use_relevant_action_cache!
 export clear_available_action_cache!, clear_relevant_action_cache!
