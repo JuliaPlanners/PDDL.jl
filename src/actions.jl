@@ -214,27 +214,6 @@ function execute(domain::GenericDomain, state::GenericState,
     return as_diff ? diff : state
 end
 
-"Execute a list of actions in sequence on a state."
-execseq(domain::GenericDomain, state::GenericState, actions; options...) =
-    execute(domain, state, actions; options...)
-
-function execute(domain::GenericDomain, state::GenericState,
-                 actions::AbstractSet{<:Term};
-                 as_dist::Bool=false, as_diff::Bool=false, options...)
-    diffs = [execute(domain, state, domain.actions[act.name], act.args;
-                     as_dist=as_dist, as_diff=true, options...)
-             for act in actions]
-    diff = combine(diffs...)
-    # Return either the difference or the updated state
-    return as_diff ? diff : update(state, diff)
-end
-
-"Execute a set of actions in parallel on a state."
-execpar(domain::GenericDomain, state::GenericState, actions; options...) =
-    execute(domain, state, actions; options...)
-execpar(domain::GenericDomain, state::GenericState, actions::AbstractVector{<:Term}; options...) =
-    execute(domain, state, Set(actions); options...)
-
 function regress(domain::GenericDomain, state::GenericState,
                  act::GenericAction, args; as_diff::Bool=false,
                  check::Bool=true, fail_mode::Symbol=:error)

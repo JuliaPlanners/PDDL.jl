@@ -96,17 +96,6 @@ function transition(domain::GenericDomain, state::GenericState, action::Term;
     return state
 end
 
-function transition(domain::GenericDomain, state::GenericState,
-                    actions::AbstractSet{<:Term};
-                    check::Bool=true, fail_mode::Symbol=:error)
-    # Execute all actions in parallel
-    state = execpar(domain, state, actions; check=check, fail_mode=fail_mode)
-    if length(domain.events) > 0
-        state = trigger(domain, state, domain.events)
-    end
-    return state
-end
-
 """
     simulate(domain, state, actions; kwargs...)
 
@@ -117,29 +106,13 @@ if they do not, and a `callback` function to apply after each step.
 """
 function simulate(domain::GenericDomain, state::GenericState,
                   actions::AbstractVector{<:Term};
-                  check::Bool=true, fail_mode::Symbol=:error,
-                  callback::Function=(d,s,a)->nothing)
+                  check::Bool=true, fail_mode::Symbol=:error, callback=nothing)
     trajectory = GenericState[state]
-    callback(domain, state, Const(:start))
+    if callback !== nothing callback(domain, state, Const(:start)) end
     for act in actions
         state = transition(domain, state, act; check=check, fail_mode=fail_mode)
         push!(trajectory, state)
-        callback(domain, state, act)
-    end
-    return trajectory
-end
-
-function simulate(domain::GenericDomain, state::GenericState,
-                  actions::AbstractVector{<:AbstractSet{<:Term}};
-                  check::Bool=true, fail_mode::Symbol=:error,
-                  callback::Function=(d,s,a)->nothing)
-    trajectory = GenericState[state]
-    callback(domain, state, Set([Const(:start)]))
-    for acts in actions
-        state = transition(domain, state, acts;
-                           check=check, fail_mode=fail_mode)
-        push!(trajectory, state)
-        callback(domain, state, acts)
+        if callback !== nothing callback(domain, state, act) end
     end
     return trajectory
 end
