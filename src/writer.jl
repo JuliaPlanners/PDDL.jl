@@ -4,7 +4,7 @@ export write_pddl, write_domain, write_problem
 export save_domain, save_problem
 
 using Julog
-using ..PDDL: GenericDomain, Problem, GenericAction, GenericEvent
+using ..PDDL: GenericDomain, GenericProblem, GenericAction, GenericEvent
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 "Write list of typed formulae in PDDL syntax."
@@ -175,7 +175,7 @@ end
 write_pddl(event::GenericEvent) = write_event(event)
 
 "Write problem in PDDL syntax."
-function write_problem(problem::Problem, indent::Int=2)
+function write_problem(problem::GenericProblem, indent::Int=2)
     strs = Dict{Symbol,String}()
     fields = [:domain, :objects, :init, :goal, :metric]
     strs[:domain] = string(problem.domain)
@@ -189,7 +189,7 @@ function write_problem(problem::Problem, indent::Int=2)
     pushfirst!(strs, "(define (problem $(problem.name))")
     return join(strs, "\n" * ' '^indent) * "\n)"
 end
-write_pddl(problem::Problem) = write_problem(problem)
+write_pddl(problem::GenericProblem) = write_problem(problem)
 
 "Write initial problem formulae in PDDL syntax."
 function write_init(init::Vector{<:Term}, indent::Int=2, maxchars::Int=80)
@@ -214,7 +214,7 @@ function save_domain(path::String, domain::GenericDomain)
 end
 
 "Save PDDL problem to specified path."
-function save_problem(path::String, problem::Problem)
+function save_problem(path::String, problem::GenericProblem)
     open(f->write(f, write_problem(problem)), path, "w")
     return path
 end

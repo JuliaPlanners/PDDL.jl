@@ -3,14 +3,15 @@ module PDDL
 using Base: @kwdef
 using Julog
 
-export GenericDomain, Problem, GenericAction, GenericEvent, GenericState
+export Domain, Problem, State, Action, Event
+export GenericDomain, GenericProblem, GenericState, GenericAction, GenericEvent
 export Term, Compound, Var, Const
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export write_domain, write_problem, write_pddl
 export load_domain, load_problem, preprocess
 export save_domain, save_problem
 export get_static_predicates, get_static_functions
-export satisfy, evaluate, find_matches
+export satisfy, satisfiers, evaluate, find_matches
 export init_state, goal_state, initialize, transition, simulate
 export get_preconditions, get_effect
 export effect_diff, precond_diff, effect_dist, update!, update

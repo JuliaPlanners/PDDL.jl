@@ -1,6 +1,9 @@
 "PDDL planning domain."
 abstract type Domain end
 
+"PDDL planning problem."
+abstract type Problem end
+
 "PDDL state description."
 abstract type State end
 

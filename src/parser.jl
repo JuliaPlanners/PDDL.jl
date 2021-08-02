@@ -4,7 +4,7 @@ export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
 using ParserCombinator, Julog
-using ..PDDL: GenericDomain, Problem, GenericAction, GenericEvent
+using ..PDDL: GenericDomain, GenericProblem, GenericAction, GenericEvent
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 struct Keyword
@@ -329,7 +329,7 @@ end
 body_field_parsers[:domain][:event] = parse_event
 
 "Parse PDDL problem description."
-parse_problem(expr::Vector) = Problem(parse_description(:problem, expr)...)
+parse_problem(expr::Vector) = GenericProblem(parse_description(:problem, expr)...)
 parse_problem(str::String) = parse_problem(parse_one(str, top_level)[1])
 top_level_parsers[:problem] = parse_problem
 head_field_parsers[:problem][:domain] = e -> e[2]

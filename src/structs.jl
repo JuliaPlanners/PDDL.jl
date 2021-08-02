@@ -118,7 +118,7 @@ function get_static_functions(domain::GenericDomain)
 end
 
 "PDDL planning problem."
-@kwdef mutable struct Problem
+@kwdef mutable struct GenericProblem <: Problem
     name::Symbol # Name of problem
     domain::Symbol # Name of associated domain
     objects::Vector{Const} # List of objects
@@ -128,26 +128,26 @@ end
     metric::Union{Tuple{Int,Term},Nothing} # Metric direction (+/-) and formula
 end
 
-function Problem(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
-    header = filter(item -> first(item) in fieldnames(Problem), header)
-    body = filter(item -> first(item) in fieldnames(Problem), body)
-    return Problem(;name=name, header..., body...)
+function GenericProblem(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
+    header = filter(item -> first(item) in fieldnames(GenericProblem), header)
+    body = filter(item -> first(item) in fieldnames(GenericProblem), body)
+    return GenericProblem(;name=name, header..., body...)
 end
 
-function Problem(state::GenericState, goal::Term=@julog(and()),
+function GenericProblem(state::GenericState, goal::Term=@julog(and()),
                  metric::Union{Tuple{Int,Term},Nothing}=nothing;
                  name=:problem, domain=:domain)
     objtypes = Dict{Const,Symbol}(get_args(t)[1] => t.name for t in state.types)
     objects = collect(keys(objtypes))
     init = Term[get_facts(state); get_assignments(state)]
-    return Problem(Symbol(name), Symbol(domain),
+    return GenericProblem(Symbol(name), Symbol(domain),
                    objects, objtypes, init, goal, metric)
 end
 
-Base.copy(p::Problem) =
-    Problem(; Dict(fn => getfield(p, fn) for fn in fieldnames(typeof(p)))...)
+Base.copy(p::GenericProblem) =
+    GenericProblem(; Dict(fn => getfield(p, fn) for fn in fieldnames(typeof(p)))...)
 
 "Get object type declarations as a list of clauses."
-function get_obj_clauses(problem::Problem)
+function get_obj_clauses(problem::GenericProblem)
     return [@julog($ty(:o) <<= true) for (o, ty) in problem.objtypes]
 end
