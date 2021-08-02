@@ -74,16 +74,6 @@ Base.issubset(s1::GenericState, s2::GenericState) =
         all(f in f2 && s1[f] == s2[f] for f in f1)
     end)
 
-"Access the value of a fluent or fact in a state."
-Base.getindex(state::GenericState, domain::GenericDomain, term::Term) =
-    evaluate(domain, state, term)
-Base.getindex(state::GenericState, domain::GenericDomain, term::String) =
-    evaluate(domain, state, Parser.parse_formula(term))
-Base.getindex(state::GenericState, domain::GenericDomain, term::Symbol) =
-    evaluate(domain, state, Const(term))
-Base.getindex(state::GenericState, domain::GenericDomain, term::Expr) =
-    evaluate(domain, state, eval(Julog.parse_term(term, identity)))
-
 "Set the value of a fluent or fact in a state."
 Base.setindex!(state::GenericState, val::Bool, term::Const) =
     (if val push!(state.facts, term) else delete!(state.facts, term) end; val)
