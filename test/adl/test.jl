@@ -20,11 +20,11 @@ domain = load_domain(joinpath(path, "assembly-domain.pddl"))
 problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 
 # Test for static predicates
-@test pddl"(requires ?a ?r)" in get_static_predicates(domain)
-@test length(get_static_predicates(domain)) == 6
-
-# Our goal is to assemble a frob
 state = init_state(problem)
+@test pddl"(requires ?a ?r)" in get_static_predicates(domain, state)
+@test length(get_static_predicates(domain, state)) == 6
+
+# Execute plan to assemble a frob
 
 # Commit charger to assembly of frob
 state = execute(domain, state, pddl"(commit charger frob)")

@@ -6,14 +6,13 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.functions[:distance] == pddl"(distance ?c1 ?c2)"
 @test domain.functypes[:fuel] == [:aircraft]
 
-# Test for static functions
-@test pddl"(capacity ?a)" in get_static_functions(domain)
-@test length(get_static_functions(domain)) == 5
-
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.metric == (-1, pddl"(+ (* 4 (total-time)) (* 5 (total-fuel-used)))")
 
+# Test for static functions
 state = init_state(problem)
+@test pddl"(capacity ?a)" in get_static_functions(domain, state)
+@test length(get_static_functions(domain, state)) == 5
 
 # Person 1 boards plane 1
 state = execute(domain, state, pddl"(board person1 plane1 city0)")

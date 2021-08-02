@@ -98,10 +98,11 @@ function get_clauses(domain::GenericDomain)
 end
 
 "Get list of predicates that are never modified by actions in the domain."
-function get_static_predicates(domain::GenericDomain)
+function get_static_predicates(domain::GenericDomain, state::GenericState)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
-    diffs = [effect_diff(ground(act.effect)) for act in values(domain.actions)]
+    diffs = [effect_diff(domain, state, ground(act.effect))
+             for act in values(domain.actions)]
     derived = p -> any(unify(p, ax.head) !== nothing for ax in domain.axioms)
     modified = p -> any(contains_term(d, p) for d in diffs)
     return Term[p for p in values(domain.predicates)
@@ -109,10 +110,11 @@ function get_static_predicates(domain::GenericDomain)
 end
 
 "Get list of functions that are never modified by actions in the domain."
-function get_static_functions(domain::GenericDomain)
+function get_static_functions(domain::GenericDomain, state::GenericState)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
-    diffs = [effect_diff(ground(act.effect)) for act in values(domain.actions)]
+    diffs = [effect_diff(domain, state, ground(act.effect))
+             for act in values(domain.actions)]
     modified = p -> any(contains_term(d, p) for d in diffs)
     return Term[p for p in values(domain.functions) if !modified(p)]
 end

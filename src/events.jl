@@ -9,7 +9,7 @@ function trigger(domain::GenericDomain, state::GenericState,
         return as_diff ? no_effect() : state
     end
     # Update state with effects for each matching substitution
-    diff = combine((effect_diff(substitute(event.effect, s), state)
+    diff = combine((effect_diff(domain, state, substitute(event.effect, s))
                     for s in subst)...)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)

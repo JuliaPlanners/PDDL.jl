@@ -120,7 +120,7 @@ function relevant(domain::GenericDomain, state::GenericState;
     actions = Term[]
     for act in values(domain.actions)
         # Compute postconditions from the action's effect
-        diff = effect_diff(act.effect)
+        diff = effect_diff(domain, state, act.effect)
         addcond = strict ? diff.add : [Compound(:or, diff.add)]
         delcond = [@julog(not(:t)) for t in diff.del]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
@@ -152,7 +152,7 @@ function relevant(domain::GenericDomain, state::GenericState,
    end
    subst = Subst(var => val for (var, val) in zip(act.args, args))
    # Compute postconditions from the action's effect
-   diff = effect_diff(substitute(act.effect, subst))
+   diff = effect_diff(domain, state, substitute(act.effect, subst))
    postcond = Term[strict ? diff.add : Compound(:or, diff.add);
                    [@julog(not(:t)) for t in diff.del]]
    # Construct type conditions of the form "type(val)"
@@ -178,7 +178,7 @@ function execute(domain::GenericDomain, state::GenericState,
     subst = Subst(var => val for (var, val) in zip(act.args, args))
     effect = substitute(act.effect, subst)
     # Compute effect as a state diffference
-    diff = effect_diff(effect, state, domain)
+    diff = effect_diff(domain, state, effect)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end
@@ -220,8 +220,8 @@ function regress(domain::GenericDomain, state::GenericState,
     effect = substitute(act.effect, subst)
     # Compute regression difference as Precond - Additions
     # TODO: Handle conditional effects, disjunctive preconditions, etc.
-    pre_diff = precond_diff(precond, state)
-    eff_diff = effect_diff(effect, state)
+    pre_diff = precond_diff(domain, state, precond)
+    eff_diff = effect_diff(domain, state, effect)
     append!(pre_diff.del, eff_diff.add)
     return as_diff ? pre_diff : update(state, pre_diff)
 end
