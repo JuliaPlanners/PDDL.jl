@@ -32,8 +32,8 @@ function combine(diffs::Diff...)
 end
 
 "Convert effect formula to a state difference (additions, deletions, etc.)"
-function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
-                     domain::Union{Domain,Nothing}=nothing)
+function effect_diff(effect::Term, state::Union{GenericState,Nothing}=nothing,
+                     domain::Union{GenericDomain,Nothing}=nothing)
     assign_ops = Dict{Symbol,Function}(
         :assign => (x, y) -> y, :increase => +, :decrease => -,
         Symbol("scale-up") => *, Symbol("scale-down") => /)
@@ -44,7 +44,7 @@ function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
         end
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
-        if isnothing(state) || satisfy([cond], state, domain)[1] == true
+        if isnothing(state) || satisfy(domain, state, cond)
             # Return eff if cond is satisfied
             combine!(diff, effect_diff(eff, state, domain))
         end
@@ -52,7 +52,7 @@ function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
         cond, eff = effect.args[1], effect.args[2]
         if !isnothing(state)
             # Find objects matching cond and apply effects for each
-            _, subst = satisfy([cond], state, domain; mode=:all)
+            subst = satisfiers(domain, state, cond)
             for s in subst
                 combine!(diff, effect_diff(substitute(eff, s), state, domain))
             end
@@ -72,7 +72,7 @@ function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
         end
     elseif effect.name in keys(assign_ops)
         term, val = effect.args[1], effect.args[2]
-        val = isnothing(state) ? val : evaluate(val, state, domain)
+        val = isnothing(state) ? val : Const(evaluate(domain, state, val))
         diff.ops[term] = (assign_ops[effect.name], val.name)
     elseif effect.name in [:not, :!]
         effect = effect.args[1]
@@ -90,7 +90,7 @@ function effect_diff(effect::Term, state::Union{State,Nothing}=nothing,
 end
 
 "Convert precondition formula to a state difference."
-function precond_diff(precond::Term, state::Union{State,Nothing}=nothing)
+function precond_diff(precond::Term, state::Union{GenericState,Nothing}=nothing)
     diff = Diff()
     # TODO: Handle disjunctions and numeric conditions
     if precond.name == :and
@@ -101,7 +101,7 @@ function precond_diff(precond::Term, state::Union{State,Nothing}=nothing)
         cond, eff = precond.args[1], precond.args[2]
         if !isnothing(state)
             # Find objects matching cond and apply effects for each
-            _, subst = satisfy([cond], state; mode=:all)
+            subst = satisfiers(domain, state, cond)
             for s in subst
                 combine!(diff, precond_diff(substitute(eff, s), state))
             end
@@ -118,7 +118,7 @@ function precond_diff(precond::Term, state::Union{State,Nothing}=nothing)
 end
 
 "Update a world state (in-place) with a state difference."
-function update!(state::State, diff::Diff)
+function update!(state::GenericState, diff::Diff)
     filter!(c -> !(c in diff.del), state.facts)
     union!(state.facts, diff.add)
     for (term, (op, val)) in diff.ops
@@ -136,7 +136,7 @@ function update!(state::State, diff::Diff)
 end
 
 "Update a world state with a state difference."
-function update(state::State, diff::Diff)
+function update(state::GenericState, diff::Diff)
     return update!(copy(state), diff)
 end
 
@@ -166,20 +166,20 @@ function combine(dists::DiffDist...)
 end
 
 "Return distribution over possible effects, given a state."
-function effect_dist(effect::Term, state::State,
-                     domain::Union{Domain,Nothing}=nothing)
+function effect_dist(effect::Term, state::GenericState,
+                     domain::Union{GenericDomain,Nothing}=nothing)
     if effect.name == :and
         sub_dists = [effect_dist(arg, state, domain) for arg in effect.args]
         dist = combine(sub_dists...)
     elseif effect.name == :when
         cond, eff = effect.args[1], effect.args[2]
-        if satisfy([cond], state, domain)[1] == true
+        if satisfy(domain, state, cond)
             dist = effect_dist(eff, state, domain)
         end
     elseif effect.name == :forall
         cond, eff = effect.args[1], effect.args[2]
         # Find objects matching cond and apply effects for each
-        _, subst = satisfy([cond], state, domain; mode=:all)
+        subst = satisfiers(domain, state, cond)
         sub_dists = [effect_dist(substitute(eff, s), state, domain)
                      for s in subst]
         dist = combine(sub_dists...)
@@ -213,6 +213,6 @@ function no_effect(as_dist::Bool=false)
 end
 
 "Update a state with a distribution over state differences."
-function update(state::State, dist::DiffDist)
+function update(state::GenericState, dist::DiffDist)
     return [(p, update(state, d)) for (p, d) in zip(dist.probs, dist.diffs)]
 end

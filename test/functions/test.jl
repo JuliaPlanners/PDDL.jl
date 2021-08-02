@@ -18,12 +18,12 @@ state = init_state(problem)
 
 # Execute plan
 state = init_state(problem)
-state = execute(pddl"(pick ball1)", state, domain)
-state = execute(pddl"(throw ball1 85)", state, domain)
-state = execute(pddl"(pick ball2)", state, domain)
-state = execute(pddl"(throw ball2 75)", state, domain)
+state = execute(domain, state, pddl"(pick ball1)")
+state = execute(domain, state, pddl"(throw ball1 85)")
+state = execute(domain, state, pddl"(pick ball2)")
+state = execute(domain, state, pddl"(throw ball2 75)")
 
 # Check if goal is satisfied
-@test state[pddl"(< (loc ball1) 10)"]
-@test state[pddl"(> (loc ball2) 15)"]
-@test satisfy(problem.goal, state, domain)[1] == true
+@test state[domain, pddl"(< (loc ball1) 10)"]
+@test state[domain, pddl"(> (loc ball2) 15)"]
+@test satisfy(domain, state, problem.goal) == true

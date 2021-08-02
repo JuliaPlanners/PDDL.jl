@@ -11,13 +11,13 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.objects == @pddl("a", "b", "c")
 
 state = init_state(problem)
-state = execute(pddl"(pickup b)", state, domain)
+state = execute(domain, state, pddl"(pickup b)")
 @test state[domain, pddl"(holding b)"] == true
-state = execute(pddl"(stack b c)", state, domain)
+state = execute(domain, state, pddl"(stack b c)")
 @test state[domain, pddl"(on b c)"] == true
-state = execute(pddl"(pickup a)", state, domain)
+state = execute(domain, state, pddl"(pickup a)")
 @test state[domain, pddl"(holding a)"] == true
-state = execute(pddl"(stack a b)", state, domain)
+state = execute(domain, state, pddl"(stack a b)")
 @test state[domain, pddl"(above a c)"] == true
 
-@test satisfy(problem.goal, state, domain)[1] == true
+@test satisfy(domain, state, problem.goal) == true

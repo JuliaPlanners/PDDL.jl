@@ -4,7 +4,7 @@ export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
 using ParserCombinator, Julog
-using ..PDDL: Domain, Problem, Action, Event
+using ..PDDL: GenericDomain, Problem, GenericAction, GenericEvent
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 struct Keyword
@@ -197,7 +197,7 @@ parse_description(desc::Symbol, str::String) =
     parse_description(desc, parse_one(str, top_level)[1])
 
 "Parse PDDL domain description."
-parse_domain(expr::Vector) = Domain(parse_description(:domain, expr)...)
+parse_domain(expr::Vector) = GenericDomain(parse_description(:domain, expr)...)
 parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
 parse_domain(expr::Vector, domain_type::Type) =
     domain_type(parse_description(:domain, expr)...)
@@ -313,7 +313,7 @@ function parse_action(expr::Vector)
     params, types = parse_typed_vars(get(args, :parameters, []))
     precondition = parse_formula(get(args, :precondition, []))
     effect = parse_formula(args[:effect])
-    return Action(name, params, types, precondition, effect)
+    return GenericAction(name, params, types, precondition, effect)
 end
 body_field_parsers[:domain][:action] = parse_action
 
@@ -324,7 +324,7 @@ function parse_event(expr::Vector)
     name = args[:event]
     precondition = parse_precondition(args[:precondition])
     effect = parse_effect(args[:effect])
-    return Event(name, precondition, effect)
+    return GenericEvent(name, precondition, effect)
 end
 body_field_parsers[:domain][:event] = parse_event
 

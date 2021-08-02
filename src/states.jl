@@ -1,6 +1,6 @@
 "Construct state from a list of terms (e.g. initial predicates and fluents)."
-function State(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
-    state = State(Set{Term}(types), Set{Term}(), Dict{Symbol,Any}())
+function GenericState(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
+    state = GenericState(Set{Term}(types), Set{Term}(), Dict{Symbol,Any}())
     for t in terms
         if t.name == :(==)
             # Initialize fluents
@@ -16,22 +16,22 @@ function State(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
 end
 
 "Returns the list of all terms in a state."
-function get_terms(state::State)
+function get_terms(state::GenericState)
     return Term[get_types(state); get_facts(state); get_fluents(state)]
 end
 
 "Returns the list of all type declarations in a state."
-function get_types(state::State)
+function get_types(state::GenericState)
     return collect(state.types)
 end
 
 "Returns the list of all facts in a state."
-function get_facts(state::State)
+function get_facts(state::GenericState)
     return collect(state.facts)
 end
 
 "Returns the list of all fluent terms (but not their values) in a state."
-function get_fluents(state::State)
+function get_fluents(state::GenericState)
     terms = Term[]
     for (name, val) in state.fluents
         if isa(val, Dict)
@@ -45,7 +45,7 @@ function get_fluents(state::State)
 end
 
 "Returns the list of all fluent assignments in a state."
-function get_assignments(state::State)
+function get_assignments(state::GenericState)
     terms = Term[]
     for (name, val) in state.fluents
         if isa(val, Dict)
@@ -62,47 +62,39 @@ function get_assignments(state::State)
     return terms
 end
 
-Base.copy(s::State) =
-    State(copy(s.types), copy(s.facts), deepcopy(s.fluents))
-Base.:(==)(s1::State, s2::State) =
+Base.copy(s::GenericState) =
+    GenericState(copy(s.types), copy(s.facts), deepcopy(s.fluents))
+Base.:(==)(s1::GenericState, s2::GenericState) =
     s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
-Base.hash(s::State, h::UInt) =
+Base.hash(s::GenericState, h::UInt) =
     hash(s.fluents, hash(s.facts, hash(s.types, h)))
-Base.issubset(s1::State, s2::State) =
+Base.issubset(s1::GenericState, s2::GenericState) =
     s1.types ⊆ s2.types && s1.facts ⊆ s2.facts &&
     (let f1 = get_fluents(s1), f2 = get_fluents(s2)
         all(f in f2 && s1[f] == s2[f] for f in f1)
     end)
 
 "Access the value of a fluent or fact in a state."
-Base.getindex(state::State, term::Term) =
-    evaluate(term, state; as_const=false)
-Base.getindex(state::State, term::String) =
-    evaluate(Parser.parse_formula(term), state; as_const=false)
-Base.getindex(state::State, term::Symbol) =
-    evaluate(Const(term), state; as_const=false)
-Base.getindex(state::State, term::Expr) =
-    evaluate(eval(Julog.parse_term(term, identity)), state; as_const=false)
-Base.getindex(state::State, domain::Domain, term::Term) =
-    evaluate(term, state, domain; as_const=false)
-Base.getindex(state::State, domain::Domain, term::String) =
-    evaluate(Parser.parse_formula(term), state, domain; as_const=false)
-Base.getindex(state::State, domain::Domain, term::Symbol) =
-    evaluate(Const(term), state, domain; as_const=false)
-Base.getindex(state::State, domain::Domain, term::Expr) =
-    evaluate(eval(Julog.parse_term(term, identity)), state, domain; as_const=false)
+Base.getindex(state::GenericState, domain::GenericDomain, term::Term) =
+    evaluate(domain, state, term)
+Base.getindex(state::GenericState, domain::GenericDomain, term::String) =
+    evaluate(domain, state, Parser.parse_formula(term))
+Base.getindex(state::GenericState, domain::GenericDomain, term::Symbol) =
+    evaluate(domain, state, Const(term))
+Base.getindex(state::GenericState, domain::GenericDomain, term::Expr) =
+    evaluate(domain, state, eval(Julog.parse_term(term, identity)))
 
 "Set the value of a fluent or fact in a state."
-Base.setindex!(state::State, val::Bool, term::Const) =
+Base.setindex!(state::GenericState, val::Bool, term::Const) =
     (if val push!(state.facts, term) else delete!(state.facts, term) end; val)
-Base.setindex!(state::State, val::Bool, term::Compound) =
+Base.setindex!(state::GenericState, val::Bool, term::Compound) =
     (if val push!(state.facts, term) else delete!(state.facts, term) end; val)
-Base.setindex!(state::State, val::Any, term::Const) =
+Base.setindex!(state::GenericState, val::Any, term::Const) =
     (state.fluents[term.name] = val)
-Base.setindex!(state::State, val::Any, term::Compound) =
+Base.setindex!(state::GenericState, val::Any, term::Compound) =
     (d = get!(state.fluents, term.name, Dict());
      d[Tuple(a.name for a in term.args)] = val)
-Base.setindex!(state::State, val::Any, term::Symbol) =
+Base.setindex!(state::GenericState, val::Any, term::Symbol) =
     Base.setindex!(state, val, Const(term))
-Base.setindex!(state::State, val::Any, term::Expr) =
+Base.setindex!(state::GenericState, val::Any, term::Expr) =
     Base.setindex!(state, val, eval(Julog.parse_term(term, identity)))

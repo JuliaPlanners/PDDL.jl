@@ -3,7 +3,7 @@ module PDDL
 using Base: @kwdef
 using Julog
 
-export Domain, Problem, Action, Event, State
+export GenericDomain, Problem, GenericAction, GenericEvent, GenericState
 export Term, Compound, Var, Const
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export write_domain, write_problem, write_pddl
@@ -19,6 +19,7 @@ export use_available_action_cache!, use_relevant_action_cache!
 export clear_available_action_cache!, clear_relevant_action_cache!
 
 include("requirements.jl")
+include("interface.jl")
 include("structs.jl")
 include("parser.jl")
 include("writer.jl")

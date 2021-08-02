@@ -9,9 +9,8 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 # Check that constants are loaded correctly
 @test domain.constants == @pddl("red", "green", "yellow", "blue", "intaxi")
 
-# Check that types of constants only resolve when domain is provided
+# Check that types of constants resolve
 state = init_state(problem)
-@test state[pddl"(pasloc red)"] == false
 @test state[domain, pddl"(pasloc red)"] == true
 
 # Execute plan and check that it succeeds
@@ -29,5 +28,5 @@ plan = @pddl(
     "(move loc9 loc4 north)",
     "(dropoff loc4 green)"
 )
-state = execute(plan, state, domain)
-@test satisfy(problem.goal, state)[1] == true
+state = execute(domain, state, plan)
+@test satisfy(domain, state, problem.goal) == true

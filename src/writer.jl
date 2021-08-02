@@ -4,7 +4,7 @@ export write_pddl, write_domain, write_problem
 export save_domain, save_problem
 
 using Julog
-using ..PDDL: Domain, Problem, Action, Event
+using ..PDDL: GenericDomain, Problem, GenericAction, GenericEvent
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 "Write list of typed formulae in PDDL syntax."
@@ -92,7 +92,7 @@ write_subformula(f::Const) = repr(f)
 write_pddl(f::Term) = write_formula(f)
 
 "Write domain in PDDL syntax."
-function write_domain(domain::Domain, indent::Int=2)
+function write_domain(domain::GenericDomain, indent::Int=2)
     strs = Dict{Symbol,String}()
     fields = [:requirements, :types, :constants, :predicates, :functions]
     strs[:requirements] = write_requirements(domain.requirements)
@@ -109,7 +109,7 @@ function write_domain(domain::Domain, indent::Int=2)
     pushfirst!(strs, "(define (domain $(domain.name))")
     return join(strs, "\n" * ' '^indent) * "\n)"
 end
-write_pddl(domain::Domain) = write_domain(domain)
+write_pddl(domain::GenericDomain) = write_domain(domain)
 
 "Write domain requirements."
 function write_requirements(requirements::Dict{Symbol,Bool})
@@ -150,7 +150,7 @@ function write_axiom(c::Clause, key=":derived")
 end
 
 "Write action in PDDL syntax."
-function write_action(action::Action, indent::Int=1)
+function write_action(action::GenericAction, indent::Int=1)
     strs = Dict{Symbol,String}()
     fields = [:action, :parameters, :precondition, :effect]
     strs[:action] = string(action.name)
@@ -160,10 +160,10 @@ function write_action(action::Action, indent::Int=1)
     strs = ["$(repr(k)) $(strs[k])" for k in fields]
     return "(" * join(strs, "\n" * ' '^indent) * ")"
 end
-write_pddl(action::Action) = write_action(action)
+write_pddl(action::GenericAction) = write_action(action)
 
 "Write event in PDDL syntax."
-function write_event(event::Event, indent::Int=1)
+function write_event(event::GenericEvent, indent::Int=1)
     strs = Dict{Symbol,String}()
     fields = [:event, :precondition, :effect]
     strs[:event] = string(action.name)
@@ -172,7 +172,7 @@ function write_event(event::Event, indent::Int=1)
     strs = ["$(repr(k)) $(strs[k])" for k in fields]
     return "(" * join(strs, "\n" * ' '^indent) * ")"
 end
-write_pddl(event::Event) = write_event(event)
+write_pddl(event::GenericEvent) = write_event(event)
 
 "Write problem in PDDL syntax."
 function write_problem(problem::Problem, indent::Int=2)
@@ -208,7 +208,7 @@ end
 write_metric(::Nothing) = ""
 
 "Save PDDL domain to specified path."
-function save_domain(path::String, domain::Domain)
+function save_domain(path::String, domain::GenericDomain)
     open(f->write(f, write_domain(domain)), path, "w")
     return path
 end

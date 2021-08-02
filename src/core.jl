@@ -1,15 +1,7 @@
 # Core functions for evaluating PDDL formulae and state transitions
 
-"""
-    satisfy(formulae, state, domain=nothing; mode=:any)
-
-Returns whether `formulae` can be satisfied by facts in the given `state`,
-and any axioms / derived predicates in `domain`. If `formulae` contains
-unbound variables, `mode=:any` returns the first substitution found,
-while `mode=:all` returns all substitutions.
-"""
-function satisfy(formulae::Vector{<:Term}, state::State,
-                 domain::Union{Domain,Nothing}=nothing; mode::Symbol=:any)
+function satisfy(domain::GenericDomain, state::GenericState,
+                 terms::AbstractVector{<:Term})
     # Do quick check as to whether formulae are in the set of facts
     function in_facts(f::Term)
         if !isempty(state.fluents)
@@ -22,105 +14,95 @@ function satisfy(formulae::Vector{<:Term}, state::State,
             return eval_term(f, Subst(), state.fluents).name == true end
         return false
     end
-    if all(f -> f.name == :not ? !in_facts(f.args[1]) : in_facts(f), formulae)
-        return true, [Subst()] end
+    if all(f -> f.name == :not ? !in_facts(f.args[1]) : in_facts(f), terms)
+        return true end
     # Initialize Julog knowledge base
-    clauses = isnothing(domain) ? Clause[] : get_clauses(domain)
-    clauses = Clause[clauses; collect(state.types); collect(state.facts)]
+    clauses = Clause[get_clauses(domain);
+                     collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = isnothing(domain) ?
-        state.fluents : merge(state.fluents, domain.funcdefs)
-    return resolve(formulae, clauses; funcs=funcs, mode=mode)
+    funcs = merge(state.fluents, domain.funcdefs)
+    return resolve(collect(terms), clauses; funcs=funcs, mode=:any)[1]
 end
 
-satisfy(formula::Term, state::State, domain::Union{Domain,Nothing}=nothing;
-        options...) = satisfy(Term[formula], state, domain; options...)
+satisfy(domain::GenericDomain, state::GenericState, term::Term) =
+    satisfy(domain, state, [term])
 
-"""
-    evaluate(formula, state, domain=nothing; as_const=true)
+function satisfiers(domain::GenericDomain, state::GenericState,
+                    terms::AbstractVector{<:Term})
+    # Initialize Julog knowledge base
+    clauses = Clause[get_clauses(domain);
+                     collect(state.types); collect(state.facts)]
+    # Pass in fluents and function definitions as a dictionary of functions
+    funcs = merge(state.fluents, domain.funcdefs)
+    return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
+end
 
-Evaluates `formula` as fully as possible with respect to the fluents defined
-in `state`, along with any axioms / derived predicates defined in `domain`.
-Returns a Julog `Const` if `as_const=true`, otherwise return an unwrapped
-Julia value.
-"""
-function evaluate(formula::Term, state::State,
-                  domain::Union{Domain,Nothing}=nothing; as_const::Bool=true)
+satisfiers(domain::GenericDomain, state::GenericState, term::Term) =
+    satisfiers(domain, state, [term])
+
+function evaluate(domain::GenericDomain, state::GenericState, term::Term)
     # Evaluate formula as fully as possible
-    funcs = isnothing(domain) ?
-        state.fluents : merge(state.fluents, domain.funcdefs)
-    val = eval_term(formula, Subst(), funcs)
+    funcs = merge(state.fluents, domain.funcdefs)
+    val = eval_term(term, Subst(), funcs)
     # Return if formula evaluates to a Const (unwrapping if as_const=false)
-    if isa(val, Const) && !isa(val.name, Symbol)
-        return as_const ? val : val.name end
+    if isa(val, Const) && !isa(val.name, Symbol) return val.name end
     # If val is not a Const, check if holds true in the state
-    sat, _ = satisfy(Term[val], state, domain)
-    return as_const ? Const(sat) : sat # Wrap in Const if as_const=true
+    return satisfy(domain, state, val)
 end
 
 """
-    find_matches(formula, state, domain=nothing)
+    find_matches(term, state, domain=nothing)
 
-Returns a list of all matching substitutions of `formula` with respect to
+Returns a list of all matching substitutions of `term` with respect to
 a given `state` and `domain`.
 """
-function find_matches(formula::Term, state::State,
-                      domain::Union{Domain,Nothing}=nothing)
-    if formula.name in keys(state.fluents)
+function find_matches(domain::GenericDomain, state::GenericState, term::Term)
+    if term.name in keys(state.fluents)
         clauses = Vector{Clause}(get_fluents(state))
-        _, subst = resolve(formula, clauses; mode=:all)
+        _, subst = resolve(term, clauses; mode=:all)
     else
         clauses = isnothing(domain) ? Clause[] : get_clauses(domain)
         clauses = Clause[clauses; collect(state.types); collect(state.facts)]
         funcs = state.fluents
-        _, subst = resolve(formula, clauses; funcs=funcs, mode=:all)
+        _, subst = resolve(term, clauses; funcs=funcs, mode=:all)
     end
-    matches = Term[substitute(formula, s) for s in subst]
+    matches = Term[substitute(term, s) for s in subst]
     return matches
 end
 
 "Construct initial state from problem definition."
 function init_state(problem::Problem)
     types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
-    state = State(problem.init, types)
+    state = GenericState(problem.init, types)
     return state
 end
 
 "Construct goal state from problem definition."
 function goal_state(problem::Problem)
     types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
-    state = State(flatten_conjs(problem.goal), types)
+    state = GenericState(flatten_conjs(problem.goal), types)
     return state
 end
 
 "Construct initial state from problem definition."
 initialize(problem::Problem) = init_state(problem)
 
-"""
-    transition(domain, state, action::Term; kwargs...)
-    transition(domain, state, actions::Set{<:Term}; kwargs...)
-
-Returns the successor to `state` in the given `domain` after applying a single
-`action` or a set of `actions` in parallel, along with any events triggered
-by the effects of those actions. Keyword arguments specify whether to `check`
-if action preconditions hold, and the `fail_mode` (`:error` or `:no_op`)
-if they do not.
-"""
-function transition(domain::Domain, state::State, action::Term;
+function transition(domain::GenericDomain, state::GenericState, action::Term;
                     check::Bool=true, fail_mode::Symbol=:error)
-    state = execute(action, state, domain; check=check, fail_mode=fail_mode)
+    state = execute(domain, state, action; check=check, fail_mode=fail_mode)
     if length(domain.events) > 0
-        state = trigger(domain.events, state, domain)
+        state = trigger(domain, state, domain.events)
     end
     return state
 end
 
-function transition(domain::Domain, state::State, actions::Set{<:Term};
+function transition(domain::GenericDomain, state::GenericState,
+                    actions::AbstractSet{<:Term};
                     check::Bool=true, fail_mode::Symbol=:error)
     # Execute all actions in parallel
-    state = execpar(actions, state, domain, check=check, fail_mode=fail_mode)
+    state = execpar(domain, state, actions; check=check, fail_mode=fail_mode)
     if length(domain.events) > 0
-        state = trigger(domain.events, state, domain)
+        state = trigger(domain, state, domain.events)
     end
     return state
 end
@@ -133,10 +115,11 @@ to an initial `state` in a given `domain`. Keyword arguments specify whether
 to `check` if action preconditions hold, the `fail_mode` (`:error` or `:no_op`)
 if they do not, and a `callback` function to apply after each step.
 """
-function simulate(domain::Domain, state::State, actions::Vector{<:Term};
+function simulate(domain::GenericDomain, state::GenericState,
+                  actions::AbstractVector{<:Term};
                   check::Bool=true, fail_mode::Symbol=:error,
                   callback::Function=(d,s,a)->nothing)
-    trajectory = State[state]
+    trajectory = GenericState[state]
     callback(domain, state, Const(:start))
     for act in actions
         state = transition(domain, state, act; check=check, fail_mode=fail_mode)
@@ -146,10 +129,11 @@ function simulate(domain::Domain, state::State, actions::Vector{<:Term};
     return trajectory
 end
 
-function simulate(domain::Domain, state::State, actions::Vector{Set{<:Term}};
+function simulate(domain::GenericDomain, state::GenericState,
+                  actions::AbstractVector{<:AbstractSet{<:Term}};
                   check::Bool=true, fail_mode::Symbol=:error,
                   callback::Function=(d,s,a)->nothing)
-    trajectory = State[state]
+    trajectory = GenericState[state]
     callback(domain, state, Set([Const(:start)]))
     for acts in actions
         state = transition(domain, state, acts;

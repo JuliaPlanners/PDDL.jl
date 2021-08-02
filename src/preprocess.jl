@@ -1,7 +1,7 @@
 # Functions for preprocessing PDDL constructs into canonical forms
 
 "Preprocess domain by instantiating and regularizing logical formulae."
-function preprocess(domain::Domain, problem::Union{Problem,Nothing}=nothing;
+function preprocess(domain::GenericDomain, problem::Union{Problem,Nothing}=nothing;
                     options...)
     domain = copy(domain)
     # Get object type declarations
@@ -21,13 +21,13 @@ function preprocess(domain::Domain, problem::Union{Problem,Nothing}=nothing;
         domain.axioms = regularize_clauses(domain.axioms)
     end
     # Preprocess action and event definitions
-    domain.actions = Dict{Symbol,Action}(
+    domain.actions = Dict{Symbol,GenericAction}(
         k => preprocess(v, objtypes; options...) for (k, v) in domain.actions)
     domain.events = [preprocess(e, objtypes; options...) for e in domain.events]
     return domain
 end
 
-function preprocess(act::Action, objtypes=nothing; options...)
+function preprocess(act::GenericAction, objtypes=nothing; options...)
     regularize = get(options, :regularize, true)
     instantiate = get(options, :instantiate, !isnothing(objtypes))
     precond, effect = act.precond, act.effect
@@ -38,10 +38,10 @@ function preprocess(act::Action, objtypes=nothing; options...)
     if regularize
         precond = to_dnf(precond)
     end
-    return Action(act.name, act.args, act.types, precond, effect)
+    return GenericAction(act.name, act.args, act.types, precond, effect)
 end
 
-function preprocess(event::Event, objtypes=nothing; options...)
+function preprocess(event::GenericEvent, objtypes=nothing; options...)
     regularize = get(options, :regularize, true)
     instantiate = get(options, :instantiate, !isnothing(objtypes))
     precond, effect = event.precond, event.effect
@@ -52,5 +52,5 @@ function preprocess(event::Event, objtypes=nothing; options...)
     if regularize
         precond = to_dnf(precond)
     end
-    return Event(event.name, precond, effect)
+    return GenericEvent(event.name, precond, effect)
 end

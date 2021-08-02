@@ -7,11 +7,11 @@ problem = load_problem(joinpath(path, "flip-problem.pddl"))
 @test problem.name == Symbol("flip-problem")
 
 state = init_state(problem)
-state = execute(pddl"(flip_column c1)", state, domain)
-state = execute(pddl"(flip_column c3)", state, domain)
-state = execute(pddl"(flip_row r2)", state, domain)
+state = execute(domain, state, pddl"(flip_column c1)")
+state = execute(domain, state, pddl"(flip_column c3)")
+state = execute(domain, state, pddl"(flip_row r2)")
 
-@test satisfy(problem.goal, state, domain)[1] == true
+@test satisfy(domain, state, problem.goal) == true
 
 # Test all ADL features in assembly domain
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
@@ -27,19 +27,19 @@ problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 state = init_state(problem)
 
 # Commit charger to assembly of frob
-state = execute(pddl"(commit charger frob)", state, domain)
+state = execute(domain, state, pddl"(commit charger frob)")
 # Once commited, we can't commit again
-@test available(pddl"(commit charger frob)", state, domain) == false
+@test available(domain, state, pddl"(commit charger frob)") == false
 
 # We can't add a tube to the frob before adding the widget and fastener
-@test available(pddl"(assemble tube frob)", state, domain) == false
-state = execute(pddl"(assemble widget frob)", state, domain)
-@test available(pddl"(assemble tube frob)", state, domain) == false
-state = execute(pddl"(assemble fastener frob)", state, domain)
+@test available(domain, state, pddl"(assemble tube frob)") == false
+state = execute(domain, state, pddl"(assemble widget frob)")
+@test available(domain, state, pddl"(assemble tube frob)") == false
+state = execute(domain, state, pddl"(assemble fastener frob)")
 
 # Having added both widget and fastener, now we can add the tube
-@test available(pddl"(assemble tube frob)", state, domain) == true
-state = execute(pddl"(assemble tube frob)", state, domain)
+@test available(domain, state, pddl"(assemble tube frob)") == true
+state = execute(domain, state, pddl"(assemble tube frob)")
 
 # We've completely assembled a frob!
-@test satisfy(problem.goal, state, domain)[1] == true
+@test satisfy(domain, state, problem.goal) == true
