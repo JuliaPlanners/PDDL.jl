@@ -10,14 +10,14 @@ domain.funcdefs[:height] = throw_height
 
 # Load problem
 problem = load_problem(joinpath(path, "problem.pddl"))
-state = init_state(problem)
+state = initstate(domain, problem)
 
 # Check that evaluation with external functions works correctly
 @test domain:state:pddl"(range 20 45)" == throw_range(20, 45)
 @test domain:state:pddl"(height 20 45 10)" == throw_height(20, 45, 10)
 
 # Execute plan
-state = init_state(problem)
+state = initstate(domain, problem)
 state = execute(domain, state, pddl"(pick ball1)")
 state = execute(domain, state, pddl"(throw ball1 85)")
 state = execute(domain, state, pddl"(pick ball2)")

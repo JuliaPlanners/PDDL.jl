@@ -6,7 +6,7 @@ domain = load_domain(joinpath(path, "flip-domain.pddl"))
 problem = load_problem(joinpath(path, "flip-problem.pddl"))
 @test problem.name == Symbol("flip-problem")
 
-state = init_state(problem)
+state = initstate(domain, problem)
 state = execute(domain, state, pddl"(flip_column c1)")
 state = execute(domain, state, pddl"(flip_column c3)")
 state = execute(domain, state, pddl"(flip_row r2)")
@@ -20,7 +20,7 @@ domain = load_domain(joinpath(path, "assembly-domain.pddl"))
 problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 
 # Test for static predicates
-state = init_state(problem)
+state = initstate(domain, problem)
 @test pddl"(requires ?a ?r)" in get_static_predicates(domain, state)
 @test length(get_static_predicates(domain, state)) == 6
 

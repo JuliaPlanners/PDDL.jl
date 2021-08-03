@@ -12,7 +12,7 @@ export load_domain, load_problem, preprocess
 export save_domain, save_problem
 export get_static_predicates, get_static_functions
 export satisfy, satisfiers, evaluate, find_matches
-export init_state, goal_state, initialize, transition, simulate
+export initstate, goalstate, transition, simulate
 export get_preconditions, get_effect
 export effect_diff, precond_diff, update!, update
 export available, relevant, execute, regress, trigger

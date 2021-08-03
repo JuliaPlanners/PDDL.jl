@@ -10,7 +10,7 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.metric == (-1, pddl"(+ (* 4 (total-time)) (* 5 (total-fuel-used)))")
 
 # Test for static functions
-state = init_state(problem)
+state = initstate(domain, problem)
 @test pddl"(capacity ?a)" in get_static_functions(domain, state)
 @test length(get_static_functions(domain, state)) == 5
 
@@ -57,7 +57,7 @@ state = execute(domain, state, pddl"(zoom plane1 city0 city1)")
 @test satisfy(domain, state, problem.goal) == true
 
 # Test execution of entire plan
-state = init_state(problem)
+state = initstate(domain, problem)
 plan = @pddl(
     "(board person1 plane1 city0)",
     "(fly plane1 city0 city2)",

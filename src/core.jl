@@ -71,21 +71,18 @@ function find_matches(domain::GenericDomain, state::GenericState, term::Term)
 end
 
 "Construct initial state from problem definition."
-function init_state(problem::GenericProblem)
+function initstate(domain::GenericDomain, problem::GenericProblem)
     types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
     state = GenericState(problem.init, types)
     return state
 end
 
 "Construct goal state from problem definition."
-function goal_state(problem::GenericProblem)
+function goalstate(domain::GenericDomain, problem::GenericProblem)
     types = Term[@julog($ty(:o)) for (o, ty) in problem.objtypes]
     state = GenericState(flatten_conjs(problem.goal), types)
     return state
 end
-
-"Construct initial state from problem definition."
-initialize(problem::GenericProblem) = init_state(problem)
 
 function transition(domain::GenericDomain, state::GenericState, action::Term;
                     check::Bool=true, fail_mode::Symbol=:error)

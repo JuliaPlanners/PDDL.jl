@@ -10,7 +10,7 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("blocksworld-problem")
 @test problem.objects == @pddl("a", "b", "c")
 
-state = init_state(problem)
+state = initstate(domain, problem)
 state = execute(domain, state, pddl"(pickup b)")
 @test domain:state:pddl"(holding b)" == true
 state = execute(domain, state, pddl"(stack b c)")
