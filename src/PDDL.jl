@@ -2,6 +2,7 @@ module PDDL
 
 using Base: @kwdef
 using Julog
+using AutoHashEquals
 
 export Domain, Problem, State, Action, Event
 export GenericDomain, GenericProblem, GenericState, GenericAction, GenericEvent
@@ -24,6 +25,7 @@ include("interface.jl")
 include("structs.jl")
 include("parser.jl")
 include("writer.jl")
+include("compile.jl")
 
 using .Parser, .Writer
 
