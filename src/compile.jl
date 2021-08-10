@@ -43,7 +43,7 @@ function generate_state_type(domain::GenericDomain, problem::GenericProblem,
     # Generate constructor with no arguments
     n_objs = length(problem.objects)
     state_inits = []
-    for pred in values(domain.predicates)
+    for (_, pred) in sort(collect(domain.predicates), by=first)
         if length(pred.args) == 0
             push!(state_inits, false)
         else
@@ -51,7 +51,7 @@ function generate_state_type(domain::GenericDomain, problem::GenericProblem,
             push!(state_inits, :(falses($(dims...))))
         end
     end
-    for fn in values(domain.functions)
+    for (_, fn) in sort(collect(domain.functions), by=first)
         if length(fn.args) == 0
             push!(state_inits, 0.0)
         else
@@ -93,7 +93,6 @@ end
 
 function generate_object_defs(domain::GenericDomain, problem::GenericProblem,
                               domain_type::Symbol, state_type::Symbol)
-    # object_names = Tuple(getfield.(problem.objects, :name))
     object_ids = (; ((o.name, i) for (i, o) in enumerate(problem.objects))...)
     objectindices_def =
         :(objectindices(::$state_type) = $(QuoteNode(object_ids)))
@@ -111,27 +110,35 @@ function generate_get_expr(domain::GenericDomain, problem::GenericProblem,
 end
 
 function generate_get_expr(domain::GenericDomain, problem::GenericProblem,
+                           term::Var, varmap=Dict{Var,Any}())
+    return :($(varmap[term]).name)
+end
+
+function generate_get_expr(domain::GenericDomain, problem::GenericProblem,
                            term::Compound, varmap=Dict{Var,Any}())
     object_ids = (; ((o.name, i) for (i, o) in enumerate(problem.objects))...)
-    indices = (a isa Const ? object_ids[a.name] : varmap[a] for a in term.args)
+    indices = (a isa Var ? :(objectindex(state, $(varmap[a]).name)) :
+               object_ids[a.name] for a in term.args)
     return :(state.$(term.name)[$(indices...)])
 end
 
 function generate_set_expr(domain::GenericDomain, problem::GenericProblem,
                            term::Const, val, varmap=Dict{Var,Any}())
-    return :(setfield!(state, $(term.name), $val))
+    return :(state.$(term.name) = $val)
 end
 
 function generate_set_expr(domain::GenericDomain, problem::GenericProblem,
                            term::Compound, val, varmap=Dict{Var,Any}())
     object_ids = (; ((o.name, i) for (i, o) in enumerate(problem.objects))...)
-    indices = (a isa Const ? object_ids[a.name] : varmap[a] for a in term.args)
+    indices = (a isa Var ? :(objectindex(state, $(varmap[a]).name)) :
+               object_ids[a.name] for a in term.args)
     return :(state.$(term.name)[$(indices...)] = $val)
 end
 
 function generate_check_expr(domain::GenericDomain, problem::GenericProblem,
                              term::Term, varmap=Dict{Var,Any}())
-    if term.name in union(keys(domain.predicates), keys(domain.functions))
+    if (term.name in union(keys(domain.predicates), keys(domain.functions)) ||
+        term isa Var)
         return generate_get_expr(domain, problem, term, varmap)
     end
     subexprs = [generate_check_expr(domain, problem, a, varmap)
@@ -177,8 +184,9 @@ end
 function generate_evaluate(domain::GenericDomain, problem::GenericProblem,
                            domain_type::Symbol, state_type::Symbol)
     evaluate_def = quote
-        function evaluate(::$domain_type, state::$state_type, term::Const)
-            return term.name isa Symbol ? getfield(state, term.name) : term.name
+        function evaluate(domain::$domain_type, state::$state_type, term::Const)
+            return term.name in fieldnames($state_type) ?
+                getfield(state, term.name) : term.name
         end
         function evaluate(::$domain_type, state::$state_type, term::Compound)
             indices = (objectindex(state, a.name) for a in term.args)
@@ -281,8 +289,7 @@ function generate_available(domain::GenericDomain, problem::GenericProblem,
                             domain_type::Symbol, state_type::Symbol,
                             action_name::Symbol, action_type::Symbol)
     action = domain.actions[action_name]
-    varmap = Dict(a => :(objectindex(state, args[$i].name))
-                  for (i, a) in enumerate(action.args))
+    varmap = Dict(a => :(args[$i]) for (i, a) in enumerate(action.args))
     precond = generate_check_expr(domain, problem, action.precond, varmap)
     available_def = quote
         function available(domain::$domain_type, state::$state_type,
@@ -332,8 +339,7 @@ function generate_execute(domain::GenericDomain, problem::GenericProblem,
                           domain_type::Symbol, state_type::Symbol,
                           action_name::Symbol, action_type::Symbol)
     action = domain.actions[action_name]
-    varmap = Dict(a => :(objectindex(state, args[$i].name))
-                  for (i, a) in enumerate(action.args))
+    varmap = Dict(a => :(args[$i]) for (i, a) in enumerate(action.args))
     precond = generate_check_expr(domain, problem, action.precond, varmap)
     effect = generate_effect_expr(domain, problem, action.effect, varmap)
     execute_def = quote
