@@ -1,36 +1,3 @@
-"PDDL state description."
-mutable struct GenericState <: State
-    types::Set{Term} # Object type declarations
-    facts::Set{Term} # Boolean-valued fluents
-    fluents::Dict{Symbol,Any} # All other fluents
-end
-
-"PDDL action description."
-struct GenericAction <: Action
-    name::Symbol # Name of action
-    args::Vector{Var} # GenericAction parameters
-    types::Vector{Symbol} # Parameter types
-    precond::Term # Precondition of action
-    effect::Term # Effect of action
-end
-
-GenericAction(term::Term, precond::Term, effect::Term) =
-    GenericAction(term.name, get_args(term), Symbol[], precond, effect)
-
-Base.:(==)(a1::GenericAction, a2::GenericAction) = (a1.name == a2.name &&
-    Set(a1.args) == Set(a2.args) && Set(a1.types) == Set(a2.types) &&
-    a1.precond == a2.precond && a1.effect == a2.effect)
-
-"PDDL event description."
-struct GenericEvent <: Event
-    name::Symbol # Name of event
-    precond::Term # Precondition / trigger of event
-    effect::Term # Effect of event
-end
-
-Base.:(==)(e1::GenericEvent, e2::GenericEvent) = (e1.name == e2.name &&
-    e1.precond == e2.precond && e1.effect == e2.effect)
-
 "PDDL planning domain with events and axioms."
 @kwdef mutable struct GenericDomain <: Domain
     name::Symbol # Name of domain
@@ -44,8 +11,8 @@ Base.:(==)(e1::GenericEvent, e2::GenericEvent) = (e1.name == e2.name &&
     functypes::Dict{Symbol,Vector{Symbol}} = Dict() # Function type signatures
     funcdefs::Dict{Symbol,Any} = Dict() # Dictionary of function definitions
     axioms::Vector{Clause} = [] # Axioms / derived predicates
-    actions::Dict{Symbol,GenericAction} = Dict() # GenericAction definitions
-    events::Vector{GenericEvent} = [] # GenericEvent definitions
+    actions::Dict{Symbol,Action} = Dict() # Action definitions
+    events::Vector{Event} = Event[] # Event definitions
     _extras::Dict{Symbol,Any} # Extra fields
 end
 
@@ -98,7 +65,7 @@ function get_clauses(domain::GenericDomain)
 end
 
 "Get list of predicates that are never modified by actions in the domain."
-function get_static_predicates(domain::GenericDomain, state::GenericState)
+function get_static_predicates(domain::GenericDomain, state::State)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
     diffs = [effect_diff(domain, state, ground(act.effect))
@@ -110,46 +77,11 @@ function get_static_predicates(domain::GenericDomain, state::GenericState)
 end
 
 "Get list of functions that are never modified by actions in the domain."
-function get_static_functions(domain::GenericDomain, state::GenericState)
+function get_static_functions(domain::GenericDomain, state::State)
     ground = t ->
         substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
     diffs = [effect_diff(domain, state, ground(act.effect))
              for act in values(domain.actions)]
     modified = p -> any(contains_term(d, p) for d in diffs)
     return Term[p for p in values(domain.functions) if !modified(p)]
-end
-
-"PDDL planning problem."
-@kwdef mutable struct GenericProblem <: Problem
-    name::Symbol # Name of problem
-    domain::Symbol # Name of associated domain
-    objects::Vector{Const} # List of objects
-    objtypes::Dict{Const,Symbol} # Types of objects
-    init::Vector{Term} # Predicates that hold in initial state
-    goal::Term # Goal formula
-    metric::Union{Tuple{Int,Term},Nothing} # Metric direction (+/-) and formula
-end
-
-function GenericProblem(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
-    header = filter(item -> first(item) in fieldnames(GenericProblem), header)
-    body = filter(item -> first(item) in fieldnames(GenericProblem), body)
-    return GenericProblem(;name=name, header..., body...)
-end
-
-function GenericProblem(state::GenericState, goal::Term=@julog(and()),
-                 metric::Union{Tuple{Int,Term},Nothing}=nothing;
-                 name=:problem, domain=:domain)
-    objtypes = Dict{Const,Symbol}(get_args(t)[1] => t.name for t in state.types)
-    objects = collect(keys(objtypes))
-    init = Term[get_facts(state); get_assignments(state)]
-    return GenericProblem(Symbol(name), Symbol(domain),
-                   objects, objtypes, init, goal, metric)
-end
-
-Base.copy(p::GenericProblem) =
-    GenericProblem(; Dict(fn => getfield(p, fn) for fn in fieldnames(typeof(p)))...)
-
-"Get object type declarations as a list of clauses."
-function get_obj_clauses(problem::GenericProblem)
-    return [@julog($ty(:o) <<= true) for (o, ty) in problem.objtypes]
 end

@@ -1,7 +1,8 @@
 # Functions for preprocessing PDDL constructs into canonical forms
 
 "Preprocess domain by instantiating and regularizing logical formulae."
-function preprocess(domain::GenericDomain, problem::Union{GenericProblem,Nothing}=nothing;
+function preprocess(domain::GenericDomain,
+                    problem::Union{GenericProblem,Nothing}=nothing;
                     options...)
     domain = copy(domain)
     # Get object type declarations

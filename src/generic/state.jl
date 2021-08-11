@@ -1,3 +1,10 @@
+"PDDL state description."
+mutable struct GenericState <: State
+    types::Set{Term} # Object type declarations
+    facts::Set{Term} # Boolean-valued fluents
+    fluents::Dict{Symbol,Any} # All other fluents
+end
+
 "Construct state from a list of terms (e.g. initial predicates and fluents)."
 function GenericState(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
     state = GenericState(Set{Term}(types), Set{Term}(), Dict{Symbol,Any}())

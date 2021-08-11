@@ -42,9 +42,17 @@ satisfiers(domain::Domain, state::State, terms::AbstractVector{<:Term}) =
 
 Evaluates a grounded `term` in the given `domain` and `state`. If `term`
 refers to a numeric fluent, the value of the fluent is returned.
-For logical predicates, `evaluate` is equivalent to `satisfiable`.
+For logical predicates, `evaluate` is equivalent to `satisfy`.
 """
 evaluate(domain::Domain, state::State, term::Term) =
+    error("Not implemented.")
+
+"""
+    initstate(domain::Domain, problem::Problem)
+
+Construct the initial state for a given planning `domain` and `problem`.
+"""
+initstate(domain::Domain, problem::Problem) =
     error("Not implemented.")
 
 """
@@ -61,10 +69,12 @@ transition(domain::Domain, state::State, actions) =
     error("Not implemented.")
 
 """
-    available(domain::Domain, state::State, action::Term)
     available(domain::Domain, state::State, action::Action, args)
+    available(domain::Domain, state::State, action::Term)
 
-Check whether `action` can be executed in the given `state` and `domain`.
+Check if an `action` parameterized by `args` can be executed in the given
+`state` and `domain`. Action parameters can also be specified as the arguments
+of a compound `Term`.
 """
 available(domain::Domain, state::State, action::Term) =
     error("Not implemented.")
@@ -74,38 +84,41 @@ available(domain::Domain, state::State, action::Action, args) =
 """
     available(domain::Domain, state::State)
 
-Return the list of available actions in a given `state` and `domain`.
+Return an iterator over available actions in a given `state` and `domain`.
 """
 available(domain::Domain, state::State) =
     error("Not implemented.")
 
 """
-    execute(domain::Domain, state::State, action::Term)
     execute(domain::Domain, state::State, action::Action, args)
+    execute(domain::Domain, state::State, action::Term)
 
-Execute `action` in the given `state`. If `action` is an `Action`
-definition, `args` must be supplied for the action's parameters.
+Execute an `action` parameterized by `args` in the given `state`, returning
+the resulting state.  Action parameters can also be specified as the arguments
+of a compound `Term`.
 """
-execute(domain::Domain, state::State, action::Term) =
-    error("Not implemented.")
 execute(domain::Domain, state::State, action::Action, args) =
     error("Not implemented.")
-
-"""
-    relevant(domain::Domain, state::State, action::Term)
-    relevant(domain::Domain, state::State, action::Action, args)
-
-Check if an `action` is relevant (can lead to) a `state` in the given `domain`.
-"""
-relevant(domain::Domain, state::State, action::Term) =
+execute(domain::Domain, state::State, action::Term) =
     error("Not implemented.")
+
+"""
+    relevant(domain::Domain, state::State, action::Action, args)
+    relevant(domain::Domain, state::State, action::Term)
+
+Check if an `action` parameterized by `args` is relevant (can lead to) a `state`
+in the given `domain`. Action parameters can also be specified as the arguments
+of a compound `Term`.
+"""
 relevant(domain::Domain, state::State, action::Action, args) =
+    error("Not implemented.")
+relevant(domain::Domain, state::State, action::Term) =
     error("Not implemented.")
 
 """
     relevant(domain::Domain, state::State)
 
-Return the list of relevant actions in a given `state` and `domain`.
+Return an iterator over relevant actions in a given `state` and `domain`.
 """
 relevant(domain::Domain, state::State) =
     error("Not implemented.")
@@ -127,7 +140,7 @@ regress(domain::Domain, state::State, action::Action, args) =
     trigger(domain::Domain, state::State, events)
 
 Trigger an `event` or `events` if their preconditions hold in the given `state`
-and `domain`.
+and `domain`, returning the resulting state.
 """
 trigger(domain::Domain, state::State, event::Event) =
     error("Not implemented.")
