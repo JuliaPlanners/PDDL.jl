@@ -1,17 +1,8 @@
-"PDDL planning domain."
-abstract type Domain end
-
-"PDDL planning problem."
-abstract type Problem end
-
-"PDDL state description."
-abstract type State end
-
-"PDDL action definition."
-abstract type Action end
-
-"PDDL event definition."
-abstract type Event end
+include("domain.jl")
+include("problem.jl")
+include("state.jl")
+include("action.jl")
+include("event.jl")
 
 """
     satisfy(domain::Domain, state::State, term::Term)
