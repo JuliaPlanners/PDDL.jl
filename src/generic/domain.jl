@@ -1,4 +1,4 @@
-"PDDL planning domain with events and axioms."
+"PDDL planning domain."
 @kwdef mutable struct GenericDomain <: Domain
     name::Symbol # Name of domain
     requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
@@ -12,7 +12,6 @@
     funcdefs::Dict{Symbol,Any} = Dict() # Dictionary of function definitions
     axioms::Vector{Clause} = [] # Axioms / derived predicates
     actions::Dict{Symbol,Action} = Dict() # Action definitions
-    events::Vector{Event} = Event[] # Event definitions
     _extras::Dict{Symbol,Any} # Extra fields
 end
 

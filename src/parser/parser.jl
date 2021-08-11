@@ -4,7 +4,7 @@ export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
 using ParserCombinator, Julog
-using ..PDDL: GenericDomain, GenericProblem, GenericAction, GenericEvent
+using ..PDDL: GenericDomain, GenericProblem, GenericAction
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 struct Keyword
@@ -181,7 +181,7 @@ function parse_description(desc::Symbol, expr::Vector)
             header[fieldname] = field
         end
     end
-    # Parse description body (actions, events, etc.)
+    # Parse description body (actions, etc.)
     body = Dict{Symbol,Any}()
     exprs = [(e[1].name, e) for e in expr[3:end]]
     for (fieldname, e) in exprs
@@ -316,17 +316,6 @@ function parse_action(expr::Vector)
     return GenericAction(name, params, types, precondition, effect)
 end
 body_field_parsers[:domain][:action] = parse_action
-
-"Parse event definition."
-function parse_event(expr::Vector)
-    args = Dict(expr[i].name => expr[i+1] for i in 1:2:length(expr))
-    @assert (:event in keys(args)) ":action keyword is missing"
-    name = args[:event]
-    precondition = parse_precondition(args[:precondition])
-    effect = parse_effect(args[:effect])
-    return GenericEvent(name, precondition, effect)
-end
-body_field_parsers[:domain][:event] = parse_event
 
 "Parse PDDL problem description."
 parse_problem(expr::Vector) = GenericProblem(parse_description(:problem, expr)...)

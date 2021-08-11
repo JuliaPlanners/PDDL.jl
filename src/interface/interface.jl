@@ -2,7 +2,6 @@ include("domain.jl")
 include("problem.jl")
 include("state.jl")
 include("action.jl")
-include("event.jl")
 
 """
     satisfy(domain::Domain, state::State, term::Term)
@@ -51,8 +50,7 @@ initstate(domain::Domain, problem::Problem) =
     transition(domain::Domain, state::State, actions)
 
 Returns the successor to `state` in the given `domain` after applying a single
-`action` or a set of `actions` in parallel, along with any events triggered
-by the effects of those actions.
+`action` or a set of `actions` in parallel.
 """
 transition(domain::Domain, state::State, action::Term) =
     error("Not implemented.")
@@ -124,16 +122,4 @@ an `Action` definition, `args` must be supplied for the action's parameters.
 regress(domain::Domain, state::State, action::Term) =
     error("Not implemented.")
 regress(domain::Domain, state::State, action::Action, args) =
-    error("Not implemented.")
-
-"""
-    trigger(domain::Domain, state::State, event::Event)
-    trigger(domain::Domain, state::State, events)
-
-Trigger an `event` or `events` if their preconditions hold in the given `state`
-and `domain`, returning the resulting state.
-"""
-trigger(domain::Domain, state::State, event::Event) =
-    error("Not implemented.")
-trigger(domain::Domain, state::State, events) =
     error("Not implemented.")

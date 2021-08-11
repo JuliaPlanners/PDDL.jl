@@ -1,9 +1,6 @@
 function transition(domain::GenericDomain, state::GenericState, action::Term;
                     check::Bool=true, fail_mode::Symbol=:error)
     state = execute(domain, state, action; check=check, fail_mode=fail_mode)
-    if length(domain.events) > 0
-        state = trigger(domain, state, domain.events)
-    end
     return state
 end
 

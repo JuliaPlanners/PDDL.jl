@@ -16,5 +16,3 @@ get_fluents(::Domain) = error("Not implemented.")
 get_axioms(::Domain) = error("Not implemented.")
 
 get_actions(::Domain) = error("Not implemented.")
-
-get_events(::Domain) = error("Not implemented.")

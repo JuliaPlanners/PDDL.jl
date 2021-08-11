@@ -4,8 +4,6 @@ abstract type CompiledState <: State end
 
 abstract type CompiledAction <: Action end
 
-abstract type CompiledEvent <: Event end
-
 const comp_ops = Dict{Symbol,Function}(
     op => eval(op) for op in [:(==), :<=, :>=, :<, :>, :(!=)]
 )

@@ -4,8 +4,8 @@ using Base: @kwdef
 using Julog
 using AutoHashEquals
 
-export Domain, Problem, State, Action, Event
-export GenericDomain, GenericProblem, GenericState, GenericAction, GenericEvent
+export Domain, Problem, State, Action
+export GenericDomain, GenericProblem, GenericState, GenericAction
 export Term, Compound, Var, Const
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export write_domain, write_problem, write_pddl

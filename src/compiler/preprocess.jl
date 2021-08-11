@@ -21,10 +21,9 @@ function preprocess(domain::GenericDomain,
     if regularize
         domain.axioms = regularize_clauses(domain.axioms)
     end
-    # Preprocess action and event definitions
+    # Preprocess action definitions
     domain.actions = Dict{Symbol,GenericAction}(
         k => preprocess(v, objtypes; options...) for (k, v) in domain.actions)
-    domain.events = [preprocess(e, objtypes; options...) for e in domain.events]
     return domain
 end
 
@@ -40,18 +39,4 @@ function preprocess(act::GenericAction, objtypes=nothing; options...)
         precond = to_dnf(precond)
     end
     return GenericAction(act.name, act.args, act.types, precond, effect)
-end
-
-function preprocess(event::GenericEvent, objtypes=nothing; options...)
-    regularize = get(options, :regularize, true)
-    instantiate = get(options, :instantiate, !isnothing(objtypes))
-    precond, effect = event.precond, event.effect
-    if instantiate && !isnothing(objtypes)
-        precond = deuniversalize(precond, objtypes)
-        effect = deuniversalize(effect, objtypes)
-    end
-    if regularize
-        precond = to_dnf(precond)
-    end
-    return GenericEvent(event.name, precond, effect)
 end

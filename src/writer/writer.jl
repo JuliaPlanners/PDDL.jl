@@ -4,7 +4,7 @@ export write_pddl, write_domain, write_problem
 export save_domain, save_problem
 
 using Julog
-using ..PDDL: GenericDomain, GenericProblem, GenericAction, GenericEvent
+using ..PDDL: GenericDomain, GenericProblem, GenericAction
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 "Write list of typed formulae in PDDL syntax."
@@ -105,7 +105,6 @@ function write_domain(domain::GenericDomain, indent::Int=2)
             if haskey(strs, k) && length(strs[k]) > 0]
     append!(strs, write_axiom.(values(domain.axioms)))
     append!(strs, write_action.(values(domain.actions), 3))
-    append!(strs, write_event.(values(domain.events), 3))
     pushfirst!(strs, "(define (domain $(domain.name))")
     return join(strs, "\n" * ' '^indent) * "\n)"
 end
@@ -161,18 +160,6 @@ function write_action(action::GenericAction, indent::Int=1)
     return "(" * join(strs, "\n" * ' '^indent) * ")"
 end
 write_pddl(action::GenericAction) = write_action(action)
-
-"Write event in PDDL syntax."
-function write_event(event::GenericEvent, indent::Int=1)
-    strs = Dict{Symbol,String}()
-    fields = [:event, :precondition, :effect]
-    strs[:event] = string(action.name)
-    strs[:precondition] = write_formula(action.precond)
-    strs[:effect] = write_formula(action.effect)
-    strs = ["$(repr(k)) $(strs[k])" for k in fields]
-    return "(" * join(strs, "\n" * ' '^indent) * ")"
-end
-write_pddl(event::GenericEvent) = write_event(event)
 
 "Write problem in PDDL syntax."
 function write_problem(problem::GenericProblem, indent::Int=2)
