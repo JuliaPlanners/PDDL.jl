@@ -27,7 +27,7 @@ function available(domain::GenericDomain, state::GenericState;
         typecond = (@julog($ty(:v)) for (v, ty) in zip(act.args, act.types))
         # Include type conditions when necessary for correctness
         p = act.precond
-        if has_fluent(p, domain) || has_axiom(p, domain) || has_quantifier(p)
+        if has_func(p, domain) || has_derived(p, domain) || has_quantifier(p)
             conds = prepend!(flatten_conjs(p), typecond)
         elseif domain.requirements[:typing]
             conds = append!(flatten_conjs(p), typecond)
@@ -59,7 +59,7 @@ function available(domain::GenericDomain, state::GenericState,
                [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])
     # Check whether preconditions hold
     precond = substitute(act.precond, subst)
-    conds = has_fluent(precond, state) || has_quantifier(precond) ?
+    conds = has_func(precond, domain) || has_quantifier(precond) ?
         [typecond; precond] : [precond; typecond]
     return satisfy(domain, state, conds)
 end

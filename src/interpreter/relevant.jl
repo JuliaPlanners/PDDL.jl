@@ -29,7 +29,7 @@ function relevant(domain::GenericDomain, state::GenericState;
         delcond = [@julog(not(:t)) for t in diff.del]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
         # Include type conditions when necessary for correctness
-        if any(has_fluent(c, domain) ||
+        if any(has_func(c, domain) ||
                has_quantifier(c) for c in [addcond; delcond])
             conds = [typecond; addcond; delcond]
         else

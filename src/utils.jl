@@ -6,24 +6,25 @@
 (::Colon)(domain::Domain, state::State, term::Symbol) =
     evaluate(domain, state, Const(term))
 
-"Check if formula contains a predicate name."
-has_pred(formula::Const, pred_names) = formula.name in pred_names
-has_pred(formula::Var, pred_names) = false
-has_pred(formula::Compound, pred_names) = formula.name in pred_names ||
-    any(has_pred(f, pred_names) for f in formula.args)
-has_pred(formula::Term, domain::GenericDomain) =
-    has_pred(formula, keys(domain.predicates))
+"Check if `term` has a (sub-term with a) name in `names`."
+has_name(term::Const, names) = term.name in names
+has_name(term::Var, names) = false
+has_name(term::Compound, names) =
+    term.name in names || any(has_name(f, names) for f in term.args)
 
-"Check if formula contains a numeric fluent."
-has_fluent(formula::Term, state::GenericState) =
-    has_pred(formula, keys(state.fluents))
-has_fluent(formula::Term, domain::GenericDomain) =
-    has_pred(formula, keys(domain.functions))
+"Check if term contains a predicate name."
+has_pred(term::Term, domain::Domain) =
+    has_name(term, keys(get_predicates(domain)))
 
-"Check if formula contains an axiom reference."
-has_axiom(formula::Term, domain::GenericDomain) = length(domain.axioms) > 0 &&
-    has_pred(formula, (ax.head.name for ax in domain.axioms))
+"Check if term contains the name of numeric fluent (i.e. function)."
+has_func(term::Term, domain::Domain) =
+    has_name(term, keys(get_functions(domain)))
 
-"Check if formula contains a universal or existential quantifier."
-has_quantifier(formula::Term) =
-    has_pred(formula, Set(Symbol[:forall, :exists]))
+"Check if term contains a derived predicate"
+has_derived(term::Term, domain::Domain) =
+    length(get_axioms(domain)) > 0 &&
+    has_name(term, Set((ax.head.name for ax in get_axioms(domain))))
+
+"Check if term contains a universal or existential quantifier."
+has_quantifier(term::Term) =
+    has_name(term, Set(Symbol[:forall, :exists]))

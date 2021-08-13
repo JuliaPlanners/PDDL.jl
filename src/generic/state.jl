@@ -2,7 +2,7 @@
 mutable struct GenericState <: State
     types::Set{Compound} # Object type declarations
     facts::Set{Term} # Boolean-valued fluents
-    fluents::Dict{Symbol,Any} # All other fluents
+    values::Dict{Symbol,Any} # All other fluents
 end
 
 "Construct state from a list of terms (e.g. initial predicates and fluents)."
@@ -23,11 +23,11 @@ function GenericState(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
 end
 
 Base.copy(s::GenericState) =
-    GenericState(copy(s.types), copy(s.facts), deepcopy(s.fluents))
+    GenericState(copy(s.types), copy(s.facts), deepcopy(s.values))
 Base.:(==)(s1::GenericState, s2::GenericState) =
-    s1.types == s2.types && s1.facts == s2.facts && s1.fluents == s2.fluents
+    s1.types == s2.types && s1.facts == s2.facts && s1.values == s2.values
 Base.hash(s::GenericState, h::UInt) =
-    hash(s.fluents, hash(s.facts, hash(s.types, h)))
+    hash(s.values, hash(s.facts, hash(s.types, h)))
 Base.issubset(s1::GenericState, s2::GenericState) =
     s1.types ⊆ s2.types && s1.facts ⊆ s2.facts
 
@@ -47,7 +47,7 @@ function get_fluent(state::GenericState, term::Const)
     if term in state.facts
         return true
     else
-        return get(state.fluents, term.name, false)
+        return get(state.values, term.name, false)
     end
 end
 
@@ -55,7 +55,7 @@ function get_fluent(state::GenericState, term::Compound)
     if term in state.facts
         return true
     else
-        d = get(state.fluents, term.name, nothing)
+        d = get(state.values, term.name, nothing)
         return d === nothing ? false : d[Tuple(a.name for a in term.args)]
     end
 end
@@ -72,11 +72,11 @@ function set_fluent!(state::GenericState, val::Bool, term::Term)
 end
 
 function set_fluent!(state::GenericState, val::Any, term::Const)
-    state.fluents[term.name] = val
+    state.values[term.name] = val
 end
 
 function set_fluent!(state::GenericState, val::Any, term::Compound)
-    d = get!(state.fluents, term.name, Dict())
+    d = get!(state.values, term.name, Dict())
     d[Tuple(a.name for a in term.args)] = val
 end
 
@@ -98,7 +98,7 @@ function get_fluent_names(state::GenericState)
             return (Const(name),)
         end
     end
-    fluent_names = Iterators.flatten(Base.Generator(f, state.fluents))
+    fluent_names = Iterators.flatten(Base.Generator(f, state.values))
     return Iterators.flatten((state.facts, fluent_names))
 end
 

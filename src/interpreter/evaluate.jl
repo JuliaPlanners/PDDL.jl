@@ -1,6 +1,6 @@
 function evaluate(domain::GenericDomain, state::GenericState, term::Term)
     # Evaluate formula as fully as possible
-    funcs = merge(state.fluents, domain.funcdefs)
+    funcs = merge(state.values, domain.funcdefs)
     val = eval_term(term, Subst(), funcs)
     # Return if formula evaluates to a Const
     if (isa(val, Const) && (!isa(val.name, Symbol) ||
