@@ -37,3 +37,19 @@ function execute(domain::GenericDomain, state::GenericState,
     # Return either the difference or the final state
     return as_diff ? diff : state
 end
+
+"Update a world state (in-place) with a state difference."
+function update!(state::GenericState, diff::Diff)
+    setdiff!(state.facts, diff.del)
+    union!(state.facts, diff.add)
+    for (term, (op, newval)) in diff.ops
+        val = get_fluent(state, term)
+        set_fluent!(state, op(val, newval), term)
+    end
+    return state
+end
+
+"Update a world state with a state difference."
+function update(state::GenericState, diff::Diff)
+    return update!(copy(state), diff)
+end

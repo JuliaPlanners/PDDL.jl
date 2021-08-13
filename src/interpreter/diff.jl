@@ -1,16 +1,32 @@
 # Functions for handling effect formulae
 
-"Representation of an effect as additions, deletions, and assignments."
+"Representation of a state difference as additions, deletions, and assignments."
 mutable struct Diff
     add::Vector{Term} # List of additions
     del::Vector{Term} # List of deletions
-    ops::Dict{Term,Any} # Dictionary of assignment operations
+    ops::Dict{Term,Tuple{Function,Any}} # Dictionary of assignment operations
 end
 
 Diff() = Diff(Term[], Term[], Dict{Term,Any}())
 
 "Return the effect of a null operation."
 no_effect() = Diff()
+
+"Combine state differences, modifying the first diff in place."
+function combine!(d1::Diff, d2::Diff)
+    append!(d1.add, d2.add)
+    append!(d1.del, d2.del)
+    merge!(d1.ops, d2.ops)
+    return d1
+end
+
+combine!(d1::Diff, d2::Diff, diffs::Diff...) =
+    combine!(combine!(d1, d2), diffs...)
+
+"Combine state differences, returning a fresh diff."
+function combine(diffs::Diff...)
+    return combine!(Diff(), diffs...)
+end
 
 "Returns true if the diff contains a matching term."
 function contains_term(diff::Diff, term::Term)
@@ -19,22 +35,11 @@ function contains_term(diff::Diff, term::Term)
             any(has_subterm(d, term) for d in keys(diff.ops)))
 end
 
-"Combine state differences, modifying the first diff in place."
-function combine!(d::Diff, diffs::Diff...)
-    d1 = diffs[1]
-    append!(d.add, d1.add)
-    append!(d.del, d1.del)
-    merge!(d.ops, d1.ops)
-    if (length(diffs) > 1) merge!(d, diffs[2:end]) end
-    return d
-end
-
-"Combine state differences, returning a fresh diff."
-function combine(diffs::Diff...)
-    return combine!(Diff(), diffs...)
-end
+## Effect differences ##
 
 const effect_funcs = Dict{Symbol,Function}()
+
+"Mapping from PDDL assignment operations to Julia functions."
 const assign_ops = Dict{Symbol,Function}(
     :assign => (x, y) -> y,
     :increase => +,
@@ -104,6 +109,8 @@ for name in keys(assign_ops)
     effect_funcs[name] = assign_effect!
 end
 
+## Precondition differences ##
+
 const precond_funcs = Dict{Symbol,Function}()
 
 "Convert precondition formula to a state difference."
@@ -139,26 +146,3 @@ function forall_precond!(diff::Diff, domain::Domain, state::State, precond::Term
     return diff
 end
 precond_funcs[:forall] = forall_precond!
-
-"Update a world state (in-place) with a state difference."
-function update!(state::GenericState, diff::Diff)
-    filter!(c -> !(c in diff.del), state.facts)
-    union!(state.facts, diff.add)
-    for (term, (op, val)) in diff.ops
-        if isa(term, Const)
-            oldval = get(state.fluents, term.name, 0)
-            state.fluents[term.name] = op(oldval, val)
-        elseif isa(term, Compound)
-            valdict = get!(state.fluents, term.name, Dict())
-            args = Tuple(a.name for a in term.args)
-            oldval = get(valdict, args, 0)
-            valdict[args] = op(oldval, val)
-        end
-    end
-    return state
-end
-
-"Update a world state with a state difference."
-function update(state::GenericState, diff::Diff)
-    return update!(copy(state), diff)
-end

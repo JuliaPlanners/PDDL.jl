@@ -29,10 +29,7 @@ Base.:(==)(s1::GenericState, s2::GenericState) =
 Base.hash(s::GenericState, h::UInt) =
     hash(s.fluents, hash(s.facts, hash(s.types, h)))
 Base.issubset(s1::GenericState, s2::GenericState) =
-    s1.types ⊆ s2.types && s1.facts ⊆ s2.facts &&
-    (let f1 = get_fluents(s1), f2 = get_fluents(s2)
-        all(f in f2 && s1[f] == s2[f] for f in f1)
-    end)
+    s1.types ⊆ s2.types && s1.facts ⊆ s2.facts
 
 stateindex(domain::GenericDomain, state::GenericState) =
     hash(state)
