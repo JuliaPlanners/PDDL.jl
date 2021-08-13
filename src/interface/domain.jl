@@ -1,18 +1,18 @@
 "PDDL planning domain."
 abstract type Domain end
 
-get_requirements(::Domain) = error("Not implemented.")
+get_requirements(domain::Domain) = error("Not implemented.")
 
-get_types(::Domain) = error("Not implemented.")
+get_types(domain::Domain) = error("Not implemented.")
 
-get_constants(::Domain) = error("Not implemented.")
+get_constants(domain::Domain) = error("Not implemented.")
 
-get_predicates(::Domain) = error("Not implemented.")
+get_predicates(domain::Domain) = error("Not implemented.")
 
-get_functions(::Domain) = error("Not implemented.")
+get_functions(domain::Domain) = error("Not implemented.")
 
-get_fluents(::Domain) = error("Not implemented.")
+get_fluents(domain::Domain) = error("Not implemented.")
 
-get_axioms(::Domain) = error("Not implemented.")
+get_axioms(domain::Domain) = error("Not implemented.")
 
-get_actions(::Domain) = error("Not implemented.")
+get_actions(domain::Domain) = error("Not implemented.")

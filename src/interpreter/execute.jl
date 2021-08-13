@@ -1,30 +1,28 @@
 function execute(domain::GenericDomain, state::GenericState,
-                 act::GenericAction, args; as_diff::Bool=false,
+                 action::GenericAction, args; as_diff::Bool=false,
                  check::Bool=true, fail_mode::Symbol=:error)
     # Check whether references resolve and preconditions hold
-    if check && !available(domain, state, act, args)
+    if check && !available(domain, state, action, args)
         if fail_mode == :no_op return as_diff ? no_effect() : state end
-        error("Precondition $(act.precond) does not hold.") # Error by default
+        error("Precondition $(action.precond) does not hold.")
     end
     # Substitute arguments and preconditions
     # TODO : Check for non-ground terms outside of quantified formulae
-    subst = Subst(var => val for (var, val) in zip(act.args, args))
-    effect = substitute(act.effect, subst)
+    subst = Subst(var => val for (var, val) in zip(action.args, args))
+    effect = substitute(action.effect, subst)
     # Compute effect as a state diffference
     diff = effect_diff(domain, state, effect)
     # Return either the difference or the updated state
     return as_diff ? diff : update(state, diff)
 end
 
-function execute(domain::GenericDomain, state::GenericState, act::Term; options...)
-    if act.name in keys(domain.actions)
-        act_def, act_args = domain.actions[act.name], get_args(act)
-        execute(domain, state, act_def, act_args; options...)
-    elseif act.name == Symbol("--")
-        execute(domain, state, no_op, Term[]; options...)
-    else
-        error("Unknown action: $act")
+function execute(domain::GenericDomain, state::GenericState, action::Term;
+                 options...)
+    action_def = get(domain.actions, action.name, no_op)
+    if action_def === no_op && action.name != get_name(no_op)
+        error("Unknown action: $action")
     end
+    return execute(domain, state, action_def, action.args; options...)
 end
 
 function execute(domain::GenericDomain, state::GenericState,

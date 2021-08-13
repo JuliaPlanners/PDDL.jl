@@ -1,6 +1,6 @@
-"PDDL state description."
+"Generic PDDL state description."
 mutable struct GenericState <: State
-    types::Set{Term} # Object type declarations
+    types::Set{Compound} # Object type declarations
     facts::Set{Term} # Boolean-valued fluents
     fluents::Dict{Symbol,Any} # All other fluents
 end
@@ -22,53 +22,6 @@ function GenericState(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
     return state
 end
 
-"Returns the list of all terms in a state."
-function get_terms(state::GenericState)
-    return Term[get_types(state); get_facts(state); get_fluents(state)]
-end
-
-"Returns the list of all type declarations in a state."
-function get_types(state::GenericState)
-    return collect(state.types)
-end
-
-"Returns the list of all facts in a state."
-function get_facts(state::GenericState)
-    return collect(state.facts)
-end
-
-"Returns the list of all fluent terms (but not their values) in a state."
-function get_fluents(state::GenericState)
-    terms = Term[]
-    for (name, val) in state.fluents
-        if isa(val, Dict)
-            append!(terms, [Compound(name, Const.(collect(args)))
-                            for args in keys(val)])
-        else
-            push!(terms, Const(name))
-        end
-    end
-    return terms
-end
-
-"Returns the list of all fluent assignments in a state."
-function get_assignments(state::GenericState)
-    terms = Term[]
-    for (name, val) in state.fluents
-        if isa(val, Dict)
-            for (args, v) in val
-                fluent = Compound(name, Const.(collect(args)))
-                assignment = @julog(:fluent == $v)
-                push!(terms, assignment)
-            end
-        else
-            assignment = @julog($name == $val)
-            push!(terms, assignment)
-        end
-    end
-    return terms
-end
-
 Base.copy(s::GenericState) =
     GenericState(copy(s.types), copy(s.facts), deepcopy(s.fluents))
 Base.:(==)(s1::GenericState, s2::GenericState) =
@@ -81,17 +34,76 @@ Base.issubset(s1::GenericState, s2::GenericState) =
         all(f in f2 && s1[f] == s2[f] for f in f1)
     end)
 
-"Set the value of a fluent or fact in a state."
-Base.setindex!(state::GenericState, val::Bool, term::Const) =
-    (if val push!(state.facts, term) else delete!(state.facts, term) end; val)
-Base.setindex!(state::GenericState, val::Bool, term::Compound) =
-    (if val push!(state.facts, term) else delete!(state.facts, term) end; val)
-Base.setindex!(state::GenericState, val::Any, term::Const) =
-    (state.fluents[term.name] = val)
-Base.setindex!(state::GenericState, val::Any, term::Compound) =
-    (d = get!(state.fluents, term.name, Dict());
-     d[Tuple(a.name for a in term.args)] = val)
-Base.setindex!(state::GenericState, val::Any, term::Symbol) =
-    Base.setindex!(state, val, Const(term))
-Base.setindex!(state::GenericState, val::Any, term::Expr) =
-    Base.setindex!(state, val, eval(Julog.parse_term(term, identity)))
+stateindex(domain::GenericDomain, state::GenericState) =
+    hash(state)
+
+get_objects(state::GenericState) =
+    [ty.args[1] for ty in state.types]
+
+get_objects(state::GenericState, type::Symbol) =
+    [ty.args[1] for ty in state.types if ty.name == type]
+
+get_objtypes(state::GenericState) =
+    (ty.args[1] => ty.name for ty in state.types)
+
+function get_fluent(state::GenericState, term::Const)
+    if term in state.facts
+        return true
+    else
+        return get(state.fluents, term.name, false)
+    end
+end
+
+function get_fluent(state::GenericState, term::Compound)
+    if term in state.facts
+        return true
+    else
+        d = get(state.fluents, term.name, nothing)
+        return d === nothing ? false : d[Tuple(a.name for a in term.args)]
+    end
+end
+
+get_fluent(state::GenericState, name::Symbol) =
+    get_fluent(state, Const(name))
+
+get_fluent(state::GenericState, name::Symbol, args...) =
+    get_fluent(state, Compound(name, args))
+
+function set_fluent!(state::GenericState, val::Bool, term::Term)
+    if val push!(state.facts, term) else delete!(state.facts, term) end
+    return val
+end
+
+function set_fluent!(state::GenericState, val::Any, term::Const)
+    state.fluents[term.name] = val
+end
+
+function set_fluent!(state::GenericState, val::Any, term::Compound)
+    d = get!(state.fluents, term.name, Dict())
+    d[Tuple(a.name for a in term.args)] = val
+end
+
+set_fluent!(state::GenericState, val, name::Symbol) =
+    set_fluent!(state, val, Const(name))
+
+set_fluent!(state::GenericState, val, name::Symbol, args...) =
+    set_fluent!(state, val, Compound(name, args))
+
+get_fluents(state::GenericState) =
+    ((name => get_fluent(state, name)) for name in get_fluent_names(state))
+
+function get_fluent_names(state::GenericState)
+    f = x -> begin
+        name, val = x
+        if isa(val, Dict)
+            return (Compound(name, Const.(collect(args))) for args in keys(val))
+        else
+            return (Const(name),)
+        end
+    end
+    fluent_names = Iterators.flatten(Base.Generator(f, state.fluents))
+    return Iterators.flatten((state.facts, fluent_names))
+end
+
+get_fluent_values(state::GenericState) =
+    (get_fluent(state, name) for name in get_fluent_names(state))

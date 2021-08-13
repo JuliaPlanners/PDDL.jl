@@ -1,4 +1,4 @@
-"PDDL action description."
+"Generic PDDL action definition."
 struct GenericAction <: Action
     name::Symbol # Name of action
     args::Vector{Var} # GenericAction parameters
@@ -14,27 +14,49 @@ Base.:(==)(a1::GenericAction, a2::GenericAction) = (a1.name == a2.name &&
     Set(a1.args) == Set(a2.args) && Set(a1.types) == Set(a2.types) &&
     a1.precond == a2.precond && a1.effect == a2.effect)
 
-"Get preconditions of an action as a list."
-function get_preconditions(act::GenericAction, args::Vector{<:Term};
-                           converter::Function=flatten_conjs)
-    subst = Subst(var => val for (var, val) in zip(act.args, args))
-    precond = substitute(act.precond, subst)
-    return converter(precond)
+get_name(action::GenericAction) = action.name
+
+get_argvars(action::GenericAction) = action.args
+
+get_argtypes(action::GenericAction) = action.types
+
+get_precond(action::GenericAction) = action.precond
+
+function get_precond(action::GenericAction, args)
+    subst = Subst(k => v for (k, v) in zip(action.args, args))
+    return substitute(action.precond, subst)
 end
 
-get_preconditions(act::GenericAction; converter::Function=flatten_conjs) =
-    converter(act.precond)
+get_effect(action::GenericAction) = action.effect
 
-get_preconditions(act::Term, domain::GenericDomain; kwargs...) =
-    get_preconditions(domain.actions[act.name], get_args(act); kwargs...)
-
-"Get effect term of an action with variables substituted by arguments."
-function get_effect(act::GenericAction, args::Vector{<:Term})
-    subst = Subst(var => val for (var, val) in zip(act.args, args))
-    return substitute(act.effect, subst)
+function get_effect(action::GenericAction, args)
+    subst = Subst(k => v for (k, v) in zip(action.args, args))
+    return substitute(action.effect, subst)
 end
 
-get_effect(act::Term, domain::GenericDomain) =
-    get_effect(domain.actions[act.name], get_args(act))
+"No-op action."
+struct NoOp <: Action end
 
-const no_op = GenericAction(Compound(Symbol("--"), []), @julog(true), @julog(and()))
+const no_op = NoOp()
+
+get_name(action::NoOp) = Symbol("--")
+
+get_argvars(action::NoOp) = ()
+
+get_argtypes(action::NoOp) = ()
+
+get_precond(action::NoOp) = Compound(:and, [])
+
+get_precond(action::NoOp, args) = Compound(:and, [])
+
+get_effect(action::NoOp) = Compound(:and, [])
+
+get_effect(action::NoOp, args) = Compound(:and, [])
+
+available(::Domain, state::State, ::NoOp, args) = true
+
+execute(::Domain, state::State, ::NoOp, args; options...) = state
+
+relevant(::Domain, state::State, ::NoOp, args; options...) = false
+
+regress(::Domain, state::State, ::NoOp, args; options...) = state

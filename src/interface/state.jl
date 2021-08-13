@@ -1,20 +1,34 @@
 "PDDL state description."
 abstract type State end
 
-get_objects(::State) = error("Not implemented.")
+stateindex(domain::Domain, state::State) = error("Not implemented.")
 
-get_objects(::State, type::Symbol) = error("Not implemented.")
+get_objects(state::State) = error("Not implemented.")
 
-get_objtypes(::State) = error("Not implemented.")
+get_objects(state::State, type::Symbol) = error("Not implemented.")
 
-get_value(::State, ::Term) = error("Not implemented.")
+get_objtypes(state::State) = error("Not implemented.")
 
-get_value(::State, name::Symbol, args...) = error("Not implemented.")
+get_fluent(state::State, ::Term) = error("Not implemented.")
 
-set_value!(::State, val, ::Term) = error("Not implemented.")
+get_fluent(state::State, name::Symbol, args...) = error("Not implemented.")
 
-set_value!(::State, val, name::Symbol, args...) = error("Not implemented.")
+set_fluent!(state::State, val, ::Term) = error("Not implemented.")
 
-Base.getindex(state::State, term::Term) = get_value(state, term)
+set_fluent!(state::State, val, name::Symbol, args...) = error("Not implemented.")
 
-Base.setindex!(state::State, val, term::Term) = set_value!(state, val, term)
+get_fluents(state::State) = error("Not implemented.")
+
+get_fluent_names(state::State) = (k for (k, v) in get_fluents(state))
+
+get_fluent_values(state::State) = (v for (k, v) in get_fluents(state))
+
+Base.getindex(state::State, term::Term) = get_fluent(state, term)
+
+Base.setindex!(state::State, val, term::Term) = set_fluent!(state, val, term)
+
+Base.pairs(state::State) = get_fluents(state)
+
+Base.keys(state::State) = get_fluent_names(state)
+
+Base.values(state::State) = get_fluent_values(state)

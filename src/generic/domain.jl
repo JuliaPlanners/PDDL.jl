@@ -1,4 +1,4 @@
-"PDDL planning domain."
+"Generic PDDL planning domain."
 @kwdef mutable struct GenericDomain <: Domain
     name::Symbol # Name of domain
     requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
@@ -27,9 +27,6 @@ function GenericDomain(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol
     return GenericDomain(;name=name, _extras=extras, header..., body...)
 end
 
-Base.copy(d::GenericDomain) =
-    GenericDomain(; Dict(fn => getfield(d, fn) for fn in fieldnames(typeof(d)))...)
-
 Base.getproperty(d::GenericDomain, s::Symbol) =
     hasfield(GenericDomain, s) ? getfield(d, s) : d._extras[s]
 
@@ -37,9 +34,32 @@ Base.setproperty!(d::GenericDomain, s::Symbol, val) =
     hasfield(GenericDomain, s) && s != :_extras ?
         setfield!(d, s, val) : setindex!(d._extras, val, s)
 
-Base.propertynames(d::GenericDomain, private=false) = private ?
-    tuple(fieldnames(GenericDomain)..., keys(d._extras)...) :
-    tuple(filter(f->f != :_extras, fieldnames(GenericDomain))..., keys(d._extras)...)
+function Base.propertynames(d::GenericDomain, private=false)
+    if !private
+        tuple(fieldnames(GenericDomain)..., keys(d._extras)...)
+    else
+        tuple(filter(f -> f != :_extras, fieldnames(GenericDomain))...,
+              keys(d._extras)...)
+    end
+end
+
+Base.copy(domain::GenericDomain) = deepcopy(domain)
+
+get_requirements(domain::GenericDomain) = domain.requirements
+
+get_types(domain::GenericDomain) = domain.types
+
+get_constants(domain::GenericDomain) = domain.constants
+
+get_predicates(domain::GenericDomain) = domain.predicates
+
+get_functions(domain::GenericDomain) = domain.functions
+
+get_fluents(domain::GenericDomain) = merge(domain.predicates, domain.functions)
+
+get_axioms(domain::GenericDomain) = domain.axioms
+
+get_actions(domain::GenericDomain) = domain.actions
 
 "Get domain constant type declarations as a set of facts."
 function get_const_facts(domain::GenericDomain)
