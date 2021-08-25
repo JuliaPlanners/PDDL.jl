@@ -5,23 +5,6 @@ mutable struct GenericState <: State
     values::Dict{Symbol,Any} # All other fluents
 end
 
-"Construct state from a list of terms (e.g. initial predicates and fluents)."
-function GenericState(terms::Vector{<:Term}, types::Vector{<:Term}=Term[])
-    state = GenericState(Set{Term}(types), Set{Term}(), Dict{Symbol,Any}())
-    for t in terms
-        if t.name == :(==)
-            # Initialize fluents
-            term, val = t.args[1], t.args[2]
-            @assert !isa(term, Var) "Initial terms cannot be unbound variables."
-            @assert isa(val, Const) "Terms must be initialized to constants."
-            state[term] = val.name
-        else
-            push!(state.facts, t)
-        end
-    end
-    return state
-end
-
 Base.copy(s::GenericState) =
     GenericState(copy(s.types), copy(s.facts), deepcopy(s.values))
 Base.:(==)(s1::GenericState, s2::GenericState) =
@@ -64,7 +47,7 @@ get_fluent(state::GenericState, name::Symbol) =
     get_fluent(state, Const(name))
 
 get_fluent(state::GenericState, name::Symbol, args...) =
-    get_fluent(state, Compound(name, args))
+    get_fluent(state, Compound(name, collect(args)))
 
 function set_fluent!(state::GenericState, val::Bool, term::Term)
     if val push!(state.facts, term) else delete!(state.facts, term) end
@@ -84,7 +67,7 @@ set_fluent!(state::GenericState, val, name::Symbol) =
     set_fluent!(state, val, Const(name))
 
 set_fluent!(state::GenericState, val, name::Symbol, args...) =
-    set_fluent!(state, val, Compound(name, args))
+    set_fluent!(state, val, Compound(name, collect(args)))
 
 get_fluents(state::GenericState) =
     ((name => get_fluent(state, name)) for name in get_fluent_names(state))
