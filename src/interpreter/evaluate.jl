@@ -10,7 +10,7 @@ function evaluate(domain::GenericDomain, state::GenericState, term::Term)
 end
 
 "Evaluate formula as fully as possible."
-function partial_eval(domain::Domain, state::GenericState, term::Term)
+function partial_eval(domain::GenericDomain, state::GenericState, term::Term)
     if isempty(get_functions(domain)) return term end
     funcs = merge(state.values, domain.funcdefs)
     return eval_term(term, Subst(), funcs)

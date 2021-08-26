@@ -15,6 +15,20 @@ function satisfy(domain::GenericDomain, state::GenericState, term::Term)
     return !isempty(satisfiers(domain, state, term))
 end
 
+function satisfiers(domain::GenericDomain, state::GenericState,
+                    terms::AbstractVector{<:Term})
+    # Initialize Julog knowledge base
+    clauses = Clause[get_clauses(domain);
+                     collect(state.types);
+                     collect(state.facts)]
+    # Pass in fluents and function definitions as a dictionary of functions
+    funcs = merge(comp_ops, state.values, domain.funcdefs)
+    return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
+end
+
+satisfiers(domain::GenericDomain, state::GenericState, term::Term) =
+    satisfiers(domain, state, [term])
+
 function check_term(domain::GenericDomain, state::GenericState, term::Compound)
     sat = if term.name == :and
         all(check_term(domain, state, a) for a in term.args)
@@ -33,8 +47,16 @@ function check_term(domain::GenericDomain, state::GenericState, term::Compound)
         missing
     elseif is_derived(term, domain)
         missing
-    elseif is_type(term, domain) && has_subtypes(term, domain)
-        missing
+    elseif is_type(term, domain)
+        if has_subtypes(term, domain)
+            missing
+        elseif term in state.types
+            true
+        elseif !isempty(get_constants(domain))
+            domain.constypes[term.args[1]] == term.name
+        else
+            false
+        end
     elseif term.name in keys(comp_ops)
         comp_ops[term.name](evaluate(domain, state, term.args[1]),
                             evaluate(domain, state, term.args[2]))
@@ -42,8 +64,7 @@ function check_term(domain::GenericDomain, state::GenericState, term::Compound)
         evaluate(domain, state, term)::Bool
     else
         term = partial_eval(domain, state, term)
-        term in state.facts || term in state.types ||
-        (!isempty(get_constants(domain)) && term in get_const_facts(domain))
+        term in state.facts
     end
     return sat
 end
@@ -61,17 +82,3 @@ end
 function check_term(domain::GenericDomain, state::GenericState, term::Var)
     return missing
 end
-
-function satisfiers(domain::GenericDomain, state::GenericState,
-                    terms::AbstractVector{<:Term})
-    # Initialize Julog knowledge base
-    clauses = Clause[get_clauses(domain);
-                     collect(state.types);
-                     collect(state.facts)]
-    # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(comp_ops, state.values, domain.funcdefs)
-    return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
-end
-
-satisfiers(domain::GenericDomain, state::GenericState, term::Term) =
-    satisfiers(domain, state, [term])

@@ -1,5 +1,9 @@
+abstract type Implementation end
+struct Interpreted <: Implementation end
+struct Compiled <: Implementation end
+
 "PDDL planning domain."
-abstract type Domain end
+abstract type Domain{T <: Implementation} end
 
 get_requirements(domain::Domain) = error("Not implemented.")
 

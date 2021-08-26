@@ -1,4 +1,4 @@
-function transition(domain::GenericDomain, state::GenericState, action::Term;
+function transition(domain::Domain{<:Interpreted}, state::State, action::Term;
                     check::Bool=true, fail_mode::Symbol=:error)
     state = execute(domain, state, action; check=check, fail_mode=fail_mode)
     return state
@@ -12,10 +12,10 @@ to an initial `state` in a given `domain`. Keyword arguments specify whether
 to `check` if action preconditions hold, the `fail_mode` (`:error` or `:no_op`)
 if they do not, and a `callback` function to apply after each step.
 """
-function simulate(domain::GenericDomain, state::GenericState,
+function simulate(domain::Domain{<:Interpreted}, state::State,
                   actions::AbstractVector{<:Term};
                   check::Bool=true, fail_mode::Symbol=:error, callback=nothing)
-    trajectory = GenericState[state]
+    trajectory = [state]
     if callback !== nothing callback(domain, state, Const(:start)) end
     for act in actions
         state = transition(domain, state, act; check=check, fail_mode=fail_mode)
