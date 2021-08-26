@@ -10,7 +10,7 @@
     functions::Dict{Symbol,Term} = Dict() # Dictionary of function declarations
     functypes::Dict{Symbol,Vector{Symbol}} = Dict() # Function type signatures
     funcdefs::Dict{Symbol,Any} = Dict() # Dictionary of function definitions
-    axioms::Vector{Clause} = [] # Axioms / derived predicates
+    axioms::Dict{Symbol,Clause} = Dict() # Axioms / derived predicates
     actions::Dict{Symbol,Action} = Dict() # Action definitions
     _extras::Dict{Symbol,Any} # Extra fields
 end
@@ -22,7 +22,7 @@ function GenericDomain(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol
     header = filter(item -> first(item) in fieldnames(GenericDomain), header)
     axioms = Clause[get(body, :axioms, []); get(body, :deriveds, [])]
     body = filter(item -> first(item) in fieldnames(GenericDomain), body)
-    body[:axioms] = axioms
+    body[:axioms] = Dict(ax.head.name => ax for ax in axioms)
     body[:actions] = Dict(act.name => act for act in body[:actions])
     return GenericDomain(;name=name, _extras=extras, header..., body...)
 end
@@ -80,7 +80,9 @@ end
 
 "Get all proof-relevant Horn clauses for PDDL domain."
 function get_clauses(domain::GenericDomain)
-   return [domain.axioms; get_const_clauses(domain); get_type_clauses(domain)]
+   return [collect(values(domain.axioms));
+           get_const_clauses(domain);
+           get_type_clauses(domain)]
 end
 
 "Get list of predicates that are never modified by actions in the domain."
