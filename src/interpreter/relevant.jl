@@ -1,26 +1,5 @@
-"Global flag for whether to cache relevant actions."
-const _use_relevant_cache = Ref(true)
-"Cache of relevant actions for a given domain and state."
-const _relevant_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
-
-"Globally enable or disable available action cache."
-use_relevant_action_cache!(val::Bool=true) = _use_relevant_cache[] = val
-
-"Clear cache of relevant actions."
-clear_relevant_action_cache!() =
-    (map(empty!, values(_relevant_action_cache));
-     empty!(_relevant_action_cache))
-clear_relevant_action_cache!(domain::GenericDomain) =
-    empty!(_relevant_action_cache[objectid(domain)])
-
 function relevant(domain::GenericDomain, state::GenericState;
-                  strict::Bool=false, use_cache::Bool=_use_relevant_cache[])
-    if use_cache # Look up actions in cache
-        cache = get!(_relevant_action_cache, hash(strict, objectid(domain)),
-                     Dict{UInt,Vector{Term}}())
-        state_hash = hash(state)
-        if haskey(cache, state_hash) return copy(cache[state_hash]) end
-    end
+                  strict::Bool=false)
     actions = Term[]
     for act in values(domain.actions)
         # Compute postconditions from the action's effect
@@ -45,7 +24,6 @@ function relevant(domain::GenericDomain, state::GenericState;
             push!(actions, term)
         end
     end
-    if use_cache cache[state_hash] = copy(actions) end
     return actions
 end
 

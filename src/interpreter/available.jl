@@ -1,26 +1,4 @@
-"Global flag for whether to cache available actions."
-const _use_available_cache = Ref(true)
-"Cache of available actions for a given domain and state."
-const _available_action_cache = Dict{UInt,Dict{UInt,Vector{Term}}}()
-
-"Globally enable or disable available action cache."
-use_available_action_cache!(val::Bool=true) = _use_available_cache[] = val
-
-"Clear cache of available actions."
-clear_available_action_cache!() =
-    (map(empty!, values(_available_action_cache));
-     empty!(_available_action_cache))
-clear_available_action_cache!(domain::GenericDomain) =
-    empty!(_available_action_cache[objectid(domain)])
-
-function available(domain::GenericDomain, state::GenericState;
-                   use_cache::Bool=_use_available_cache[])
-    if use_cache # Look up actions in cache
-        cache = get!(_available_action_cache, objectid(domain),
-                     Dict{UInt,Vector{Term}}())
-        state_hash = hash(state)
-        if haskey(cache, state_hash) return copy(cache[state_hash]) end
-    end
+function available(domain::GenericDomain, state::GenericState)
     # Ground all action definitions with arguments
     actions = Term[]
     for act in values(domain.actions)
@@ -44,7 +22,6 @@ function available(domain::GenericDomain, state::GenericState;
             push!(actions, term)
         end
     end
-    if use_cache cache[state_hash] = copy(actions) end
     return actions
 end
 
