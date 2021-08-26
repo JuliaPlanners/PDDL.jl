@@ -1,5 +1,5 @@
 "Generic PDDL planning domain."
-@kwdef mutable struct GenericDomain <: Domain{Interpreted}
+@kwdef mutable struct GenericDomain <: InterpretedDomain
     name::Symbol # Name of domain
     requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
     types::Dict{Symbol,Vector{Symbol}} = Dict() # Types and their subtypes

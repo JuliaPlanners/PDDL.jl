@@ -1,4 +1,4 @@
-function regress(domain::Domain{<:Interpreted}, state::State,
+function regress(domain::InterpretedDomain, state::State,
                  action::Action, args; as_diff::Bool=false,
                  check::Bool=true, fail_mode::Symbol=:error)
     # Check whether action is relevant

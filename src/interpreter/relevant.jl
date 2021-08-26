@@ -1,4 +1,4 @@
-function relevant(domain::Domain{<:Interpreted}, state::State)
+function relevant(domain::InterpretedDomain, state::State)
     actions = Term[]
     for act in values(get_actions(domain))
         act_name = get_name(act)
@@ -28,8 +28,7 @@ function relevant(domain::Domain{<:Interpreted}, state::State)
     return actions
 end
 
-function relevant(domain::Domain{<:Interpreted}, state::State,
-                  action::Action, args)
+function relevant(domain::InterpretedDomain, state::State, action::Action, args)
    if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
    end

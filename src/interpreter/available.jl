@@ -1,4 +1,4 @@
-function available(domain::Domain{<:Interpreted}, state::State)
+function available(domain::InterpretedDomain, state::State)
     # Ground all action definitions with arguments
     actions = Term[]
     for act in values(get_actions(domain))
@@ -27,8 +27,7 @@ function available(domain::Domain{<:Interpreted}, state::State)
     return actions
 end
 
-function available(domain::Domain{<:Interpreted}, state::State,
-                   action::Action, args)
+function available(domain::InterpretedDomain, state::State, action::Action, args)
     if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
     end

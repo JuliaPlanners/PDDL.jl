@@ -1,4 +1,4 @@
-abstract type CompiledDomain <: Domain{Compiled} end
+abstract type CompiledDomain <: Domain end
 
 abstract type CompiledState <: State end
 

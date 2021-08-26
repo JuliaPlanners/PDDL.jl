@@ -1,4 +1,4 @@
-function execute(domain::Domain{<:Interpreted}, state::State,
+function execute(domain::InterpretedDomain, state::State,
                  action::Action, args; as_diff::Bool=false,
                  check::Bool=true, fail_mode::Symbol=:error)
     # Check whether references resolve and preconditions hold
@@ -16,7 +16,7 @@ function execute(domain::Domain{<:Interpreted}, state::State,
     return as_diff ? diff : update(state, diff)
 end
 
-function execute(domain::Domain{<:Interpreted}, state::State,
+function execute(domain::InterpretedDomain, state::State,
                  actions::AbstractVector{<:Term};
                  as_diff::Bool=false, options...)
     state = copy(state)
