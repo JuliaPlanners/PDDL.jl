@@ -1,7 +1,7 @@
 function available(domain::GenericDomain, state::GenericState)
     # Ground all action definitions with arguments
     actions = Term[]
-    for act in values(domain.actions)
+    for act in values(get_actions(domain))
         typecond = (@julog($ty(:v)) for (v, ty) in zip(act.args, act.types))
         # Include type conditions when necessary for correctness
         p = act.precond
