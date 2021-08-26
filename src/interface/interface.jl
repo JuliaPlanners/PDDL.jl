@@ -65,10 +65,10 @@ Check if an `action` parameterized by `args` can be executed in the given
 `state` and `domain`. Action parameters can also be specified as the arguments
 of a compound `Term`.
 """
-available(domain::Domain, state::State, action::Term) =
-    error("Not implemented.")
 available(domain::Domain, state::State, action::Action, args) =
     error("Not implemented.")
+available(domain::Domain, state::State, action::Term) =
+    available(domain, state, get_actions(domain)[action.name], action.args)
 
 """
     available(domain::Domain, state::State)
@@ -86,10 +86,15 @@ Execute an `action` parameterized by `args` in the given `state`, returning
 the resulting state.  Action parameters can also be specified as the arguments
 of a compound `Term`.
 """
-execute(domain::Domain, state::State, action::Action, args) =
+execute(domain::Domain, state::State, action::Action, args; options...) =
     error("Not implemented.")
-execute(domain::Domain, state::State, action::Term) =
-    error("Not implemented.")
+execute(domain::Domain, state::State, action::Term; options...) =
+    if action.name == get_name(no_op)
+        execute(domain, state, no_op, (); options...)
+    else
+        execute(domain, state, get_actions(domain)[action.name],
+                action.args; options...)
+    end
 
 """
     relevant(domain::Domain, state::State, action::Action, args)
@@ -102,7 +107,7 @@ of a compound `Term`.
 relevant(domain::Domain, state::State, action::Action, args) =
     error("Not implemented.")
 relevant(domain::Domain, state::State, action::Term) =
-    error("Not implemented.")
+    relevant(domain, state, get_actions(domain)[action.name], action.args)
 
 """
     relevant(domain::Domain, state::State)
@@ -113,13 +118,19 @@ relevant(domain::Domain, state::State) =
     error("Not implemented.")
 
 """
-    regress(domain::Domain, state::State, action::Term)
     regress(domain::Domain, state::State, action::Action, args)
+    regress(domain::Domain, state::State, action::Term)
 
-Compute the pre-image of an `action` with respect to a `state`. If `action` is
-an `Action` definition, `args` must be supplied for the action's parameters.
+Compute the pre-image of an `action` parameterized by `args` with respect to
+a `state`. Action parameters can also be specified as the arguments of a
+compound `Term`.
 """
-regress(domain::Domain, state::State, action::Term) =
+regress(domain::Domain, state::State, action::Action, args; options...)=
     error("Not implemented.")
-regress(domain::Domain, state::State, action::Action, args) =
-    error("Not implemented.")
+regress(domain::Domain, state::State, action::Term; options...) =
+    if action.name == get_name(no_op)
+        regress(domain, state, no_op, (); options...)
+    else
+        regress(domain, state, get_actions(domain)[action.name],
+                action.args; options...)
+    end

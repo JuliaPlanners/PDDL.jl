@@ -1,10 +1,9 @@
-function relevant(domain::GenericDomain, state::GenericState;
-                  strict::Bool=false)
+function relevant(domain::GenericDomain, state::GenericState)
     actions = Term[]
     for act in values(domain.actions)
         # Compute postconditions from the action's effect
         diff = effect_diff(domain, state, act.effect)
-        addcond = strict ? diff.add : [Compound(:or, diff.add)]
+        addcond = [Compound(:or, diff.add)]
         delcond = [@julog(not(:t)) for t in diff.del]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act.args, act.types)]
         # Include type conditions when necessary for correctness
@@ -28,21 +27,17 @@ function relevant(domain::GenericDomain, state::GenericState;
 end
 
 function relevant(domain::GenericDomain, state::GenericState,
-                  act::GenericAction, args; strict::Bool=false)
+                  act::GenericAction, args)
    if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
    end
    subst = Subst(var => val for (var, val) in zip(act.args, args))
    # Compute postconditions from the action's effect
    diff = effect_diff(domain, state, substitute(act.effect, subst))
-   postcond = Term[strict ? diff.add : Compound(:or, diff.add);
-                   [@julog(not(:t)) for t in diff.del]]
+   postcond = Term[Compound(:or, diff.add); [@julog(not(:t)) for t in diff.del]]
    # Construct type conditions of the form "type(val)"
    typecond = (all(ty == :object for ty in act.types) ? Term[] :
                [@julog($ty(:v)) for (v, ty) in zip(args, act.types)])
    # Check whether postconditions hold
    return satisfy(domain, state, [postcond; typecond])
 end
-
-relevant(domain::GenericDomain, state::GenericState, act::Term; kwargs...) =
-    relevant(domain, state, domain.actions[act.name], act.args; kwargs...)

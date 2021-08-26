@@ -33,30 +33,3 @@ function get_effect(action::GenericAction, args)
     subst = Subst(k => v for (k, v) in zip(action.args, args))
     return substitute(action.effect, subst)
 end
-
-"No-op action."
-struct NoOp <: Action end
-
-const no_op = NoOp()
-
-get_name(action::NoOp) = Symbol("--")
-
-get_argvars(action::NoOp) = ()
-
-get_argtypes(action::NoOp) = ()
-
-get_precond(action::NoOp) = Compound(:and, [])
-
-get_precond(action::NoOp, args) = Compound(:and, [])
-
-get_effect(action::NoOp) = Compound(:and, [])
-
-get_effect(action::NoOp, args) = Compound(:and, [])
-
-available(::Domain, state::State, ::NoOp, args) = true
-
-execute(::Domain, state::State, ::NoOp, args; options...) = state
-
-relevant(::Domain, state::State, ::NoOp, args; options...) = false
-
-regress(::Domain, state::State, ::NoOp, args; options...) = state

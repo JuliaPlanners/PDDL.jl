@@ -40,6 +40,3 @@ function available(domain::GenericDomain, state::GenericState,
         [typecond; precond] : [precond; typecond]
     return satisfy(domain, state, conds)
 end
-
-available(domain::GenericDomain, state::GenericState, act::Term) =
-    available(domain, state, domain.actions[act.name], act.args)

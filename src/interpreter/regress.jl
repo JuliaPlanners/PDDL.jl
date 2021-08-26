@@ -16,14 +16,3 @@ function regress(domain::GenericDomain, state::GenericState,
     append!(pre_diff.del, eff_diff.add)
     return as_diff ? pre_diff : update(state, pre_diff)
 end
-
-function regress(domain::GenericDomain, state::GenericState, act::Term; options...)
-    if act.name in keys(domain.actions)
-        act_def, act_args = domain.actions[act.name], get_args(act)
-        regress(domain, state, act_def, act_args; options...)
-    elseif act.name == Symbol("--")
-        regress(domain, state, no_op, Term[]; options...)
-    else
-        error("Unknown action: $act")
-    end
-end

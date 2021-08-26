@@ -26,3 +26,30 @@ get_effect(domain::Domain, name::Symbol) =
 
 get_effect(domain::Domain, term::Term) =
     get_effect(get_actions(domain)[term.name], term.args)
+
+"No-op action."
+struct NoOp <: Action end
+
+const no_op = NoOp()
+
+get_name(action::NoOp) = Symbol("--")
+
+get_argvars(action::NoOp) = ()
+
+get_argtypes(action::NoOp) = ()
+
+get_precond(action::NoOp) = Compound(:and, [])
+
+get_precond(action::NoOp, args) = Compound(:and, [])
+
+get_effect(action::NoOp) = Compound(:and, [])
+
+get_effect(action::NoOp, args) = Compound(:and, [])
+
+available(::Domain, state::State, ::NoOp, args) = true
+
+execute(::Domain, state::State, ::NoOp, args; options...) = state
+
+relevant(::Domain, state::State, ::NoOp, args; options...) = false
+
+regress(::Domain, state::State, ::NoOp, args; options...) = state

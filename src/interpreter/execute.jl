@@ -16,15 +16,6 @@ function execute(domain::GenericDomain, state::GenericState,
     return as_diff ? diff : update(state, diff)
 end
 
-function execute(domain::GenericDomain, state::GenericState, action::Term;
-                 options...)
-    action_def = get(domain.actions, action.name, no_op)
-    if action_def === no_op && action.name != get_name(no_op)
-        error("Unknown action: $action")
-    end
-    return execute(domain, state, action_def, action.args; options...)
-end
-
 function execute(domain::GenericDomain, state::GenericState,
                  actions::AbstractVector{<:Term};
                  as_diff::Bool=false, options...)
@@ -36,19 +27,4 @@ function execute(domain::GenericDomain, state::GenericState,
     end
     # Return either the difference or the final state
     return as_diff ? diff : state
-end
-
-"Update a world state (in-place) with a state difference."
-function update!(state::GenericState, diff::Diff)
-    setdiff!(state.facts, diff.del)
-    union!(state.facts, diff.add)
-    for (term, val) in diff.ops
-        set_fluent!(state, val, term)
-    end
-    return state
-end
-
-"Update a world state with a state difference."
-function update(state::GenericState, diff::Diff)
-    return update!(copy(state), diff)
 end
