@@ -30,6 +30,8 @@ include("generic/generic.jl")
 include("parser/parser.jl")
 # Writer for PDDL files
 include("writer/writer.jl")
+# Built-in functions and operations recognized by interpreters / compilers
+include("builtins.jl")
 # Interpreter-based interface implementation
 include("interpreter/interpreter.jl")
 # Compiler-based interface implementations

@@ -42,9 +42,8 @@ end
 function update!(state::GenericState, diff::Diff)
     setdiff!(state.facts, diff.del)
     union!(state.facts, diff.add)
-    for (term, (op, newval)) in diff.ops
-        val = get_fluent(state, term)
-        set_fluent!(state, op(val, newval), term)
+    for (term, val) in diff.ops
+        set_fluent!(state, val, term)
     end
     return state
 end

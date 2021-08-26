@@ -6,7 +6,7 @@ function satisfy(domain::GenericDomain, state::GenericState,
             f = eval_term(f, Subst(), state.values) end
         if f in state.facts || f in state.types || f in get_const_facts(domain)
             return true end
-        if f.name in Julog.comp_ops || f.name in keys(state.values)
+        if f.name in keys(comp_ops) || f.name in keys(state.values)
             return eval_term(f, Subst(), state.values).name == true end
         return false
     end
@@ -16,7 +16,7 @@ function satisfy(domain::GenericDomain, state::GenericState,
     clauses = Clause[get_clauses(domain);
                      collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(state.values, domain.funcdefs)
+    funcs = merge(comp_ops, state.values, domain.funcdefs)
     return resolve(collect(terms), clauses; funcs=funcs, mode=:any)[1]
 end
 

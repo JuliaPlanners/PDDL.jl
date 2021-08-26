@@ -4,10 +4,6 @@ abstract type CompiledState <: State end
 
 abstract type CompiledAction <: Action end
 
-const comp_ops = Dict{Symbol,Function}(
-    op => eval(op) for op in [:(==), :<=, :>=, :<, :>, :(!=)]
-)
-
 function pddl_to_type_name(name)
     words = split(lowercase(string(name)), '-', keepempty=false)
     return join(uppercasefirst.(words))

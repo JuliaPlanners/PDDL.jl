@@ -4,7 +4,7 @@
 mutable struct Diff
     add::Vector{Term} # List of additions
     del::Vector{Term} # List of deletions
-    ops::Dict{Term,Tuple{Function,Any}} # Dictionary of assignment operations
+    ops::Dict{Term,Any} # Dictionary of assignment operations
 end
 
 Diff() = Diff(Term[], Term[], Dict{Term,Any}())
@@ -38,15 +38,6 @@ end
 ## Effect differences ##
 
 const effect_funcs = Dict{Symbol,Function}()
-
-"Mapping from PDDL assignment operations to Julia functions."
-const assign_ops = Dict{Symbol,Function}(
-    :assign => (x, y) -> y,
-    :increase => +,
-    :decrease => -,
-    Symbol("scale-up") => *,
-    Symbol("scale-down") => /
-)
 
 "Convert effect formula to a state difference (additions, deletions, etc.)"
 function effect_diff(domain::Domain, state::State, effect::Term)
@@ -102,11 +93,19 @@ effect_funcs[:forall] = forall_effect!
 
 function assign_effect!(diff::Diff, domain::Domain, state::State, effect::Term)
     term, val = effect.args[1], effect.args[2]
-    diff.ops[term] = (assign_ops[effect.name], evaluate(domain, state, val))
+    diff.ops[term] = evaluate(domain, state, val)
     return diff
 end
-for name in keys(assign_ops)
-    effect_funcs[name] = assign_effect!
+effect_funcs[:assign] = assign_effect!
+
+function modify_effect!(diff::Diff, domain::Domain, state::State, effect::Term)
+    term, val = effect.args[1], effect.args[2]
+    op = modify_ops[effect.name]
+    diff.ops[term] = op(get_fluent(state, term), evaluate(domain, state, val))
+    return diff
+end
+for name in keys(modify_ops)
+    effect_funcs[name] = modify_effect!
 end
 
 ## Precondition differences ##
