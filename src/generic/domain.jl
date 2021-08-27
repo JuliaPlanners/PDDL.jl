@@ -51,9 +51,17 @@ get_types(domain::GenericDomain) = domain.types
 
 get_constants(domain::GenericDomain) = domain.constants
 
+get_constypes(domain::GenericDomain) = domain.constypes
+
 get_predicates(domain::GenericDomain) = domain.predicates
 
+get_predtypes(domain::GenericDomain) = domain.predtypes
+
 get_functions(domain::GenericDomain) = domain.functions
+
+get_functypes(domain::GenericDomain) = domain.functypes
+
+get_funcdefs(domain::GenericDomain) = domain.funcdefs
 
 get_fluents(domain::GenericDomain) = merge(domain.predicates, domain.functions)
 

@@ -1,4 +1,4 @@
-function relevant(domain::InterpretedDomain, state::State)
+function relevant(interpreter::Interpreter, domain::Domain, state::State)
     actions = Term[]
     for act in values(get_actions(domain))
         act_name = get_name(act)
@@ -16,7 +16,7 @@ function relevant(domain::InterpretedDomain, state::State)
             conds = [addcond; typecond; delcond]
         end
         # Find all substitutions that satisfy the postconditions
-        subst = satisfiers(domain, state, conds)
+        subst = satisfiers(interpreter, domain, state, conds)
         if isempty(subst) continue end
         for s in subst
             args = [get(s, var, var) for var in act_vars]
@@ -28,7 +28,8 @@ function relevant(domain::InterpretedDomain, state::State)
     return actions
 end
 
-function relevant(domain::InterpretedDomain, state::State, action::Action, args)
+function relevant(interpreter::Interpreter,
+                  domain::Domain, state::State, action::Action, args)
    if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
    end
@@ -41,5 +42,5 @@ function relevant(domain::InterpretedDomain, state::State, action::Action, args)
    typecond = (all(ty == :object for ty in act_types) ? Term[] :
                [@julog($ty(:v)) for (v, ty) in zip(args, act_types)])
    # Check whether postconditions hold
-   return satisfy(domain, state, [postcond; typecond])
+   return satisfy(interpreter, domain, state, [postcond; typecond])
 end

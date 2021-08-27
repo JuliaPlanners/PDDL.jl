@@ -145,20 +145,3 @@ function forall_precond!(diff::Diff, domain::Domain, state::State, precond::Term
     return diff
 end
 precond_funcs[:forall] = forall_precond!
-
-## State updates ##
-
-"Update a world state (in-place) with a state difference."
-function update!(state::GenericState, diff::Diff)
-    setdiff!(state.facts, diff.del)
-    union!(state.facts, diff.add)
-    for (term, val) in diff.ops
-        set_fluent!(state, val, term)
-    end
-    return state
-end
-
-"Update a world state with a state difference."
-function update(state::GenericState, diff::Diff)
-    return update!(copy(state), diff)
-end

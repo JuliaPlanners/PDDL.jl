@@ -1,4 +1,4 @@
-function available(domain::InterpretedDomain, state::State)
+function available(interpreter::Interpreter, domain::Domain, state::State)
     # Ground all action definitions with arguments
     actions = Term[]
     for act in values(get_actions(domain))
@@ -15,7 +15,7 @@ function available(domain::InterpretedDomain, state::State)
             conds = flatten_conjs(p)
         end
         # Find all substitutions that satisfy preconditions
-        subst = satisfiers(domain, state, conds)
+        subst = satisfiers(interpreter, domain, state, conds)
         if isempty(subst) continue end
         for s in subst
             args = [s[v] for v in act_vars if v in keys(s)]
@@ -27,7 +27,8 @@ function available(domain::InterpretedDomain, state::State)
     return actions
 end
 
-function available(domain::InterpretedDomain, state::State, action::Action, args)
+function available(interpreter::Interpreter,
+                   domain::Domain, state::State, action::Action, args)
     if any(!is_ground(a) for a in args)
        error("Not all arguments are ground.")
     end
@@ -40,5 +41,5 @@ function available(domain::InterpretedDomain, state::State, action::Action, args
     precond = substitute(get_precond(action), subst)
     conds = has_func(precond, domain) || has_quantifier(precond) ?
         [typecond; precond] : [precond; typecond]
-    return satisfy(domain, state, conds)
+    return satisfy(interpreter, domain, state, conds)
 end

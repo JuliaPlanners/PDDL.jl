@@ -1,8 +1,8 @@
-function regress(domain::InterpretedDomain, state::State,
-                 action::Action, args; as_diff::Bool=false,
-                 check::Bool=true, fail_mode::Symbol=:error)
+function regress(interpreter::Interpreter,
+                 domain::Domain, state::State, action::Action, args;
+                 as_diff::Bool=false, check::Bool=true, fail_mode::Symbol=:error)
     # Check whether action is relevant
-    if check && !relevant(domain, state, action, args)
+    if check && !relevant(interpreter, domain, state, action, args)
         if fail_mode == :no_op return as_diff ? Diff() : state end
         error("Effect $(get_effect(action)) is not relevant.")
     end
@@ -14,5 +14,5 @@ function regress(domain::InterpretedDomain, state::State,
     pre_diff = precond_diff(domain, state, precond)
     eff_diff = effect_diff(domain, state, effect)
     append!(pre_diff.del, eff_diff.add)
-    return as_diff ? pre_diff : update(state, pre_diff)
+    return as_diff ? pre_diff : update(interpreter, state, pre_diff)
 end

@@ -1,3 +1,10 @@
+"Evaluate formula as fully as possible."
+function partialeval(domain::Domain, state::GenericState, term::Term)
+    if isempty(get_functions(domain)) return term end
+    funcs = merge(state.values, get_funcdefs(domain))
+    return eval_term(term, Subst(), funcs)
+end
+
 """
     find_matches(term, state, domain=nothing)
 
