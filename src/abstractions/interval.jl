@@ -1,6 +1,10 @@
 import IntervalArithmetic
 
-"Interval abstraction."
+"""
+    IntervalAbs(lo::Real, hi::Real)
+
+Interval abstraction for real-valued numbers.
+"""
 struct IntervalAbs{T <: Real}
     interval::IntervalArithmetic.Interval{T}
 end
