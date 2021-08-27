@@ -1,14 +1,12 @@
 "Generic PDDL planning domain."
-@kwdef mutable struct GenericDomain <: InterpretedDomain
+@kwdef mutable struct GenericDomain <: Domain
     name::Symbol # Name of domain
     requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
     types::Dict{Symbol,Vector{Symbol}} = Dict() # Types and their subtypes
     constants::Vector{Const} = [] # List of constants
     constypes::Dict{Const,Symbol} = Dict() # Types of constants
-    predicates::Dict{Symbol,Term} = Dict() # Dictionary of predicates
-    predtypes::Dict{Symbol,Vector{Symbol}} = Dict() # Predicate type signatures
-    functions::Dict{Symbol,Term} = Dict() # Dictionary of function declarations
-    functypes::Dict{Symbol,Vector{Symbol}} = Dict() # Function type signatures
+    predicates::Dict{Symbol,Signature} = Dict() # Dictionary of predicates
+    functions::Dict{Symbol,Signature} = Dict() # Dictionary of function declarations
     funcdefs::Dict{Symbol,Any} = Dict() # Dictionary of function definitions
     axioms::Dict{Symbol,Clause} = Dict() # Axioms / derived predicates
     actions::Dict{Symbol,Action} = Dict() # Action definitions
@@ -55,11 +53,7 @@ get_constypes(domain::GenericDomain) = domain.constypes
 
 get_predicates(domain::GenericDomain) = domain.predicates
 
-get_predtypes(domain::GenericDomain) = domain.predtypes
-
 get_functions(domain::GenericDomain) = domain.functions
-
-get_functypes(domain::GenericDomain) = domain.functypes
 
 get_funcdefs(domain::GenericDomain) = domain.funcdefs
 
@@ -68,30 +62,6 @@ get_fluents(domain::GenericDomain) = merge(domain.predicates, domain.functions)
 get_axioms(domain::GenericDomain) = domain.axioms
 
 get_actions(domain::GenericDomain) = domain.actions
-
-"Get domain constant type declarations as a set of facts."
-function get_const_facts(domain::GenericDomain)
-  return Set([@julog($ty(:o)) for (o, ty) in domain.constypes])
-end
-
-"Get domain constant type declarations as a list of clauses."
-function get_const_clauses(domain::GenericDomain)
-   return [@julog($ty(:o) <<= true) for (o, ty) in domain.constypes]
-end
-
-"Get domain type hierarchy as a list of clauses."
-function get_type_clauses(domain::GenericDomain)
-    clauses = [[Clause(@julog($ty(X)), Term[@julog($s(X))]) for s in subtys]
-               for (ty, subtys) in domain.types if length(subtys) > 0]
-    return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
-end
-
-"Get all proof-relevant Horn clauses for PDDL domain."
-function get_clauses(domain::GenericDomain)
-   return [collect(values(domain.axioms));
-           get_const_clauses(domain);
-           get_type_clauses(domain)]
-end
 
 "Get list of predicates that are never modified by actions in the domain."
 function get_static_predicates(domain::GenericDomain, state::State)

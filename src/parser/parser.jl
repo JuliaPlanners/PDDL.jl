@@ -4,7 +4,7 @@ export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
 using ParserCombinator, Julog
-using ..PDDL: GenericDomain, GenericProblem, GenericAction
+using ..PDDL: Signature, GenericDomain, GenericProblem, GenericAction
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
 struct Keyword
@@ -94,8 +94,8 @@ end
 parse_formula(expr::Symbol) = Const(expr)
 parse_formula(str::String) = parse_formula(parse_one(str, top_level)[1])
 
-"Parse predicates with type signatures."
-function parse_typed_pred(expr::Vector)
+"Parse predicates / functions with type signatures."
+function parse_typed_fluent(expr::Vector)
     if length(expr) == 1 && isa(expr[1], Symbol)
         return Const(expr[1]), Symbol[]
     elseif length(expr) > 1 && isa(expr[1], Symbol)
@@ -265,31 +265,27 @@ head_field_parsers[:domain][:constants] = parse_constants
 "Parse predicate list."
 function parse_predicates(expr::Vector)
     @assert (expr[1].name == :predicates) ":predicates keyword is missing."
-    preds, types = Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
+    preds = Dict{Symbol,Signature}()
     for e in expr[2:end]
-        pred, ty = parse_typed_pred(e)
-        preds[pred.name] = pred
-        types[pred.name] = ty
+        pred, argtypes = parse_typed_fluent(e)
+        preds[pred.name] = Signature(pred.name, :boolean, pred.args, argtypes)
     end
-    return (predicates=preds, predtypes=types)
+    return preds
 end
-parse_predicates(::Nothing) =
-    (predicates=Dict{Symbol,Term}(), predtypes=Dict{Symbol,Vector{Symbol}}())
+parse_predicates(::Nothing) = Dict{Symbol,Signature}()
 head_field_parsers[:domain][:predicates] = parse_predicates
 
 "Parse list of function (i.e. fluent) declarations."
 function parse_functions(expr::Vector)
     @assert (expr[1].name == :functions) ":functions keyword is missing."
-    funcs, types = Dict{Symbol,Term}(), Dict{Symbol,Vector{Symbol}}()
+    funcs = Dict{Symbol,Signature}()
     for e in expr[2:end]
-        func, ty = parse_typed_pred(e)
-        funcs[func.name] = func
-        types[func.name] = ty
+        func, argtypes = parse_typed_fluent(e)
+        funcs[func.name] = Signature(func.name, :numeric, func.args, argtypes)
     end
-    return (functions=funcs, functypes=types)
+    return funcs
 end
-parse_functions(::Nothing) =
-    (functions=Dict{Symbol,Term}(), functypes=Dict{Symbol,Vector{Symbol}}())
+parse_functions(::Nothing) = Dict{Symbol,Signature}()
 head_field_parsers[:domain][:functions] = parse_functions
 
 "Parse axioms (a.k.a. derived predicates)."

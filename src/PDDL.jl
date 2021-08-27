@@ -4,21 +4,28 @@ using Base: @kwdef
 using Julog
 using AutoHashEquals
 
-export Domain, Problem, State, Action
-export GenericDomain, GenericProblem, GenericState, GenericAction
+# Logical formulae and terms
 export Term, Compound, Var, Const
+# Abstract data types
+export Domain, Problem, State, Action
+# Generic concrete data types
+export GenericDomain, GenericProblem, GenericState, GenericAction
+# Interface methods
+export satisfy, satisfiers, evaluate
+export initstate, goalstate, transition, simulate
+export available, execute, relevant, regress
+# Parsing and writing
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export write_domain, write_problem, write_pddl
 export load_domain, load_problem
 export save_domain, save_problem
-export get_static_predicates, get_static_functions
-export satisfy, satisfiers, evaluate, find_matches
-export initstate, goalstate, transition, simulate
-export get_preconditions, get_effect
-export effect_diff, precond_diff
-export available, relevant, execute, regress, trigger
-export use_available_action_cache!, use_relevant_action_cache!
-export clear_available_action_cache!, clear_relevant_action_cache!
+# Abstract interpretation
+export AbstractedDomain, abstraction, lub, glb, widen
+# Compilation methods
+export compile
+# Utilities
+# export get_static_predicates, get_static_functions
+export find_matches, effect_diff, precond_diff
 
 # PDDL requirement definitions and dependencies
 include("requirements.jl")
@@ -32,6 +39,8 @@ include("parser/parser.jl")
 include("writer/writer.jl")
 # Built-in functions and operations recognized by interpreters / compilers
 include("builtins.jl")
+# Abstractions for fluents of various types
+include("abstractions/abstractions.jl")
 # Interpreter-based interface implementation
 include("interpreter/interpreter.jl")
 # Compiler-based interface implementations

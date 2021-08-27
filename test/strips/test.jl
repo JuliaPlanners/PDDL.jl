@@ -3,7 +3,7 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "strips")
 
 domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == :gripper
-@test domain.predicates[:room] == pddl"(room ?r)"
+@test convert(Term, domain.predicates[:room]) == pddl"(room ?r)"
 
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")

@@ -11,11 +11,7 @@ get_constypes(domain::Domain) = error("Not implemented.")
 
 get_predicates(domain::Domain) = error("Not implemented.")
 
-get_predtypes(domain::Domain) = error("Not implemented.")
-
 get_functions(domain::Domain) = error("Not implemented.")
-
-get_functypes(domain::Domain) = error("Not implemented.")
 
 get_funcdefs(domain::Domain) = error("Not implemented.")
 
@@ -24,5 +20,3 @@ get_fluents(domain::Domain) = error("Not implemented.")
 get_axioms(domain::Domain) = error("Not implemented.")
 
 get_actions(domain::Domain) = error("Not implemented.")
-
-abstract type InterpretedDomain <: Domain end

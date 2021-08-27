@@ -3,7 +3,7 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "axioms")
 
 domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("blocksworld-axioms")
-@test domain.predicates[:above] == pddl"(above ?x ?y)"
+@test convert(Term, domain.predicates[:above]) == pddl"(above ?x ?y)"
 @test @julog(above(X, Y) <<= or(on(X, Y), and(on(X, Z), above(Z, Y)))) in values(domain.axioms)
 
 problem = load_problem(joinpath(path, "problem.pddl"))

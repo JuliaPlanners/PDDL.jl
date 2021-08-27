@@ -3,8 +3,8 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "fluents")
 
 domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("zeno-travel")
-@test domain.functions[:distance] == pddl"(distance ?c1 ?c2)"
-@test domain.functypes[:fuel] == [:aircraft]
+@test convert(Term, domain.functions[:distance]) == pddl"(distance ?c1 ?c2)"
+@test domain.functions[:fuel].argtypes == (:aircraft,)
 
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.metric == (-1, pddl"(+ (* 4 (total-time)) (* 5 (total-fuel-used)))")

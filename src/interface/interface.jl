@@ -1,3 +1,4 @@
+include("signature.jl")
 include("domain.jl")
 include("problem.jl")
 include("state.jl")
