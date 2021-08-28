@@ -20,7 +20,7 @@ export write_domain, write_problem, write_pddl
 export load_domain, load_problem
 export save_domain, save_problem
 # Abstract interpretation
-export AbstractedDomain, abstracted, lub, glb, widen
+export AbstractedDomain, abstracted, lub, glb, widen, widen!
 # Domain compilation
 export compiled
 # Analysis tools

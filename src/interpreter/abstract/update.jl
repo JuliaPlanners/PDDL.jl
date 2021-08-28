@@ -37,3 +37,20 @@ function widen(interpreter::AbstractInterpreter,
                state::GenericState, diff::Diff)
     return widen!(interpreter, copy(state), diff)
 end
+
+"Widen a state (in-place) with another state."
+function widen!(domain::AbstractedDomain,
+                s1::GenericState, s2::GenericState)
+    union!(s1.facts, s2.facts)
+    if isempty(get_functions(domain)) return s1 end
+    for (term, val) in get_fluents(s2)
+        if is_pred(term, domain) continue end
+        widened = widen(get_fluent(s1, term), val)
+        set_fluent!(s1, widened, term)
+    end
+    return s1
+end
+
+"Widen a state with another state."
+widen(domain::AbstractedDomain, s1::GenericState, s2::GenericState) =
+    widen!(domain.interpreter, copy(s1), s2)

@@ -23,6 +23,7 @@ function abstracted(domain::AbstractedDomain, state::GenericState)
     if isempty(funcsigs) return abs_state end
     absfuncs = domain.interpreter.abstractions
     for (term, val) in get_fluents(state)
+        if is_pred(term, domain) continue end
         type = funcsigs[term.name].type
         val = get(absfuncs, type, identity)(val)
         abs_state[term] = val
