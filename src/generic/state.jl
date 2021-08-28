@@ -5,6 +5,8 @@ mutable struct GenericState <: State
     values::Dict{Symbol,Any} # All other fluents
 end
 
+GenericState(types) = GenericState(types, Set{Term}(), Dict{Symbol,Any}())
+
 Base.copy(s::GenericState) =
     GenericState(copy(s.types), copy(s.facts), deepcopy(s.values))
 Base.:(==)(s1::GenericState, s2::GenericState) =
@@ -50,7 +52,12 @@ get_fluent(state::GenericState, name::Symbol) =
 get_fluent(state::GenericState, name::Symbol, args...) =
     get_fluent(state, Compound(name, collect(args)))
 
-function set_fluent!(state::GenericState, val::Bool, term::Term)
+function set_fluent!(state::GenericState, val::Bool, term::Compound)
+    if val push!(state.facts, term) else delete!(state.facts, term) end
+    return val
+end
+
+function set_fluent!(state::GenericState, val::Bool, term::Const)
     if val push!(state.facts, term) else delete!(state.facts, term) end
     return val
 end

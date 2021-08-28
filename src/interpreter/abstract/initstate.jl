@@ -1,6 +1,6 @@
 "Construct initial state from problem definition."
 function initstate(interpreter::AbstractInterpreter,
-                   domain::Domain, problem::GenericProblem)
+                   domain::GenericDomain, problem::GenericProblem)
     types = Set{Term}([@julog($ty(:o)) for (o, ty) in problem.objtypes])
     state = GenericState(types, Set{Term}(), Dict{Symbol,Any}())
     for t in problem.init

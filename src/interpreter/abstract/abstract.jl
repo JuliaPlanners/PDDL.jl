@@ -12,6 +12,17 @@ include("satisfy.jl")
 include("initstate.jl")
 include("update.jl")
 
-"Return abstraction of a concrete domain."
 abstraction(domain::ConcreteDomain; args...) =
     AbstractedDomain(domain; args...)
+
+function abstraction(domain::AbstractedDomain, state::GenericState)
+    absfuncs = domain.interpreter.abstractions
+    abstracted = GenericState(state.types)
+    fluentsigs = get_fluents(domain)
+    for (term, val) in get_fluents(state)
+        type = fluentsigs[term.name].type
+        val = get(absfuncs, type, identity)(val)
+        abstracted[term] = val
+    end
+    return abstracted
+end
