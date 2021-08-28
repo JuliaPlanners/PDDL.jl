@@ -23,6 +23,8 @@ glb(a::IntervalAbs, b::IntervalAbs) = IntervalAbs(a.interval ∩ b.interval)
 
 widen(a::IntervalAbs, b::IntervalAbs) = IntervalAbs(a.interval ∪ b.interval)
 
+Base.:(==)(a::IntervalAbs, b::IntervalAbs) = a.interval == b.interval
+
 Base.:+(a::IntervalAbs) = a
 Base.:-(a::IntervalAbs) = IntervalAbs(-a)
 
@@ -41,21 +43,21 @@ Base.:-(a::Real, b::IntervalAbs) = IntervalAbs(a - b.interval)
 Base.:*(a::Real, b::IntervalAbs) = IntervalAbs(a * b.interval)
 Base.:/(a::Real, b::IntervalAbs) = IntervalAbs(a / b.interval)
 
-Base.:(==)(a::IntervalAbs, b::IntervalAbs) =
+equiv(a::IntervalAbs, b::IntervalAbs) =
     !isdisjoint(a.interval, b.interval)
-Base.:(!=)(a::IntervalAbs, b::IntervalAbs) =
+nequiv(a::IntervalAbs, b::IntervalAbs) =
     isdisjoint(a.interval, b.interval)
 Base.:<(a::IntervalAbs, b::IntervalAbs) =
     !IntervalArithmetic.precedes(b.interval, a.interval)
 Base.:<=(a::IntervalAbs, b::IntervalAbs) =
     !IntervalArithmetic.strictprecedes(b.interval, a.interval)
 
-Base.:(==)(a::IntervalAbs, b::Real) = b ⊆ a.interval
-Base.:(!=)(a::IntervalAbs, b::Real) = !(a.interval.lo == a.interval.hi == b)
+equiv(a::IntervalAbs, b::Real) = b ⊆ a.interval
+nequiv(a::IntervalAbs, b::Real) = !(a.interval.lo == a.interval.hi == b)
 Base.:<(a::IntervalAbs, b::Real) = a.interval.lo < b
 Base.:<=(a::IntervalAbs, b::Real) = a.interval.lo <= b
 
-Base.:(==)(a::Real, b::IntervalAbs) = a ⊆ b.interval
-Base.:(!=)(a::Real, b::IntervalAbs) = !(a == b.interval.lo == b.interval.hi)
+equiv(a::Real, b::IntervalAbs) = a ⊆ b.interval
+nequiv(a::Real, b::IntervalAbs) = !(a == b.interval.lo == b.interval.hi)
 Base.:<(a::Real, b::IntervalAbs) = a < b.interval.hi
 Base.:<=(a::Real, b::IntervalAbs) = a <= b.interval.hi

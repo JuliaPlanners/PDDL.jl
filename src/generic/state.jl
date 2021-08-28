@@ -8,7 +8,8 @@ end
 Base.copy(s::GenericState) =
     GenericState(copy(s.types), copy(s.facts), deepcopy(s.values))
 Base.:(==)(s1::GenericState, s2::GenericState) =
-    s1.types == s2.types && s1.facts == s2.facts && s1.values == s2.values
+    issetequal(s1.types, s2.types) && issetequal(s1.facts, s2.facts) &&
+    isequal(s1.values, s2.values)
 Base.hash(s::GenericState, h::UInt) =
     hash(s.values, hash(s.facts, hash(s.types, h)))
 Base.issubset(s1::GenericState, s2::GenericState) =
