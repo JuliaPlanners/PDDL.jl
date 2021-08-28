@@ -1,6 +1,8 @@
 "PDDL planning domain."
 abstract type Domain end
 
+get_name(domain::Domain) = error("Not implemented.")
+
 get_requirements(domain::Domain) = error("Not implemented.")
 
 get_types(domain::Domain) = error("Not implemented.")

@@ -21,6 +21,11 @@ const comp_ops = Dict{Symbol,Function}(
 comp_ops[:(==)] = equiv
 comp_ops[:(!=)] = nequiv
 
+"Mapping from PDDL evaluation operators to Julia functions."
+const eval_ops = Dict{Symbol,Function}(
+    op => eval(op) for op in [:+, :-, :*, :/]
+)
+
 "Mapping from PDDL modification operators to Julia functions."
 const modify_ops = Dict{Symbol,Function}(
     :increase => +,

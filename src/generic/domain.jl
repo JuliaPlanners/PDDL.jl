@@ -43,6 +43,8 @@ end
 
 Base.copy(domain::GenericDomain) = deepcopy(domain)
 
+get_name(domain::GenericDomain) = domain.name
+
 get_requirements(domain::GenericDomain) = domain.requirements
 
 get_types(domain::GenericDomain) = domain.types

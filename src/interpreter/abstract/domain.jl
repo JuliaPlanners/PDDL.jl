@@ -9,6 +9,8 @@ AbstractedDomain(domain::Domain; options...) =
 
 Base.copy(domain::AbstractedDomain) = deepcopy(domain)
 
+get_name(domain::AbstractedDomain) = get_name(domain.domain)
+
 get_requirements(domain::AbstractedDomain) = get_requirements(domain.domain)
 
 get_types(domain::AbstractedDomain) = get_types(domain.domain)
