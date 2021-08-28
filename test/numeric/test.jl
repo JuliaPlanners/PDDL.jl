@@ -1,5 +1,5 @@
-# Test fluent functionality
-path = joinpath(dirname(pathof(PDDL)), "..", "test", "fluents")
+# Test numeric fluent functionality
+path = joinpath(dirname(pathof(PDDL)), "..", "test", "numeric")
 
 domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("zeno-travel")
