@@ -16,6 +16,12 @@ function execute(interpreter::Interpreter,
     return as_diff ? diff : update(interpreter, state, diff)
 end
 
+function execute(interpreter::Interpreter,
+                 domain::Domain, state::State, action::Term; options...)
+    return execute(interpreter, domain, state,
+                   get_actions(domain)[action.name], action.args)
+end
+
 function execute(domain::Domain, state::State, actions::AbstractVector{<:Term};
                  options...)
     for act in actions

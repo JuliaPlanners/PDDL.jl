@@ -5,7 +5,7 @@ const ConcreteDomain = GenericDomain
 satisfy(domain::ConcreteDomain, state::State, term::Term) =
     satisfy(ConcreteInterpreter(), domain, state, term)
 satisfy(domain::ConcreteDomain, state::State, terms::AbstractVector{<:Term}) =
-    satisfy(ConcreteInterpreter(), domain, state, term)
+    satisfy(ConcreteInterpreter(), domain, state, terms)
 
 satisfiers(domain::ConcreteDomain, state::State, term::Term) =
     satisfiers(ConcreteInterpreter(), domain, state, term)
