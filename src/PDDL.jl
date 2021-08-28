@@ -23,6 +23,8 @@ export save_domain, save_problem
 export AbstractedDomain, abstraction, lub, glb, widen
 # Compilation methods
 export compile
+# Analysis tools
+export DependencyGraph, dependency_graph
 # Utilities
 # export get_static_predicates, get_static_functions
 export find_matches, effect_diff, precond_diff
@@ -45,6 +47,8 @@ include("abstractions/abstractions.jl")
 include("interpreter/interpreter.jl")
 # Compiler-based interface implementations
 include("compiler/compiler.jl")
+# Tools for analyzing domains
+include("analysis/analysis.jl")
 # Various utilities
 include("utils.jl")
 

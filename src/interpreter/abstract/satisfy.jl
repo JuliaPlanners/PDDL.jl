@@ -23,12 +23,12 @@ function satisfiers(interpreter::AbstractInterpreter,
                     domain::Domain, state::GenericState,
                     terms::AbstractVector{<:Term})
     # Reify negations
-    terms = reify_negations.(to_nnf.(terms))
+    terms = [reify_negations(to_nnf(t), domain) for t in terms]
     # Initialize Julog knowledge base
     clauses = Clause[get_clauses(domain); get_negation_clauses(domain);
                      collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(comp_ops, state.values, domain.funcdefs)
+    funcs = merge(comp_ops, state.values, get_funcdefs(domain))
     return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
 end
 

@@ -4,11 +4,11 @@
   (:predicates (on-table ?x) (on ?x ?y) ; basic
                (holding ?x) (above ?x ?y) (clear ?x) (handempty)) ; derived
   (:derived (holding ?x)
-            (and (not (on-table ?x)) (not (on ?x ?y))))
+            (and (not (on-table ?x))(not (exists (?y) (on ?x ?y)))))
   (:derived (above ?x ?y)
-            (or (on ?x ?y) (and (on ?x ?z) (above ?z ?y))))
+            (or (on ?x ?y) (exists (?z) (and (on ?x ?z) (above ?z ?y)))))
   (:derived (clear ?x)
-            (and (not (holding ?x)) (not (on ?y ?x))))
+            (and (not (holding ?x)) (not (exists (?y) (on ?y ?x)))))
   (:derived (handempty)
             (forall (?x) (not (holding ?x))))
   (:action pickup

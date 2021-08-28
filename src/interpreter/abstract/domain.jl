@@ -15,6 +15,8 @@ get_types(domain::AbstractedDomain) = get_types(domain.domain)
 
 get_constants(domain::AbstractedDomain) = get_constants(domain.domain)
 
+get_constypes(domain::AbstractedDomain) = get_constypes(domain.domain)
+
 get_predicates(domain::AbstractedDomain) = get_predicates(domain.domain)
 
 get_functions(domain::AbstractedDomain) = get_functions(domain.domain)
@@ -32,7 +34,7 @@ get_actions(domain::AbstractedDomain) = get_actions(domain.domain)
 satisfy(domain::AbstractedDomain, state::State, term::Term) =
     satisfy(domain.interpreter, domain, state, term)
 satisfy(domain::AbstractedDomain, state::State, terms::AbstractVector{<:Term}) =
-    satisfy(domain.interpreter, domain, state, term)
+    satisfy(domain.interpreter, domain, state, terms)
 
 satisfiers(domain::AbstractedDomain, state::State, term::Term) =
     satisfiers(domain.interpreter, domain, state, term)
