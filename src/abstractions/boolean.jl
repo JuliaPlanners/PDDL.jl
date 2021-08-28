@@ -31,7 +31,7 @@ glb(a::Both, b::Bool) = b
 glb(a::Bool, b::Bool) = a === b ? a : missing
 glb(a::Both, b::Missing) = missing
 glb(a::Bool, b::Missing) = missing
-lub(a::BooleanAbs, b::BooleanAbs) = lub(b, a)
+glb(a::BooleanAbs, b::BooleanAbs) = glb(b, a)
 
 widen(a::BooleanAbs, b::BooleanAbs) = lub(a, b)
 
