@@ -11,7 +11,7 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 
 # Check that types of constants resolve
 state = initstate(domain, problem)
-@test domain:state:pddl"(pasloc red)" == true
+@test domain[state => pddl"(pasloc red)"] == true
 
 # Execute plan and check that it succeeds
 plan = @pddl(

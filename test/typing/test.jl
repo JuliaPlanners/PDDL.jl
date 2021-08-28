@@ -15,11 +15,11 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 # Test forward execution of plans
 state = initstate(domain, problem)
 state = execute(domain, state, pddl"(pick ball1 rooma left)")
-@test domain:state:pddl"(carry ball1 left)" == true
+@test domain[state => pddl"(carry ball1 left)"] == true
 state = execute(domain, state, pddl"(move rooma roomb)")
-@test domain:state:pddl"(robbyat roomb)" == true
+@test domain[state => pddl"(robbyat roomb)"] == true
 state = execute(domain, state, pddl"(drop ball1 roomb left)")
-@test domain:state:pddl"(at ball1 roomb)" == true
+@test domain[state => pddl"(at ball1 roomb)"] == true
 
 @test satisfy(domain, state, problem.goal) == true
 
@@ -34,11 +34,11 @@ state = initstate(domain, problem)
 # Test backward regression of plans
 state = goalstate(domain, problem)
 state = regress(domain, state, pddl"(drop ball1 roomb left)")
-@test domain:state:pddl"(carry ball1 left)" == true
+@test domain[state => pddl"(carry ball1 left)"] == true
 state = regress(domain, state, pddl"(move rooma roomb)")
-@test domain:state:pddl"(robbyat rooma)" == true
+@test domain[state => pddl"(robbyat rooma)"] == true
 state = regress(domain, state, pddl"(pick ball1 rooma left)")
-@test domain:state:pddl"(at ball1 rooma)" == true
+@test domain[state => pddl"(at ball1 rooma)"] == true
 @test issubset(state, initstate(domain, problem))
 
 # Test action relevance

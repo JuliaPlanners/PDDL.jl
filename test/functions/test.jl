@@ -13,8 +13,8 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 state = initstate(domain, problem)
 
 # Check that evaluation with external functions works correctly
-@test domain:state:pddl"(range 20 45)" == throw_range(20, 45)
-@test domain:state:pddl"(height 20 45 10)" == throw_height(20, 45, 10)
+@test domain[state => pddl"(range 20 45)"] == throw_range(20, 45)
+@test domain[state => pddl"(height 20 45 10)"] == throw_height(20, 45, 10)
 
 # Execute plan
 state = initstate(domain, problem)
@@ -24,6 +24,6 @@ state = execute(domain, state, pddl"(pick ball2)")
 state = execute(domain, state, pddl"(throw ball2 75)")
 
 # Check if goal is satisfied
-@test domain:state:pddl"(< (loc ball1) 10)"
-@test domain:state:pddl"(> (loc ball2) 15)"
+@test domain[state => pddl"(< (loc ball1) 10)"]
+@test domain[state => pddl"(> (loc ball2) 15)"]
 @test satisfy(domain, state, problem.goal) == true
