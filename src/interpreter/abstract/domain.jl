@@ -29,7 +29,7 @@ get_axioms(domain::AbstractedDomain) = get_axioms(domain.domain)
 
 get_actions(domain::AbstractedDomain) = get_actions(domain.domain)
 
-## Interface methods ##
+## Forward methods from abstracted domains to abstract interpreter ##
 
 satisfy(domain::AbstractedDomain, state::State, term::Term) =
     satisfy(domain.interpreter, domain, state, term)

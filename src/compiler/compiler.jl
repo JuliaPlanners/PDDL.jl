@@ -364,7 +364,7 @@ function generate_transition(domain::GenericDomain, problem::GenericProblem,
     return transition_def
 end
 
-function compile(domain::GenericDomain, problem::GenericProblem)
+function compiled(domain::GenericDomain, problem::GenericProblem)
     # Generate definitions
     domain_type, domain_typedef =
         generate_domain_type(domain, problem)

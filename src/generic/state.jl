@@ -6,6 +6,7 @@ mutable struct GenericState <: State
 end
 
 GenericState(types) = GenericState(types, Set{Term}(), Dict{Symbol,Any}())
+GenericState(types, facts) = GenericState(types, facts, Dict{Symbol,Any}())
 
 Base.copy(s::GenericState) =
     GenericState(copy(s.types), copy(s.facts), deepcopy(s.values))

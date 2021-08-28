@@ -12,17 +12,20 @@ include("satisfy.jl")
 include("initstate.jl")
 include("update.jl")
 
-abstraction(domain::ConcreteDomain; args...) =
+abstracted(domain::ConcreteDomain; args...) =
     AbstractedDomain(domain; args...)
 
-function abstraction(domain::AbstractedDomain, state::GenericState)
+function abstracted(domain::AbstractedDomain, state::GenericState)
+    # Copy over facts
+    abs_state = GenericState(copy(state.types), copy(state.facts))
+    # Abstract non-Boolean values if necessary
+    funcsigs = get_functions(domain)
+    if isempty(funcsigs) return abs_state end
     absfuncs = domain.interpreter.abstractions
-    abstracted = GenericState(state.types)
-    fluentsigs = get_fluents(domain)
     for (term, val) in get_fluents(state)
-        type = fluentsigs[term.name].type
+        type = funcsigs[term.name].type
         val = get(absfuncs, type, identity)(val)
-        abstracted[term] = val
+        abs_state[term] = val
     end
-    return abstracted
+    return abs_state
 end

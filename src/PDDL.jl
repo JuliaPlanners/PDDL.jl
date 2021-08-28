@@ -5,7 +5,7 @@ using Julog
 using AutoHashEquals
 
 # Logical formulae and terms
-export Term, Compound, Var, Const
+export Term, Compound, Var, Const, Clause
 # Abstract data types
 export Domain, Problem, State, Action
 # Generic concrete data types
@@ -20,9 +20,9 @@ export write_domain, write_problem, write_pddl
 export load_domain, load_problem
 export save_domain, save_problem
 # Abstract interpretation
-export AbstractedDomain, abstraction, lub, glb, widen
-# Compilation methods
-export compile
+export AbstractedDomain, abstracted, lub, glb, widen
+# Domain compilation
+export compiled
 # Analysis tools
 export DependencyGraph, dependency_graph
 # Utilities

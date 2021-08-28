@@ -1,3 +1,5 @@
+## Forward methods from concrete domains to concrete interpreter ##
+
 const ConcreteDomain = GenericDomain
 
 satisfy(domain::ConcreteDomain, state::State, term::Term) =
