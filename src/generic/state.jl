@@ -30,6 +30,9 @@ get_objects(state::GenericState, type::Symbol) =
 get_objtypes(state::GenericState) =
     (ty.args[1] => ty.name for ty in state.types)
 
+get_facts(state::GenericState) =
+    state.facts
+
 function get_fluent(state::GenericState, term::Const)
     if term in state.facts
         return true
