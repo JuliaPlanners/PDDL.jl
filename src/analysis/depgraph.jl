@@ -11,11 +11,13 @@ struct AxiomDependencyNode
     parents::Vector{Vector{Term}}
 end
 
+"Action and axiom dependency graph for a planning domain."
 struct DependencyGraph
     actions::Dict{Symbol,ActionDependencyNode} # Action nodes
     axioms::Dict{Symbol,AxiomDependencyNode} # Axiom nodes
 end
 
+"Construct action and axiom dependency graph for a planning domain."
 function dependency_graph(domain::Domain)
     preconds = accumulate_preconds(domain)
     actions = Dict(name => action_dependencies(act, preconds)
