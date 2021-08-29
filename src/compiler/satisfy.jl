@@ -1,19 +1,19 @@
 function generate_satisfy(domain::Domain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     satisfy_def = quote
-        function check_term(::$domain_type, state::$state_type, term::Const)
+        function check(::$domain_type, state::$state_type, term::Const)
             return state[term.name]
         end
-        function check_term(domain::$domain_type, state::$state_type, term::Compound)
+        function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
-                all(check_term(domain, state, a) for a in term.args)
+                all(check(domain, state, a) for a in term.args)
             elseif term.name == :or
-                any(check_term(domain, state, a) for a in term.args)
+                any(check(domain, state, a) for a in term.args)
             elseif term.name == :imply
-                !check_term(domain, state, term.args[1]) |
-                check_term(domain, state, term.args[2])
+                !check(domain, state, term.args[1]) |
+                check(domain, state, term.args[2])
             elseif term.name == :not
-                !check_term(domain, state, term.args[1])
+                !check(domain, state, term.args[1])
             elseif term.name in keys(comp_ops)
                 comp_ops[term.name](evaluate(domain, state, term.args[1]),
                                     evaluate(domain, state, term.args[2]))
@@ -25,12 +25,12 @@ function generate_satisfy(domain::Domain, state::State,
             return val
         end
         function satisfy(domain::$domain_type, state::$state_type, term::Term)
-            val = check_term(domain, state, term)
+            val = check(domain, state, term)
             val !== missing ? val : !isempty(satisfiers(domain, state, term))
         end
         function satisfy(domain::$domain_type, state::$state_type,
                          terms::AbstractVector{<:Term})
-            val = all(check_term(domain, state, t) for t in terms)
+            val = all(check(domain, state, t) for t in terms)
             val !== missing ? val : !isempty(satisfiers(domain, state, terms))
         end
     end
@@ -40,19 +40,19 @@ end
 function generate_satisfy(domain::AbstractedDomain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     satisfy_def = quote
-        function check_term(::$domain_type, state::$state_type, term::Const)
+        function check(::$domain_type, state::$state_type, term::Const)
             return state[term.name]
         end
-        function check_term(domain::$domain_type, state::$state_type, term::Compound)
+        function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
-                (&)((check_term(domain, state, a) for a in term.args)...)
+                (&)((check(domain, state, a) for a in term.args)...)
             elseif term.name == :or
-                (|)((check_term(domain, state, a) for a in term.args)...)
+                (|)((check(domain, state, a) for a in term.args)...)
             elseif term.name == :imply
-                !check_term(domain, state, term.args[1]) |
-                check_term(domain, state, term.args[2])
+                !check(domain, state, term.args[1]) |
+                check(domain, state, term.args[2])
             elseif term.name == :not
-                !check_term(domain, state, term.args[1])
+                !check(domain, state, term.args[1])
             elseif term.name in keys(comp_ops)
                 comp_ops[term.name](evaluate(domain, state, term.args[1]),
                                     evaluate(domain, state, term.args[2]))
@@ -64,13 +64,13 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
             return val
         end
         function satisfy(domain::$domain_type, state::$state_type, term::Term)
-            val = check_term(domain, state, term)
+            val = check(domain, state, term)
             return val !== missing ? (val == true || val == both) :
                 !isempty(satisfiers(domain, state, term))
         end
         function satisfy(domain::$domain_type, state::$state_type,
                          terms::AbstractVector{<:Term})
-            val = (&)((satisfy(domain, state, t) for t in terms)...)
+            val = (&)((check(domain, state, t) for t in terms)...)
             return val !== missing ? (val == true || val == both) :
                 !isempty(satisfiers(domain, state, term))
         end

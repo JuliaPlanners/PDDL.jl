@@ -2,7 +2,7 @@ function satisfy(interpreter::ConcreteInterpreter,
                  domain::Domain, state::GenericState,
                  terms::AbstractVector{<:Term})
      # Quick check that avoids SLD resolution unless necessary
-     sat = all(check_term(interpreter, domain, state, t) for t in terms)
+     sat = all(check(interpreter, domain, state, t) for t in terms)
      if sat !== missing return sat end
      # Call SLD resolution only if there are free variables or axioms
      return !isempty(satisfiers(interpreter, domain, state, terms))
@@ -11,7 +11,7 @@ end
 function satisfy(interpreter::ConcreteInterpreter,
                  domain::Domain, state::GenericState, term::Term)
     # Quick check that avoids SLD resolution unless necessary
-    sat = check_term(interpreter, domain, state, term)
+    sat = check(interpreter, domain, state, term)
     if sat !== missing return sat end
     # Call SLD resolution only if there are free variables or axioms
     return !isempty(satisfiers(interpreter, domain, state, term))
@@ -32,17 +32,17 @@ function satisfiers(interpreter::ConcreteInterpreter,
     return satisfiers(interpreter, domain, state, [term])
 end
 
-function check_term(interpreter::ConcreteInterpreter,
-                    domain::Domain, state::GenericState, term::Compound)
+function check(interpreter::ConcreteInterpreter,
+               domain::Domain, state::GenericState, term::Compound)
     sat = if term.name == :and
-        all(check_term(interpreter, domain, state, a) for a in term.args)
+        all(check(interpreter, domain, state, a) for a in term.args)
     elseif term.name == :or
-        any(check_term(interpreter, domain, state, a) for a in term.args)
+        any(check(interpreter, domain, state, a) for a in term.args)
     elseif term.name == :imply
-        !check_term(interpreter, domain, state, term.args[1]) |
-        check_term(interpreter, domain, state, term.args[2])
+        !check(interpreter, domain, state, term.args[1]) |
+        check(interpreter, domain, state, term.args[2])
     elseif term.name == :not
-        !check_term(interpreter, domain, state, term.args[1])
+        !check(interpreter, domain, state, term.args[1])
     elseif term.name == :forall
         missing
     elseif term.name == :exists
@@ -73,8 +73,8 @@ function check_term(interpreter::ConcreteInterpreter,
     return sat
 end
 
-function check_term(interpreter::ConcreteInterpreter,
-                    domain::Domain, state::GenericState, term::Const)
+function check(interpreter::ConcreteInterpreter,
+               domain::Domain, state::GenericState, term::Const)
     if term in state.facts || term in state.types || term.name == true
         return true
     elseif is_func(term, domain) || is_derived(term, domain)
@@ -84,7 +84,7 @@ function check_term(interpreter::ConcreteInterpreter,
     end
 end
 
-function check_term(interpreter::ConcreteInterpreter,
-                    domain::Domain, state::GenericState, term::Var)
+function check(interpreter::ConcreteInterpreter,
+               domain::Domain, state::GenericState, term::Var)
     return missing
 end
