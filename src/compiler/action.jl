@@ -34,8 +34,30 @@ function generate_action_defs(domain::Domain, state::State,
     execute_def =
         generate_execute(domain, state, domain_type, state_type,
                          action_name, action_type)
-    return (action_type, action_typedef,
+    method_defs =
+        generate_action_methods(domain, state, domain_type, state_type,
+                                action_name, action_type)
+    return (action_type, action_typedef, method_defs,
             groundargs_def, available_def, execute_def)
+end
+
+function generate_action_methods(domain::Domain, state::State,
+                              domain_type::Symbol, state_type::Symbol,
+                              action_name::Symbol, action_type::Symbol)
+    action = get_action(domain, action_name)
+    get_name_def =
+        :(get_name(::$action_type) = $(QuoteNode(get_name(action))))
+    get_argvars_def =
+        :(get_argvars(::$action_type) = $(QuoteNode(get_argvars(action))))
+    get_argtypes_def =
+        :(get_argtypes(::$action_type) = $(QuoteNode(get_argtypes(action))))
+    get_precond_def =
+        :(get_precond(::$action_type) = $(QuoteNode(get_precond(action))))
+    get_effect_def =
+        :(get_effect(::$action_type) = $(QuoteNode(get_effect(action))))
+    method_defs = Expr(:block, get_name_def, get_argvars_def, get_argtypes_def,
+                       get_precond_def, get_effect_def)
+    return method_defs
 end
 
 function generate_groundargs(domain::Domain, state::State,
