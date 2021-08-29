@@ -4,7 +4,7 @@
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/JuliaPlanners/PDDL.jl)
 ![GitHub](https://img.shields.io/github/license/JuliaPlanners/PDDL.jl?color=lightgrey)
 
-A Julia parser and interpreter for the Planning Domain Definition Language (PDDL). Planners not included.
+A Julia parser, interpreter, and compiler interface for the Planning Domain Definition Language (PDDL). Planners not included.
 
 ## Installation
 
