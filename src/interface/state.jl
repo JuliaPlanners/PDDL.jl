@@ -9,6 +9,8 @@ get_objects(state::State, type::Symbol) = error("Not implemented.")
 
 get_objtypes(state::State) = error("Not implemented.")
 
+get_objtype(state::State, obj) = get_objtypes[obj]
+
 get_facts(state::State) = error("Not implemented.")
 
 get_fluent(state::State, ::Term) = error("Not implemented.")

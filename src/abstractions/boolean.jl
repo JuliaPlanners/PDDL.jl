@@ -12,6 +12,8 @@ Singleton value of type `Both` representing both `false` and `true`.
 """
 const both = Both()
 
+Base.show(io::IO, ::Both) = print(io, "both")
+
 """
     BooleanAbs
 

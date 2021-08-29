@@ -22,13 +22,13 @@ stateindex(domain::GenericDomain, state::GenericState) =
     hash(state)
 
 get_objects(state::GenericState) =
-    [ty.args[1] for ty in state.types]
+    Const[ty.args[1] for ty in state.types]
 
 get_objects(state::GenericState, type::Symbol) =
-    [ty.args[1] for ty in state.types if ty.name == type]
+    Const[ty.args[1] for ty in state.types if ty.name == type]
 
 get_objtypes(state::GenericState) =
-    (ty.args[1] => ty.name for ty in state.types)
+    Dict(ty.args[1] => ty.name for ty in state.types)
 
 get_facts(state::GenericState) =
     state.facts
