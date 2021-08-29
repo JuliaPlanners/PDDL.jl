@@ -20,9 +20,11 @@ export write_domain, write_problem, write_pddl
 export load_domain, load_problem
 export save_domain, save_problem
 # Abstract interpretation
-export AbstractedDomain, abstracted, lub, glb, widen, widen!
+export abstracted, abstractstate, lub, glb, widen, widen!
+export AbstractedDomain
 # Domain compilation
-export compiled
+export compiled, compilestate
+export CompiledDomain, CompiledAction, CompiledState
 # Analysis tools
 export DependencyGraph, dependency_graph
 # Utilities

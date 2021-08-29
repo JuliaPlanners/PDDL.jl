@@ -37,6 +37,11 @@ function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
         generate_state_methods(domain, state, domain_type, state_type)
     state_defs = Expr(:block, state_constructor_defs,
                       state_copy_def, state_method_defs)
+    if domain isa AbstractedDomain
+        abstractstate_def =
+            :(abstractstate(::$domain_type, state::State) = $state_type(state))
+        push!(state_defs.args, abstractstate_def)
+    end
     return (state_type, state_typedef, state_defs)
 end
 
@@ -77,10 +82,12 @@ end
 
 function generate_state_methods(domain::Domain, state::State,
                                 domain_type::Symbol, state_type::Symbol)
-    # Get domain type and struct
-    get_domain_def = quote
+    # Construct domaintype and statetype methods
+    types_def = quote
         domaintype(::Type{$state_type}) = $domain_type
         domaintype(::$state_type) = $domain_type
+        statetype(::Type{$domain_type}) = $state_type
+        statetype(::$domain_type) = $state_type
         get_domain(::$state_type) = $domain_type()
     end
     # Fluent name listing
@@ -133,7 +140,7 @@ function generate_state_methods(domain::Domain, state::State,
         end
         push!(set_fluent_defs, set_fluent_def)
     end
-    state_method_defs = Expr(:block, get_domain_def,
+    state_method_defs = Expr(:block, types_def,
         get_fluent_names_def, groundargs_defs...,
         get_fluent_defs..., set_fluent_defs...)
     return state_method_defs

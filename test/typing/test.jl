@@ -14,11 +14,12 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.objects == @pddl("rooma", "roomb", "ball1", "ball2", "left", "right")
 @test problem.objtypes[Const(:ball1)] == :ball
 
+state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, problem),
-    "abstract interpreter" => (abstracted(domain), problem),
-    "concrete compiler" => compiled(domain, problem),
-    "abstract compiler" => compiled(abstracted(domain), problem)
+    "concrete interpreter" => (domain, state),
+    "abstract interpreter" => abstracted(domain, state),
+    "concrete compiler" => compiled(domain, state),
+    "abstract compiler" => compiled(abstracted(domain), state)
 ]
 
 @testset "typing ($name)" for (name, (domain, _)) in implementations

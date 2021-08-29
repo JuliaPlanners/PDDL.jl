@@ -15,11 +15,12 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 # @test pddl"(capacity ?a)" in get_static_functions(domain, state)
 # @test length(get_static_functions(domain, state)) == 5
 
+state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, problem),
-    "abstract interpreter" => (abstracted(domain), problem),
-    "concrete compiler" => compiled(domain, problem),
-    "abstract compiler" => compiled(abstracted(domain), problem)
+    "concrete interpreter" => (domain, state),
+    "abstract interpreter" => abstracted(domain, state),
+    "concrete compiler" => compiled(domain, state),
+    "abstract compiler" => compiled(abstracted(domain), state)
 ]
 
 @testset "numeric fluents ($name)" for (name, (domain, _)) in implementations

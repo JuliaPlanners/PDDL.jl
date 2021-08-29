@@ -21,6 +21,13 @@ function pddl_to_type_name(name)
     return join(uppercasefirst.(words))
 end
 
+"""
+    compiled(domain, state)
+    compiled(domain, problem)
+
+Compile a `domain` and `state` and return the resulting compiled domain
+and compiled state. A `problem` maybe provided instead of a state.
+"""
 function compiled(domain::Domain, state::State)
     # Generate definitions
     domain_type, domain_typedef, domain_defs =
@@ -51,4 +58,14 @@ end
 
 function compiled(domain::Domain, problem::Problem)
     return compiled(domain, initstate(domain, problem))
+end
+
+"""
+    compilestate(domain, state)
+
+Return compiled version of a state compatible with the compiled `domain`.
+"""
+function compilestate(domain::CompiledDomain, state::State)
+    S = statetype(domain)
+    return S(state)
 end

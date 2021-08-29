@@ -16,8 +16,8 @@ IntervalAbs(x::Integer) =
 IntervalAbs(a::T, b::T) where {T <: Real} =
     IntervalAbs(IntervalArithmetic.Interval(a, b))
 
-Base.convert(T::Type{IntervalAbs}, x::Real) = T(x)
-Base.convert(T::Type{IntervalAbs}, x::Int) = T(x)
+Base.convert(I::Type{IntervalAbs}, x::Real) = I(x)
+Base.convert(I::Type{IntervalAbs{T}}, x::Integer) where {T <: Real} = I(x)
 
 Base.show(io::IO, x::IntervalAbs) = Base.show(io, x.interval)
 

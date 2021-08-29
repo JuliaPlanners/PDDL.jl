@@ -12,10 +12,35 @@ include("satisfy.jl")
 include("initstate.jl")
 include("update.jl")
 
-abstracted(domain::ConcreteDomain; args...) =
-    AbstractedDomain(domain; args...)
+"""
+    abstracted(domain; options...)
 
-function abstracted(domain::AbstractedDomain, state::GenericState)
+Construct an abstract domain from a concrete domain.
+"""
+abstracted(domain::GenericDomain; options...) =
+    AbstractedDomain(domain; options...)
+
+"""
+    abstracted(domain, state; options...)
+    abstracted(domain, problem; options...)
+
+Construct an abstract domain and state from a concrete `domain` and `state`.
+A `problem` can be provided instead of a `state`.
+"""
+function abstracted(domain::GenericDomain, state::GenericState; options...)
+    absdom = abstracted(domain; options...)
+    return (absdom, abstractstate(absdom, state))
+end
+
+abstracted(domain::GenericDomain, problem::GenericProblem) =
+    abstracted(domain, initstate(domain, problem))
+
+"""
+    abstractstate(domain, state)
+
+Construct a state in an abstract `domain` from a concrete `state.
+"""
+function abstractstate(domain::AbstractedDomain, state::GenericState)
     # Copy over facts
     abs_state = GenericState(copy(state.types), copy(state.facts))
     # Abstract non-Boolean values if necessary
@@ -30,3 +55,6 @@ function abstracted(domain::AbstractedDomain, state::GenericState)
     end
     return abs_state
 end
+
+abstractstate(domain::AbstractedDomain, problem::GenericProblem) =
+    initstate(domain, problem)

@@ -11,11 +11,12 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")
 @test problem.objects == @pddl("rooma", "roomb", "ball1", "ball2", "left", "right")
 
+state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, problem),
-    "abstract interpreter" => (abstracted(domain), problem),
-    "concrete compiler" => compiled(domain, problem),
-    "abstract compiler" => compiled(abstracted(domain), problem)
+    "concrete interpreter" => (domain, state),
+    "abstract interpreter" => abstracted(domain, state),
+    "concrete compiler" => compiled(domain, state),
+    "abstract compiler" => compiled(abstracted(domain), state)
 ]
 
 @testset "strips ($name)" for (name, (domain, _)) in implementations
