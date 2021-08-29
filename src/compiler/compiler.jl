@@ -69,3 +69,10 @@ function compilestate(domain::CompiledDomain, state::State)
     S = statetype(domain)
     return S(state)
 end
+
+# Abstract a domain that is already compiled
+function abstracted(domain::CompiledDomain, state::State; options...)
+    srcdom = get_source(domain)
+    absdom = abstracted(domain; options...)
+    return compiled(absdom, GenericState(state))
+end
