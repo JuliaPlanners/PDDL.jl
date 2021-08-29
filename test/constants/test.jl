@@ -1,4 +1,6 @@
 # Test functionality of domain constants
+@testset "domain constants" begin
+
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "constants")
 
 domain = load_domain(joinpath(path, "domain.pddl"))
@@ -30,3 +32,5 @@ plan = @pddl(
 )
 state = execute(domain, state, plan)
 @test satisfy(domain, state, problem.goal) == true
+
+end # domain constants

@@ -1,4 +1,6 @@
 # Test external function calls / semantic attachments
+@testset "external functions" begin
+
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "functions")
 
 # Load domain and define external functions
@@ -27,3 +29,5 @@ state = execute(domain, state, pddl"(throw ball2 75)")
 @test domain[state => pddl"(< (loc ball1) 10)"]
 @test domain[state => pddl"(> (loc ball2) 15)"]
 @test satisfy(domain, state, problem.goal) == true
+
+end # external functions

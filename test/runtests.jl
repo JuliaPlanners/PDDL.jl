@@ -1,6 +1,7 @@
-using Test
-using Julog
-using PDDL, PDDL.Parser
+using PDDL, PDDL.Parser, Test
+
+# Define equivalence shorthand for abstract interpreter testing
+≃(a, b) = PDDL.equiv(a, b)
 
 include("strips/test.jl")
 include("typing/test.jl")

@@ -37,6 +37,9 @@ glb(a::BooleanAbs, b::BooleanAbs) = glb(b, a)
 
 widen(a::BooleanAbs, b::BooleanAbs) = lub(a, b)
 
+equiv(a::Both, b::Bool) = true
+equiv(a::Bool, b::Both) = true
+
 Base.:(!)(::Both) = both
 
 Base.:(&)(a::Both, b::Both) = both

@@ -1,4 +1,6 @@
-# Test some ADL features in a grid flipping domain
+# Test ADL features in a grid flipping domain & assembly domain
+@testset "action description language (adl)" begin
+
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
 
 domain = load_domain(joinpath(path, "flip-domain.pddl"))
@@ -43,3 +45,5 @@ state = execute(domain, state, pddl"(assemble tube frob)")
 
 # We've completely assembled a frob!
 @test satisfy(domain, state, problem.goal) == true
+
+end # action description language (adl)

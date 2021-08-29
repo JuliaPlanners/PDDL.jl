@@ -1,4 +1,6 @@
 # Test functionality of PDDL axioms / derived predicates
+@testset "axioms" begin
+
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "axioms")
 
 domain = load_domain(joinpath(path, "domain.pddl"))
@@ -22,3 +24,5 @@ state = execute(domain, state, pddl"(stack a b)")
 @test domain[state => pddl"(above a c)"] == true
 
 @test satisfy(domain, state, problem.goal) == true
+
+end # axioms
