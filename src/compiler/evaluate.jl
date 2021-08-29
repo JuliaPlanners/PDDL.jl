@@ -11,8 +11,7 @@ function generate_evaluate(domain::Domain, state::State,
                 argvals = (evaluate(domain, state, arg) for arg in term.args)
                 func(argvals...)
             else
-                indices = (objectindex(state, a.name) for a in term.args)
-                getfield(state, term.name)[indices...]
+                get_fluent(state, term)
             end
         end
     end

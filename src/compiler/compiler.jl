@@ -1,6 +1,3 @@
-abstract type CompiledDomain <: Domain end
-
-abstract type CompiledState <: State end
 
 abstract type CompiledAction <: Action end
 
@@ -43,9 +40,7 @@ function compiled(domain::Domain, state::State)
     transition_def =
         generate_transition(domain, state, domain_type, state_type)
     # Generate return expression
-    problem = GenericProblem(state)
-    return_expr =
-        :($domain_type(), initstate($domain_type(), $(QuoteNode(problem))))
+    return_expr = :($domain_type(), $state_type($state))
     # Evaluate definitions
     expr = Expr(:block,
         domain_typedef, domain_defs, state_typedef, state_defs, initstate_def,

@@ -8,6 +8,17 @@ end
 GenericState(types) = GenericState(types, Set{Term}(), Dict{Symbol,Any}())
 GenericState(types, facts) = GenericState(types, facts, Dict{Symbol,Any}())
 
+GenericState(state::GenericState) = copy(state)
+function GenericState(state::State)
+    types = Set{Compound}((Compound(ty, [o]) for (o, ty) in get_objtypes(state)))
+    new = GenericState(types)
+    for (term, val) in get_fluents(state)
+        if val === false continue end
+        set_fluent!(new, val, term)
+    end
+    return new
+end
+
 Base.copy(s::GenericState) =
     GenericState(copy(s.types), copy(s.facts), deepcopy(s.values))
 Base.:(==)(s1::GenericState, s2::GenericState) =

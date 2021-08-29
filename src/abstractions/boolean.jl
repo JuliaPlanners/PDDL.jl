@@ -48,3 +48,14 @@ Base.:(|)(a::Both, b::Both) = both
 Base.:(|)(a::Both, b::Missing) = true
 Base.:(|)(a::Both, b::Bool) = b ? true : both
 Base.:(|)(a::BooleanAbs, b::Both) = b | a
+
+# Teach GenericState the way of true contradictions
+function set_fluent!(state::GenericState, val::Both, term::Const)
+    push!(state.facts, term, negate(term))
+    return val
+end
+
+function set_fluent!(state::GenericState, val::Both, term::Compound)
+    push!(state.facts, term, negate(term))
+    return val
+end

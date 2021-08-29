@@ -4,6 +4,8 @@ function generate_object_defs(domain::Domain, state::State,
     object_ids = (; ((o.name, i) for (i, o) in enumerate(objects))...)
     get_objects_def =
         :(get_objects(::$state_type) = $(QuoteNode(Tuple(objects))))
+    get_objtypes_def =
+        :(get_objtypes(::$state_type) = $(QuoteNode(get_objtypes(state))))
     objectindices_def =
         :(objectindices(::$state_type) = $(QuoteNode(object_ids)))
     objectindex_def =
@@ -11,8 +13,8 @@ function generate_object_defs(domain::Domain, state::State,
             getfield(objectindices(state), o))
     typed_defs = !get_requirements(domain)[:typing] ? Expr(:block) :
         generate_object_typed_defs(domain, state, domain_type, state_type)
-    return Expr(:block, get_objects_def, objectindices_def,
-                objectindex_def, typed_defs)
+    return Expr(:block, get_objects_def, get_objtypes_def,
+                objectindices_def, objectindex_def, typed_defs)
 end
 
 function generate_object_typed_defs(domain::Domain, state::State,

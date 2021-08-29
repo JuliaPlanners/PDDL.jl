@@ -12,14 +12,7 @@ function generate_initstate(domain::Domain, state::State,
                 else
                     val = true
                 end
-                if term isa Const
-                    setproperty!(state, term.name, val)
-                else
-                    argtypes = get_fluent(domain, term.name).argtypes
-                    idxs = (objectindex(state, ty, a.name)
-                            for (a, ty) in zip(term.args, argtypes))
-                    getproperty(state, term.name)[idxs...] = val
-                end
+                set_fluent!(state, val, term)
             end
             return state
         end
