@@ -72,7 +72,7 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
                          terms::AbstractVector{<:Term})
             val = (&)((check(domain, state, t) for t in terms)...)
             return val !== missing ? (val == true || val == both) :
-                !isempty(satisfiers(domain, state, term))
+                !isempty(satisfiers(domain, state, terms))
         end
     end
     return satisfy_def

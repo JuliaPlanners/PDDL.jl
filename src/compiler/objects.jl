@@ -1,6 +1,6 @@
 function generate_object_defs(domain::Domain, state::State,
                               domain_type::Symbol, state_type::Symbol)
-    objects = sort(get_objects(state), by=x->x.name)
+    objects = sort(collect(get_objects(state)), by=x->x.name)
     object_ids = (; ((o.name, i) for (i, o) in enumerate(objects))...)
     get_objects_def =
         :(get_objects(::$state_type) = $(QuoteNode(Tuple(objects))))

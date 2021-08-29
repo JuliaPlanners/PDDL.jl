@@ -27,6 +27,8 @@ end
 
 Compile a `domain` and `state` and return the resulting compiled domain
 and compiled state. A `problem` maybe provided instead of a state.
+Note that this function must be called at the top-level in order to avoid
+world-age errors.
 """
 function compiled(domain::Domain, state::State)
     # Generate definitions
@@ -72,7 +74,12 @@ end
 
 # Abstract a domain that is already compiled
 function abstracted(domain::CompiledDomain, state::State; options...)
-    srcdom = get_source(domain)
-    absdom = abstracted(domain; options...)
+    absdom = abstracted(get_source(domain); options...)
     return compiled(absdom, GenericState(state))
+end
+
+# If compiled state is abstract, we can just copy construct
+function abstractstate(domain::CompiledDomain, state::State)
+    S = statetype(domain)
+    return S(state)
 end

@@ -37,11 +37,6 @@ function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
         generate_state_methods(domain, state, domain_type, state_type)
     state_defs = Expr(:block, state_constructor_defs,
                       state_copy_def, state_method_defs)
-    if domain isa AbstractedDomain
-        abstractstate_def =
-            :(abstractstate(::$domain_type, state::State) = $state_type(state))
-        push!(state_defs.args, abstractstate_def)
-    end
     return (state_type, state_typedef, state_defs)
 end
 
@@ -199,3 +194,7 @@ set_fluent!(state::CompiledState, val, term::Compound) =
 
 get_fluents(state::CompiledState) =
     (term => get_fluent(state, term) for term in get_fluent_names(state))
+
+get_facts(state::CompiledState) =
+    (term for term in get_fluent_names(state)
+     if get_fluent(state, term) in (true, both))
