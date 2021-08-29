@@ -4,7 +4,8 @@
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/JuliaPlanners/PDDL.jl)
 ![GitHub](https://img.shields.io/github/license/JuliaPlanners/PDDL.jl?color=lightgrey)
 
-A Julia parser, interpreter, and compiler interface for the Planning Domain Definition Language (PDDL). Planners not included.
+A Julia parser, interpreter, and compiler interface for the Planning Domain Definition Language (PDDL).
+Planners not included.
 
 ## Installation
 
@@ -16,7 +17,10 @@ add https://github.com/JuliaPlanners/PDDL.jl.git
 ## Features
 
 - Parsing of PDDL domain and problem files
+- A high-level symbolic planning API
 - Execution of PDDL actions and plans
+- Abstract interpretation of PDDL semantics
+- Domain compilation for high performance
 - Support for the following PDDL requirements:
   - `:strips` - the most restricted functionality
   - `:typing` - (hierarchically) typed objects
@@ -80,14 +84,14 @@ problem = load_problem("flip-problem.pddl"))
 ```
 Actions defined by the domain can be executed to solve the problem:
 ```julia
-state = initialize(problem)
-state = execute(pddl"(flip_column c1)", state, domain)
-state = execute(pddl"(flip_column c3)", state, domain)
-state = execute(pddl"(flip_row r2)", state, domain)
+state = initstate(domain, problem)
+state = execute(domain, state, pddl"(flip_column c1)")
+state = execute(domain, state, pddl"(flip_column c3)")
+state = execute(domain, state, pddl"(flip_row r2)")
 ```
 We can then check that the problem is successfully solved in the final state:
 ```julia
-@assert satisfy(problem.goal, state, domain)[1] == true
+@assert satisfy(domain, state, problem.goal) == true
 ```
 
 More examples can be found in the [`test`](test) directory.
