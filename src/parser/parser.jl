@@ -51,7 +51,9 @@ lisp.matcher = doubley | floaty | inty | uchary | achary | chary | stringy | boo
                vary | keywordy | symboly | macrosymy |
                dispatchy | sexpr | hashy | curly | bracket
 
-top_level    = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
+const top_level = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
+
+parse_string(str::AbstractString) = parse_one(lowercase(str), top_level)[1]
 
 ## Convert expressions back to strings
 unparse(expr) = string(expr)
@@ -88,11 +90,11 @@ function parse_formula(expr::Vector)
             return Compound(name, args)
         end
     else
-        error("Could not parse $(unparse(expr)) to Julog formula.")
+        error("Could not parse $(unparse(expr)) to PDDL formula.")
     end
 end
 parse_formula(expr::Symbol) = Const(expr)
-parse_formula(str::String) = parse_formula(parse_one(str, top_level)[1])
+parse_formula(str::AbstractString) = parse_formula(parse_string(str))
 
 "Parse predicates / functions with type signatures."
 function parse_typed_fluent(expr::Vector)
@@ -193,16 +195,16 @@ function parse_description(desc::Symbol, expr::Vector)
     end
     return name, header, body
 end
-parse_description(desc::Symbol, str::String) =
-    parse_description(desc, parse_one(str, top_level)[1])
+parse_description(desc::Symbol, str::AbstractString) =
+    parse_description(desc, parse_string(str))
 
 "Parse PDDL domain description."
 parse_domain(expr::Vector) = GenericDomain(parse_description(:domain, expr)...)
-parse_domain(str::String) = parse_domain(parse_one(str, top_level)[1])
+parse_domain(str::AbstractString) = parse_domain(parse_string(str))
 parse_domain(expr::Vector, domain_type::Type) =
     domain_type(parse_description(:domain, expr)...)
-parse_domain(str::String, domain_type::Type) =
-    parse_domain(parse_one(str, top_level)[1], domain_type)
+parse_domain(str::AbstractString, domain_type::Type) =
+    parse_domain(parse_string(str), domain_type)
 top_level_parsers[:domain] = parse_domain
 
 "Parse domain requirements."
@@ -315,7 +317,7 @@ body_field_parsers[:domain][:action] = parse_action
 
 "Parse PDDL problem description."
 parse_problem(expr::Vector) = GenericProblem(parse_description(:problem, expr)...)
-parse_problem(str::String) = parse_problem(parse_one(str, top_level)[1])
+parse_problem(str::AbstractString) = parse_problem(parse_string(str))
 top_level_parsers[:problem] = parse_problem
 head_field_parsers[:problem][:domain] = e -> e[2]
 
@@ -375,30 +377,30 @@ function parse_pddl(expr::Vector)
     end
 end
 parse_pddl(sym::Symbol) = parse_formula(sym)
-parse_pddl(str::String) = parse_pddl(parse_one(str, top_level)[1])
+parse_pddl(str::AbstractString) = parse_pddl(parse_string(str))
 
 "Parse string(s) to PDDL construct."
-macro pddl(str::String)
+macro pddl(str::AbstractString)
     return parse_pddl(str)
 end
 
-macro pddl(strs::String...)
+macro pddl(strs::AbstractString...)
     return collect(parse_pddl.(strs))
 end
 
 "Parse string to PDDL construct."
-macro pddl_str(str::String)
+macro pddl_str(str::AbstractString)
     return parse_pddl(str)
 end
 
 "Load PDDL domain from specified path."
-function load_domain(path::String)
+function load_domain(path::AbstractString)
     str = open(f->read(f, String), path)
     return parse_domain(str)
 end
 
 "Load PDDL problem from specified path."
-function load_problem(path::String)
+function load_problem(path::AbstractString)
     str = open(f->read(f, String), path)
     return parse_problem(str)
 end
