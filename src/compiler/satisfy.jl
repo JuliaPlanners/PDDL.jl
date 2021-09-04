@@ -83,3 +83,8 @@ function satisfiers(domain::CompiledDomain, state::CompiledState,
     gen_state = GenericState(state)
     return satisfiers(get_source(domain), gen_state, terms)
 end
+
+function satisfiers(domain::CompiledDomain, state::CompiledState, term::Term)
+    gen_state = GenericState(state)
+    return satisfiers(get_source(domain), gen_state, term)
+end
