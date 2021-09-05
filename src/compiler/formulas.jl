@@ -7,9 +7,8 @@ function generate_eval_expr(domain::Domain, state::State, term::Term,
     end
     subexprs = [generate_eval_expr(domain, state, a, varmap, state_var)
                 for a in term.args]
-    expr = if term.name in keys(eval_ops)
-        @assert length(term.args) == 2 "$(term.name) takes two arguments"
-        op = eval_ops[term.name]
+    expr = if is_global_func(term)
+        op = GLOBAL_FUNCTIONS[term.name]
         Expr(:call, QuoteNode(op), subexprs...)
     else
         error("Unrecognized predicate or operator $(term.name).")
@@ -19,7 +18,7 @@ end
 
 function generate_check_expr(domain::Domain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
-    if (term.name in keys(eval_ops) || term.name in keys(get_funcdefs(domain)))
+    if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
@@ -38,10 +37,6 @@ function generate_check_expr(domain::Domain, state::State, term::Term,
     elseif term.name == :not
         @assert length(term.args) == 1 "not takes one argument"
         :(!$(subexprs[1]))
-    elseif term.name in keys(comp_ops)
-        @assert length(term.args) == 2 "$(term.name) takes two arguments"
-        op = comp_ops[term.name]
-        Expr(:call, QuoteNode(op), subexprs...)
     else
         error("Unrecognized predicate or operator $(term.name).")
     end
@@ -50,7 +45,7 @@ end
 
 function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
-    if (term.name in keys(eval_ops) || term.name in keys(get_funcdefs(domain)))
+    if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
@@ -69,10 +64,6 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
     elseif term.name == :not
         @assert length(term.args) == 1 "not takes one argument"
         :(!$(subexprs[1]))
-    elseif term.name in keys(comp_ops)
-        @assert length(term.args) == 2 "$(term.name) takes two arguments"
-        op = comp_ops[term.name]
-        Expr(:call, QuoteNode(op), subexprs...)
     else
         error("Unrecognized predicate or operator $(term.name).")
     end
@@ -95,9 +86,9 @@ function generate_effect_expr(domain::Domain, state::State, term::Term,
         term = term.args[1]
         @assert term.name in keys(get_predicates(domain)) "unrecognized predicate"
         generate_set_expr(domain, state, term, false, varmap, state_var)
-    elseif term.name in keys(modify_ops)
+    elseif term.name in keys(GLOBAL_MODIFIERS)
         @assert length(term.args) == 2 "$(term.name) takes two arguments"
-        op = modify_ops[term.name]
+        op = GLOBAL_MODIFIERS[term.name]
         term, val = term.args
         prev_val = generate_get_expr(domain, state, term, varmap, :prev_state)
         val = generate_eval_expr(domain, state, val, varmap, :prev_state)

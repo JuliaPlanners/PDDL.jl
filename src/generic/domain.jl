@@ -65,6 +65,22 @@ get_axioms(domain::GenericDomain) = domain.axioms
 
 get_actions(domain::GenericDomain) = domain.actions
 
+"""
+    attach!(domain, name, f)
+
+Attach the function `f` as the implementation of the functional fluent
+specified by `name`.
+"""
+function attach!(domain::GenericDomain, name::Symbol, f)
+    if name in keys(get_functions(domain))
+        domain.funcdefs[name] = f
+    else
+        error("Domain does not have a function named $name.")
+    end
+end
+attach!(domain::GenericDomain, name::AbstractString, f) =
+    attach!(domain, Symbol(name), f)
+
 "Get list of predicates that are never modified by actions in the domain."
 function get_static_predicates(domain::GenericDomain, state::State)
     ground = t ->

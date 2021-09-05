@@ -73,7 +73,7 @@ function effect_children!(effect::Term, preconds, children)
         term, val = effect.args
         conds = [c for c in preconds if has_subterm(c, term)]
         append!(children, conds)
-    elseif effect.name in keys(modify_ops)
+    elseif effect.name in keys(GLOBAL_MODIFIERS)
         term, val = effect.args
         conds = [c for c in preconds if has_subterm(c, term)]
         append!(children, conds)

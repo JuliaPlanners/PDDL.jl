@@ -14,8 +14,8 @@ function generate_satisfy(domain::Domain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
-            elseif term.name in keys(comp_ops)
-                comp_ops[term.name](evaluate(domain, state, term.args[1]),
+            elseif term.name in keys(GLOBAL_PREDICATES)
+                GLOBAL_PREDICATES[term.name](evaluate(domain, state, term.args[1]),
                                     evaluate(domain, state, term.args[2]))
             elseif !is_ground(term)
                 missing
@@ -53,8 +53,8 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
-            elseif term.name in keys(comp_ops)
-                comp_ops[term.name](evaluate(domain, state, term.args[1]),
+            elseif term.name in keys(GLOBAL_PREDICATES)
+                GLOBAL_PREDICATES[term.name](evaluate(domain, state, term.args[1]),
                                     evaluate(domain, state, term.args[2]))
             elseif !is_ground(term)
                 missing

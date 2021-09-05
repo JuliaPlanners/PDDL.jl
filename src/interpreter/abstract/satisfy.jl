@@ -28,7 +28,7 @@ function satisfiers(interpreter::AbstractInterpreter,
     clauses = Clause[get_clauses(domain); get_negation_clauses(domain);
                      collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(comp_ops, state.values, get_funcdefs(domain))
+    funcs = merge(GLOBAL_PREDICATES, state.values, get_funcdefs(domain))
     return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
 end
 
@@ -67,9 +67,8 @@ function check(interpreter::AbstractInterpreter,
         else
             false
         end
-    elseif term.name in keys(comp_ops)
-        comp_ops[term.name](evaluate(interpreter, domain, state, term.args[1]),
-                            evaluate(interpreter, domain, state, term.args[2]))
+    elseif is_global_pred(term)
+        evaluate(interpreter, domain, state, term)::Bool
     elseif is_func(term, domain)
         evaluate(interpreter, domain, state, term)::Bool
     else

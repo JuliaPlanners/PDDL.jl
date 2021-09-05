@@ -14,6 +14,18 @@ is_derived(term::Term, domain::Domain) =
 is_fluent(term::Term, domain::Domain) =
     is_pred(term, domain) || is_func(term, domain)
 
+"Check if term is a universal or existential quantifier."
+is_quantifier(term::Term) =
+    term.name == :forall || term.name == :exists
+
+"Check if term is a global predicate (comparison, equality, etc.)."
+is_global_pred(term::Term) =
+    term.name in keys(GLOBAL_PREDICATES)
+
+"Check if term is a global function, including global predicates."
+is_global_func(term::Term) =
+    term.name in keys(GLOBAL_FUNCTIONS)
+
 "Check if term is a type predicate."
 is_type(term::Term, domain::Domain) =
     term.name in keys(get_types(domain))

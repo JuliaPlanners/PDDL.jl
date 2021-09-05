@@ -100,11 +100,11 @@ effect_funcs[:assign] = assign_effect!
 
 function modify_effect!(diff::Diff, domain::Domain, state::State, effect::Term)
     term, val = effect.args[1], effect.args[2]
-    op = modify_ops[effect.name]
+    op = GLOBAL_MODIFIERS[effect.name]
     diff.ops[term] = op(get_fluent(state, term), evaluate(domain, state, val))
     return diff
 end
-for name in keys(modify_ops)
+for name in keys(GLOBAL_MODIFIERS)
     effect_funcs[name] = modify_effect!
 end
 

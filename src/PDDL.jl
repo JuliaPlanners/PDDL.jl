@@ -25,6 +25,8 @@ export AbstractedDomain
 # Domain compilation
 export compiled, compilestate
 export CompiledDomain, CompiledAction, CompiledState
+# Extension interfaces
+export attach!, register!
 # Analysis tools
 export DependencyGraph, dependency_graph
 # Utilities
@@ -41,8 +43,10 @@ include("generic/generic.jl")
 include("parser/parser.jl")
 # Writer for PDDL files
 include("writer/writer.jl")
-# Built-in functions and operations recognized by interpreters / compilers
+# Built-in functions and operators recognized by interpreters / compilers
 include("builtins.jl")
+# Methods for extending built-in functions and operators
+include("extensions.jl")
 # Abstractions for fluents of various types
 include("abstractions/abstractions.jl")
 # Interpreter-based interface implementation
