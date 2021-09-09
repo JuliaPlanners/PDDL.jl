@@ -17,9 +17,10 @@ function generate_execute(domain::Domain, state::State,
                           domain_type::Symbol, state_type::Symbol,
                           action_name::Symbol, action_type::Symbol)
     action = get_actions(domain)[action_name]
-    varmap = Dict(a => :(args[$i].name) for (i, a) in enumerate(action.args))
-    precond = generate_check_expr(domain, state, action.precond, varmap)
-    effect = generate_effect_expr(domain, state, action.effect, varmap)
+    varmap = Dict(a => :(args[$i].name) for (i, a) in
+                  enumerate(get_argvars(action)))
+    precond = generate_check_expr(domain, state, get_precond(action), varmap)
+    effect = generate_effect_expr(domain, state, get_effect(action), varmap)
     execute_def = quote
         function execute(domain::$domain_type, prev_state::$state_type,
                          action::$action_type, args; check::Bool=false)

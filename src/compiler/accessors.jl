@@ -51,7 +51,7 @@ function generate_fluent_ids(domain::Domain, state::State, term::Term,
             end
         end
     else
-        objects = sort(get_objects(state), by=x->x.name)
+        objects = sort(collect(get_objects(state)), by=x->x.name)
         ids = map(term.args) do arg
             if arg isa Var
                 :(objectindex($state_var, $(varmap[arg])))

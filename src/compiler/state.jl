@@ -3,7 +3,7 @@ abstract type CompiledState <: State end
 function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
     # Generate type definition
     state_fields = []
-    for (_, pred) in sort(collect(get_predicates(domain)), by=first)
+    for (_, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
         n_args = length(pred.args)
         type = domain isa AbstractedDomain ?
             (n_args == 0 ? BooleanAbs : Array{BooleanAbs, n_args}) :
@@ -11,7 +11,7 @@ function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
         field = Expr(:(::), pred.name, QuoteNode(type))
         push!(state_fields, field)
     end
-    for (_, fn) in sort(collect(get_functions(domain)), by=first)
+    for (_, fn) in sort(collect(pairs(get_functions(domain))), by=first)
         n_args = length(fn.args)
         # TODO: Actually use abstractions specified by abstraction function
         type = domain isa AbstractedDomain ?
@@ -44,7 +44,7 @@ function generate_state_constructors(domain::Domain, state::State,
                                      domain_type::Symbol, state_type::Symbol)
     # Generate constructor with no arguments
     state_inits = []
-    for (_, pred) in sort(collect(get_predicates(domain)), by=first)
+    for (_, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
         if length(pred.args) == 0
             push!(state_inits, false)
         else
@@ -52,7 +52,7 @@ function generate_state_constructors(domain::Domain, state::State,
             push!(state_inits, :(falses($(dims...))))
         end
     end
-    for (_, fn) in sort(collect(get_functions(domain)), by=first)
+    for (_, fn) in sort(collect(pairs(get_functions(domain))), by=first)
         if length(fn.args) == 0
             if domain isa AbstractedDomain
                 push!(state_inits, IntervalAbs(0.0))
@@ -110,26 +110,28 @@ function generate_state_methods(domain::Domain, state::State,
     end
     # Fluent accessors
     get_fluent_defs, set_fluent_defs, groundargs_defs = [], [], []
-    for (name, sig) in get_fluents(domain)
+    for (name, sig) in pairs(get_fluents(domain))
         # Ground args
         def = generate_groundargs(domain, state, domain_type, state_type, name)
         push!(groundargs_defs, def)
         # Only generate for compound terms
         if length(sig.args) == 0 continue end
         term = convert(Term, sig)
-        varmap = Dict(a => :(args[$i].name) for (i, a) in enumerate(sig.args))
+        args = [Symbol(:arg, i) for i in 1:length(sig.args)]
+        varmap = Dict(a => :($(Symbol(:arg, i)).name)
+                      for (i, a) in enumerate(sig.args))
         idxs = generate_fluent_ids(domain, state, term, sig, varmap)
         valtype = QuoteNode(Val{name})
         # Getter
         get_fluent_def = quote
-            function get_fluent(state::$state_type, ::$valtype, args...)
+            function get_fluent(state::$state_type, ::$valtype, $(args...))
                 return (state.$name)[$(idxs...)]
             end
         end
         push!(get_fluent_defs, get_fluent_def)
         # Setter
         set_fluent_def = quote
-            function set_fluent!(state::$state_type, val, ::$valtype, args...)
+            function set_fluent!(state::$state_type, val, ::$valtype, $(args...))
                 state.$name[$(idxs...)] = val
             end
         end
@@ -176,7 +178,7 @@ groundargs(domain::CompiledDomain, state::State, fluent::Symbol) =
 
 get_fluent(state::CompiledState, term::Symbol) =
     getproperty(state, term)
-get_fluent(state::CompiledState, term::Symbol, args...) =
+get_fluent(state::CompiledState, term::Symbol, args::Vararg{Any,N}) where {N} =
     get_fluent(state, Val(term), args...)
 get_fluent(state::CompiledState, term::Const) =
     get_fluent(state, term.name)
@@ -185,7 +187,7 @@ get_fluent(state::CompiledState, term::Compound) =
 
 set_fluent!(state::CompiledState, val, name::Symbol) =
     setproperty!(state, name, val)
-set_fluent!(state::CompiledState, val, term::Symbol, args...) =
+set_fluent!(state::CompiledState, val, term::Symbol, args::Vararg{Any,N}) where {N} =
     set_fluent!(state, val, Val(term), args...)
 set_fluent!(state::CompiledState, val, term::Const) =
     set_fluent!(state, val, term.name)

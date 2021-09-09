@@ -15,7 +15,7 @@ function generate_domain_type(domain::Domain, state::State)
 end
 
 function generate_domain_methods(domain::Domain, domain_type::Symbol)
-    get_name_def = :(get_name(::$domain_type) = $(get_name(domain)))
+    get_name_def = :(get_name(::$domain_type) = $(QuoteNode(get_name(domain))))
     get_source_def = :(get_source(::$domain_type) = $(QuoteNode(domain)))
     get_requirements_def = :(get_requirements(::$domain_type) =
             $(QuoteNode((; get_requirements(domain)...))))
