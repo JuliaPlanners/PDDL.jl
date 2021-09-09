@@ -20,9 +20,9 @@ function generate_set_expr(domain::Domain, state::State, term::Const,
                            val, varmap=Dict{Var,Any}(), state_var=:state)
     if domain isa AbstractedDomain && domain.interpreter.autowiden
         prev_val = generate_get_expr(domain, state, term, varmap, :prev_state)
-        return :($state_var.$(term.name) = widen($prev_val, $val))
+        return :(setfield!($state_var, $(QuoteNode(term.name)), widen($prev_val, $val)))
     else
-        return :($state_var.$(term.name) = $val)
+        return :(setfield!($state_var, $(QuoteNode(term.name)), $val))
     end
 end
 
