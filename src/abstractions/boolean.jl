@@ -12,6 +12,7 @@ Singleton value of type `Both` representing both `false` and `true`.
 """
 const both = Both()
 
+Base.copy(::Both) = both
 Base.show(io::IO, ::Both) = print(io, "both")
 
 """

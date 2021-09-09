@@ -32,11 +32,9 @@ function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
                                                Expr(:block, state_fields...))))
     state_constructor_defs =
         generate_state_constructors(domain, state, domain_type, state_type)
-    state_copy_def = :(Base.copy(state::$state_type) = deepcopy(state))
     state_method_defs =
         generate_state_methods(domain, state, domain_type, state_type)
-    state_defs = Expr(:block, state_constructor_defs,
-                      state_copy_def, state_method_defs)
+    state_defs = Expr(:block, state_constructor_defs, state_method_defs)
     return (state_type, state_typedef, state_defs)
 end
 
@@ -172,6 +170,9 @@ function (::Type{S})(state::State) where {S <: CompiledState}
     end
     return new
 end
+
+Base.copy(state::S) where {S <: CompiledState} =
+    S((copy(getfield(state, field)) for field in fieldnames(S))...)
 
 groundargs(domain::CompiledDomain, state::State, fluent::Symbol) =
     groundargs(domain, state, Val(fluent))
