@@ -59,7 +59,9 @@ function check(interpreter::ConcreteInterpreter,
         else
             false
         end
-    elseif is_global_pred(term) || is_func(term, domain)
+    elseif is_global_pred(term)
+        evaluate(interpreter, domain, state, term)::Bool
+    elseif is_func(term, domain)
         evaluate(interpreter, domain, state, term)::Bool
     else
         term = partialeval(domain, state, term)

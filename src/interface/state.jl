@@ -1,7 +1,8 @@
 "PDDL state description."
 abstract type State end
 
-stateindex(domain::Domain, state::State) = error("Not implemented.")
+"Returns an integer index for specified `state`. Defaults to hashing."
+stateindex(domain::Domain, state::State) = hash(state)
 
 get_objects(state::State) = error("Not implemented.")
 

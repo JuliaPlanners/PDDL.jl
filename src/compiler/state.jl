@@ -2,7 +2,7 @@ abstract type CompiledState <: State end
 
 function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
     # Generate type definition
-    state_fields = []
+    state_fields = Expr[]
     for (_, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
         n_args = length(pred.args)
         type = domain isa AbstractedDomain ?
@@ -42,15 +42,17 @@ function generate_state_constructors(domain::Domain, state::State,
                                      domain_type::Symbol, state_type::Symbol)
     # Generate constructor with no arguments
     state_inits = []
-    for (_, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
+    state_copies = Expr[]
+    for (name, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
         if length(pred.args) == 0
             push!(state_inits, false)
         else
             dims = generate_fluent_dims(domain, state, pred)
             push!(state_inits, :(falses($(dims...))))
         end
+        push!(state_copies, :(copy(state.$name)))
     end
-    for (_, fn) in sort(collect(pairs(get_functions(domain))), by=first)
+    for (name, fn) in sort(collect(pairs(get_functions(domain))), by=first)
         if length(fn.args) == 0
             if domain isa AbstractedDomain
                 push!(state_inits, IntervalAbs(0.0))
@@ -65,10 +67,11 @@ function generate_state_constructors(domain::Domain, state::State,
                 push!(state_inits, :(zeros($(dims...))))
             end
         end
+        push!(state_copies, :(copy(state.$name)))
     end
     state_constructor_defs = quote
         $state_type() = $state_type($(state_inits...))
-        $state_type(state::$state_type) = copy(state)
+        $state_type(state::$state_type) = $state_type($(state_copies...))
     end
     return state_constructor_defs
 end
@@ -95,16 +98,6 @@ function generate_state_methods(domain::Domain, state::State,
             fluents = Base.Generator(f, fieldnames($state_type))
             return Iterators.flatten(fluents)
         end
-    end
-    # Index expression
-    if get_requirements(domain)[:typing]
-        idxs_expr = quote
-            types = get_fluent(domain, name).argtypes
-            idxs = (objectindex(state, ty, a.name)
-                    for (a, ty) in zip(args, types))
-        end
-    else
-        idxs_expr = :(idxs = (objectindex(state, a.name) for a in term.args))
     end
     # Fluent accessors
     get_fluent_defs, set_fluent_defs, groundargs_defs = [], [], []
@@ -172,7 +165,7 @@ function (::Type{S})(state::State) where {S <: CompiledState}
 end
 
 Base.copy(state::S) where {S <: CompiledState} =
-    S((copy(getfield(state, field)) for field in fieldnames(S))...)
+    S(state)
 
 groundargs(domain::CompiledDomain, state::State, fluent::Symbol) =
     groundargs(domain, state, Val(fluent))

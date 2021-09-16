@@ -24,9 +24,11 @@ function generate_execute(domain::Domain, state::State,
     execute_def = quote
         function execute(domain::$domain_type, prev_state::$state_type,
                          action::$action_type, args; check::Bool=false)
-            if check && !($precond) error("Precondition not satisfied") end
+            if check && !(@inbounds $precond)
+                error("Precondition not satisfied")
+            end
             state = copy(prev_state)
-            $effect
+            @inbounds $effect
             return state
         end
     end

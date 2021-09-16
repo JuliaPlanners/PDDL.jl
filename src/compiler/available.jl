@@ -9,7 +9,7 @@ function generate_available(domain::Domain, state::State,
         available_def = quote
             function available(domain::$domain_type, state::$state_type,
                                action::$action_type, args)
-                precond = $precond
+                precond = @inbounds $precond
                 return precond == true || precond == both
             end
         end
@@ -17,7 +17,7 @@ function generate_available(domain::Domain, state::State,
         available_def = quote
             function available(domain::$domain_type, state::$state_type,
                                action::$action_type, args)
-                return $precond
+                return @inbounds $precond
             end
         end
     end

@@ -9,6 +9,8 @@ end
 Signature(name, type, args, argtypes) =
     Signature{length(args)}(name, type, Tuple(args), Tuple(argtypes))
 
+arity(::Signature{N}) where {N} = N
+
 function Base.convert(::Type{Term}, sig::Signature{0})
     return Const(sig.name)
 end
