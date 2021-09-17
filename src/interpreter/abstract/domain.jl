@@ -49,10 +49,10 @@ evaluate(domain::AbstractedDomain, state::State, term::Term) =
 initstate(domain::AbstractedDomain, problem::Problem) =
     initstate(domain.interpreter, domain, problem)
 
-transition(domain::AbstractedDomain, state::State, action::Term) =
-    transition(domain.interpreter, domain, state, action)
-transition!(domain::AbstractedDomain, state::State, action::Term) =
-    transition!(domain.interpreter, domain, state, action)
+transition(domain::AbstractedDomain, state::State, action::Term; options...) =
+    transition(domain.interpreter, domain, state, action; options...)
+transition!(domain::AbstractedDomain, state::State, action::Term; options...) =
+    transition!(domain.interpreter, domain, state, action; options...)
 
 available(domain::AbstractedDomain, state::State, action::Action, args) =
     available(domain.interpreter, domain, state, action, args)

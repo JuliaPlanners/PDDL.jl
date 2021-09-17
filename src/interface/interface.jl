@@ -64,9 +64,9 @@ transition(domain::Domain, state::State, actions) =
 
 Variant of [`transition`](@ref) that modifies `state` in place.
 """
-transition!(domain::Domain, state::State, action::Term) =
+transition!(domain::Domain, state::State, action::Term; options...) =
     error("Not implemented.")
-transition!(domain::Domain, state::State, actions) =
+transition!(domain::Domain, state::State, actions; options...) =
     error("Not implemented.")
 
 """

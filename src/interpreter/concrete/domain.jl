@@ -18,10 +18,10 @@ evaluate(domain::ConcreteDomain, state::State, term::Term) =
 initstate(domain::ConcreteDomain, problem::Problem) =
     initstate(ConcreteInterpreter(), domain, problem)
 
-transition(domain::ConcreteDomain, state::State, action::Term) =
-    transition(ConcreteInterpreter(), domain, state, action)
-transition!(domain::ConcreteDomain, state::State, action::Term) =
-    transition!(ConcreteInterpreter(), domain, state, action)
+transition(domain::ConcreteDomain, state::State, action::Term; options...) =
+    transition(ConcreteInterpreter(), domain, state, action; options...)
+transition!(domain::ConcreteDomain, state::State, action::Term; options...) =
+    transition!(ConcreteInterpreter(), domain, state, action; options...)
 
 available(domain::ConcreteDomain, state::State, action::Action, args) =
     available(ConcreteInterpreter(), domain, state, action, args)
