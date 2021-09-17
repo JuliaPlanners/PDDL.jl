@@ -50,6 +50,10 @@ available(::Domain, state::State, ::NoOp, args) = true
 
 execute(::Domain, state::State, ::NoOp, args; options...) = state
 
+execute!(::Domain, state::State, ::NoOp, args; options...) = state
+
 relevant(::Domain, state::State, ::NoOp, args; options...) = false
 
 regress(::Domain, state::State, ::NoOp, args; options...) = state
+
+regress!(::Domain, state::State, ::NoOp, args; options...) = state

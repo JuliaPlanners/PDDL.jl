@@ -59,6 +59,17 @@ transition(domain::Domain, state::State, actions) =
     error("Not implemented.")
 
 """
+    transition!(domain::Domain, state::State, action::Term)
+    transition!(domain::Domain, state::State, actions)
+
+Variant of [`transition`](@ref) that modifies `state` in place.
+"""
+transition!(domain::Domain, state::State, action::Term) =
+    error("Not implemented.")
+transition!(domain::Domain, state::State, actions) =
+    error("Not implemented.")
+
+"""
     available(domain::Domain, state::State, action::Action, args)
     available(domain::Domain, state::State, action::Term)
 
@@ -98,6 +109,22 @@ execute(domain::Domain, state::State, action::Term; options...) =
     end
 
 """
+    execute!(domain::Domain, state::State, action::Action, args)
+    execute!(domain::Domain, state::State, action::Term)
+
+Variant of [`execute`](@ref) that modifies `state` in-place.
+"""
+execute!(domain::Domain, state::State, action::Action, args; options...) =
+    error("Not implemented.")
+execute!(domain::Domain, state::State, action::Term; options...) =
+    if action.name == get_name(no_op)
+        execute!(domain, state, no_op, (); options...)
+    else
+        execute!(domain, state, get_actions(domain)[action.name],
+                 action.args; options...)
+    end
+
+"""
     relevant(domain::Domain, state::State, action::Action, args)
     relevant(domain::Domain, state::State, action::Term)
 
@@ -134,4 +161,20 @@ regress(domain::Domain, state::State, action::Term; options...) =
     else
         regress(domain, state, get_actions(domain)[action.name],
                 action.args; options...)
+    end
+
+"""
+    regress!(domain::Domain, state::State, action::Action, args)
+    regress!(domain::Domain, state::State, action::Term)
+
+Variant of [`regress`](@ref) that modifies `state` in-place.
+"""
+regress!(domain::Domain, state::State, action::Action, args; options...)=
+    error("Not implemented.")
+regress!(domain::Domain, state::State, action::Term; options...) =
+    if action.name == get_name(no_op)
+        regress!(domain, state, no_op, (); options...)
+    else
+        regress!(domain, state, get_actions(domain)[action.name],
+                 action.args; options...)
     end

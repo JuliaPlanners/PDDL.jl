@@ -12,7 +12,7 @@ end
 function generate_get_expr(domain::Domain, state::State, term::Compound,
                            varmap=Dict{Var,Any}(), state_var=:state)
     indices = generate_fluent_ids(domain, state, term,
-                                  get_fluent(domain, term.name), varmap)
+                                  get_fluent(domain, term.name), varmap, state_var)
     return :($state_var.$(term.name)[$(indices...)])
 end
 
@@ -29,7 +29,7 @@ end
 function generate_set_expr(domain::Domain, state::State, term::Compound,
                            val, varmap=Dict{Var,Any}(), state_var=:state)
     indices = generate_fluent_ids(domain, state, term,
-                                  get_fluent(domain, term.name), varmap)
+                                  get_fluent(domain, term.name), varmap, state_var)
     if domain isa AbstractedDomain && domain.interpreter.autowiden
         prev_val = generate_get_expr(domain, state, term, varmap, :prev_state)
         return :($state_var.$(term.name)[$(indices...)] = widen($prev_val, $val))

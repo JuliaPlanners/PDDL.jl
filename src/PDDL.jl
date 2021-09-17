@@ -12,8 +12,8 @@ export Domain, Problem, State, Action
 export GenericDomain, GenericProblem, GenericState, GenericAction
 # Interface methods
 export satisfy, satisfiers, evaluate
-export initstate, goalstate, transition, simulate
-export available, execute, relevant, regress
+export initstate, goalstate, transition, transition!, simulate
+export available, execute, execute!, relevant, regress, regress!
 # Parsing and writing
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export write_domain, write_problem, write_pddl

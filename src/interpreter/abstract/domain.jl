@@ -51,6 +51,8 @@ initstate(domain::AbstractedDomain, problem::Problem) =
 
 transition(domain::AbstractedDomain, state::State, action::Term) =
     transition(domain.interpreter, domain, state, action)
+transition!(domain::AbstractedDomain, state::State, action::Term) =
+    transition!(domain.interpreter, domain, state, action)
 
 available(domain::AbstractedDomain, state::State, action::Action, args) =
     available(domain.interpreter, domain, state, action, args)
@@ -59,6 +61,8 @@ available(domain::AbstractedDomain, state::State) =
 
 execute(domain::AbstractedDomain, state::State, action::Action, args; options...) =
     execute(domain.interpreter, domain, state, action, args; options...)
+execute!(domain::AbstractedDomain, state::State, action::Action, args; options...) =
+    execute!(domain.interpreter, domain, state, action, args; options...)
 
 relevant(domain::AbstractedDomain, state::State, action::Action, args) =
     relevant(domain.interpreter, domain, state, action, args)
@@ -67,3 +71,5 @@ relevant(domain::AbstractedDomain, state::State) =
 
 regress(domain::AbstractedDomain, state::State, action::Action, args; options...) =
     regress(domain.interpreter, domain, state, action, args; options...)
+regress!(domain::AbstractedDomain, state::State, action::Action, args; options...) =
+    regress!(domain.interpreter, domain, state, action, args; options...)
