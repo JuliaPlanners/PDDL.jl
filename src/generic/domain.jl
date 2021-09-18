@@ -2,7 +2,8 @@
 @kwdef mutable struct GenericDomain <: Domain
     name::Symbol # Name of domain
     requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
-    types::Dict{Symbol,Vector{Symbol}} = Dict() # Types and their subtypes
+    typetree::Dict{Symbol,Vector{Symbol}} = Dict() # Types and their subtypes
+    datatypes::Dict{Symbol,Type} = Dict() # Non-object data types
     constants::Vector{Const} = [] # List of constants
     constypes::Dict{Const,Symbol} = Dict() # Types of constants
     predicates::Dict{Symbol,Signature} = Dict() # Dictionary of predicates
@@ -47,7 +48,9 @@ get_name(domain::GenericDomain) = domain.name
 
 get_requirements(domain::GenericDomain) = domain.requirements
 
-get_types(domain::GenericDomain) = domain.types
+get_typetree(domain::GenericDomain) = domain.typetree
+
+get_datatypes(domain::GenericDomain) = domain.datatypes
 
 get_constants(domain::GenericDomain) = domain.constants
 
@@ -64,22 +67,6 @@ get_fluents(domain::GenericDomain) = merge(domain.predicates, domain.functions)
 get_axioms(domain::GenericDomain) = domain.axioms
 
 get_actions(domain::GenericDomain) = domain.actions
-
-"""
-    attach!(domain, name, f)
-
-Attach the function `f` as the implementation of the functional fluent
-specified by `name`.
-"""
-function attach!(domain::GenericDomain, name::Symbol, f)
-    if name in keys(get_functions(domain))
-        domain.funcdefs[name] = f
-    else
-        error("Domain does not have a function named $name.")
-    end
-end
-attach!(domain::GenericDomain, name::AbstractString, f) =
-    attach!(domain, Symbol(name), f)
 
 "Get list of predicates that are never modified by actions in the domain."
 function get_static_predicates(domain::GenericDomain, state::State)

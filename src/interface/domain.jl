@@ -5,9 +5,15 @@ get_name(domain::Domain) = error("Not implemented.")
 
 get_requirements(domain::Domain) = error("Not implemented.")
 
-get_types(domain::Domain) = error("Not implemented.")
+get_typetree(domain::Domain) = error("Not implemented.")
 
-get_subtypes(domain::Domain, name::Symbol) = get_types(domain)[name]
+get_types(domain::Domain) = keys(get_typetree(domain))
+
+get_subtypes(domain::Domain, name::Symbol) = get_typetree(domain)[name]
+
+get_datatypes(domain::Domain) = error("Not implemented.")
+
+get_datatype(domain::Domain, name::Symbol) = get_datatype(domain)[name]
 
 get_constants(domain::Domain) = error("Not implemented.")
 

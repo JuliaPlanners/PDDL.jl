@@ -7,7 +7,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("gripper-typed")
 @test convert(Term, domain.predicates[:free]) == pddl"(free ?g)"
 @test domain.predicates[:carry].argtypes == (:ball, :gripper)
-@test :gripper in keys(domain.types)
+@test :gripper in PDDL.get_types(domain)
 
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")

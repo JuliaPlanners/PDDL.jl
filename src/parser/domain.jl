@@ -50,7 +50,7 @@ function parse_types(expr::Vector)
     end
     maxtypes = setdiff(keys(types), all_subtypes, [:object])
     append!(types[:object], collect(maxtypes))
-    return types
+    return (typetree=types,)
 end
 parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
 head_field_parsers[:domain][:types] = parse_types

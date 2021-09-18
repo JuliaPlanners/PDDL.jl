@@ -28,11 +28,11 @@ is_global_func(term::Term) =
 
 "Check if term is a type predicate."
 is_type(term::Term, domain::Domain) =
-    term.name in keys(get_types(domain))
+    term.name in get_types(domain)
 
 "Check if term is a type predicate with subtypes."
 has_subtypes(term::Term, domain::Domain) =
-    !isempty(get_types(domain)[term.name])
+    !isempty(get_subtypes(domain, term.name))
 
 "Check if `term` has a (sub-term with a) name in `names`."
 has_name(term::Const, names) = term.name in names

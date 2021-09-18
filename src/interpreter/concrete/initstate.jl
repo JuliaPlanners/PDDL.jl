@@ -6,8 +6,7 @@ function initstate(interpreter::ConcreteInterpreter,
         if t.name == :(==) # Non-Boolean fluents
             term, val = t.args[1], t.args[2]
             @assert !isa(term, Var) "Initial terms cannot be unbound variables."
-            @assert isa(val, Const) "Terms must be initialized to constants."
-            state[term] = val.name
+            state[term] = evaluate(domain, state, val)
         else # Boolean fluents
             push!(state.facts, t)
         end

@@ -20,7 +20,7 @@ end
 function generate_object_typed_defs(domain::Domain, state::State,
                                     domain_type::Symbol, state_type::Symbol)
     object_ids = Dict()
-    for type in keys(get_types(domain))
+    for type in get_types(domain)
         objs = sort(get_objects(domain, state, type), by=x->x.name)
         object_ids[type] = (; ((o.name, i) for (i, o) in enumerate(objs))...)
     end

@@ -19,8 +19,8 @@ function generate_domain_methods(domain::Domain, domain_type::Symbol)
     get_source_def = :(get_source(::$domain_type) = $(QuoteNode(domain)))
     get_requirements_def = :(get_requirements(::$domain_type) =
             $(QuoteNode((; get_requirements(domain)...))))
-    get_types_def = :(get_types(::$domain_type) =
-        $(QuoteNode((; get_types(domain)...))))
+    get_typetree_def = :(get_typetree(::$domain_type) =
+        $(QuoteNode((; get_typetree(domain)...))))
     get_constants_def = :(get_constants(::$domain_type) =
         $(QuoteNode(Tuple(get_constants(domain)))))
     get_constypes_def = :(get_constypes(domain::$domain_type) =
@@ -36,7 +36,7 @@ function generate_domain_methods(domain::Domain, domain_type::Symbol)
     get_axioms_def = :(get_axioms(::$domain_type) =
         $(QuoteNode((; get_axioms(domain)...))))
     domain_defs = Expr(:block, get_name_def, get_source_def,
-        get_requirements_def, get_types_def, get_constants_def,
+        get_requirements_def, get_typetree_def, get_constants_def,
         get_constypes_def, get_predicates_def, get_functions_def,
         get_funcdefs_def, get_fluents_def, get_axioms_def)
 end

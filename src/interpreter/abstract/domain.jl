@@ -13,7 +13,7 @@ get_name(domain::AbstractedDomain) = get_name(domain.domain)
 
 get_requirements(domain::AbstractedDomain) = get_requirements(domain.domain)
 
-get_types(domain::AbstractedDomain) = get_types(domain.domain)
+get_typetree(domain::AbstractedDomain) = get_typetree(domain.domain)
 
 get_constants(domain::AbstractedDomain) = get_constants(domain.domain)
 
