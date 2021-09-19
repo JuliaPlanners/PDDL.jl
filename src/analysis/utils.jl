@@ -2,9 +2,17 @@
 is_pred(term::Term, domain::Domain) =
     term.name in keys(get_predicates(domain))
 
-"Check if term is a numeric fluent (i.e. function)."
+"Check if term is a non-boolean fluent (i.e. function)."
 is_func(term::Term, domain::Domain) =
     term.name in keys(get_functions(domain))
+
+"Check if term is an external function attached to a domain."
+is_attached_func(term::Term, domain::Domain) =
+    term.name in keys(get_funcdefs(domain))
+
+"Check if term is an external function (attached or global)."
+is_external_func(term::Term, domain::Domain) =
+    is_global_func(term) || is_attached_func(term, domain)
 
 "Check if term is a derived predicate"
 is_derived(term::Term, domain::Domain) =
