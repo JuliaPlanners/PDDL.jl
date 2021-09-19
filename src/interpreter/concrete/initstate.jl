@@ -6,10 +6,6 @@ function initstate(interpreter::ConcreteInterpreter,
         if t.name == :(==) # Non-Boolean fluents
             term, val = t.args[1], t.args[2]
             @assert !isa(term, Var) "Initial terms cannot be unbound variables."
-            # HACK: Temporarily circumvent weirdness with Julog custom functions
-            if val isa Const && is_external_func(val, domain)
-                val = Compound(val.name, Term[])
-            end
             state[term] = evaluate(domain, state, val)
         else # Boolean fluents
             push!(state.facts, t)
