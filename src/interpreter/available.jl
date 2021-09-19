@@ -4,6 +4,10 @@ function available(interpreter::Interpreter, domain::Domain, state::State)
     for act in values(get_actions(domain))
         act_name = get_name(act)
         act_vars, act_types = get_argvars(act), get_argtypes(act)
+        # Directly check precondition if action has no parameters
+        if isempty(act_vars) && satisfy(domain, state, get_precond(act))
+            push!(actions, Const(act_name))
+        end
         # Include type conditions when necessary for correctness
         typecond = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
         p = get_precond(act)

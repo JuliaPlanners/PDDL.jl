@@ -3,14 +3,13 @@
 
 Extends PDDL with set-valued fluents. Set members must be PDDL objects.
 Register by calling `PDDL.Sets.register!`. Attach to a specific `domain`
-by calling `PDDL.Set.attach!(domain)`.
+by calling `PDDL.Sets.attach!(domain)`.
 """
 module Sets
 
 using ..PDDL
-using ..PDDL: Signature
 
-construct_set(xs...) = Set{Symbol}(xs)
+construct_set(xs::Symbol...) = Set{Symbol}(xs)
 empty_set() = Set{Symbol}()
 cardinality(s::Set) = length(s)
 member(s::Set, x) = in(x, s)
@@ -21,50 +20,61 @@ difference(x::Set, y::Set) = setdiff(x, y)
 add_element(s::Set, x) = push!(copy(s), x)
 rem_element(s::Set, x) = pop!(copy(s), x)
 
+const DATATYPES = Dict("set" => Set{Symbol})
+
+const PREDICATES = Dict(
+    "member" => member,
+    "subset" => subset
+)
+
+const FUNCTIONS = Dict(
+    "construct-set" => construct_set,
+    "empty-set" => empty_set,
+    "cardinality" => cardinality,
+    "union" => union,
+    "intersect" => intersect,
+    "difference" => difference,
+    "add-element" => add_element,
+    "rem-element" => rem_element
+)
+
 function register!()
-    PDDL.register!(:datatype, "set", Set{Symbol})
-    PDDL.register!(:function, "construct-set", construct_set)
-    PDDL.register!(:function, "empty-set", empty_set)
-    PDDL.register!(:function, "cardinality", cardinality)
-    PDDL.register!(:predicate, "member", member)
-    PDDL.register!(:predicate, "subset", subset)
-    PDDL.register!(:function, "union", union)
-    PDDL.register!(:function, "intersect", intersect)
-    PDDL.register!(:function, "difference", difference)
-    PDDL.register!(:function, "add-element", add_element)
-    PDDL.register!(:function, "rem-element", rem_element)
+    for (name, ty) in DATATYPES
+        PDDL.register!(:datatype, name, ty)
+    end
+    for (name, f) in PREDICATES
+        PDDL.register!(:predicate, name, f)
+    end
+    for (name, f) in FUNCTIONS
+        PDDL.register!(:function, name, f)
+    end
     return nothing
 end
 
 function deregister!()
-    PDDL.deregister!(:datatype, "set")
-    PDDL.deregister!(:function, "construct-set")
-    PDDL.deregister!(:function, "empty-set")
-    PDDL.deregister!(:function, "cardinality")
-    PDDL.deregister!(:predicate, "member")
-    PDDL.deregister!(:predicate, "subset")
-    PDDL.deregister!(:function, "union")
-    PDDL.deregister!(:function, "intersect")
-    PDDL.deregister!(:function, "difference")
-    PDDL.deregister!(:function, "add-element")
-    PDDL.deregister!(:function, "rem-element")
+    for (name, ty) in DATATYPES
+        PDDL.deregister!(:datatype, name)
+    end
+    for (name, f) in PREDICATES
+        PDDL.deregister!(:predicate, name)
+    end
+    for (name, f) in FUNCTIONS
+        PDDL.deregister!(:function, name)
+    end
     return nothing
 end
 
 function attach!(domain::GenericDomain)
-    PDDL.attach!(domain, :datatype, "set", Set{Symbol})
-    PDDL.attach!(domain, :function, "construct-set", construct_set)
-    PDDL.attach!(domain, :function, "empty-set", empty_set)
-    PDDL.attach!(domain, :function, "cardinality", cardinality)
-    PDDL.attach!(domain, :function, "member", member)
-    PDDL.attach!(domain, :function, "subset", subset)
-    PDDL.attach!(domain, :function, "union", union)
-    PDDL.attach!(domain, :function, "intersect", intersect)
-    PDDL.attach!(domain, :function, "difference", difference)
-    PDDL.attach!(domain, :function, "add-element", add_element)
-    PDDL.attach!(domain, :function, "rem-element", rem_element)
+    for (name, ty) in DATATYPES
+        PDDL.attach!(domain, :datatype, name, ty)
+    end
+    for (name, f) in PREDICATES
+        PDDL.attach!(domain, :function, name, f)
+    end
+    for (name, f) in FUNCTIONS
+        PDDL.attach!(domain, :function, name, f)
+    end
     return nothing
 end
-
 
 end

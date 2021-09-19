@@ -106,8 +106,8 @@ function attach!(domain::GenericDomain, category::Symbol, name::Symbol, f)
         error("Category must be :datatype or :function.")
     end
 end
-attach!(domain::GenericDomain, name::AbstractString, f) =
-    attach!(domain, Symbol(name), f)
+attach!(domain::GenericDomain, category::Symbol, name::AbstractString, f) =
+    attach!(domain, category, Symbol(name), f)
 
 "Attach datatype to domain."
 function attach_datatype!(domain::GenericDomain, name::Symbol, ty)
