@@ -70,9 +70,10 @@ head_field_parsers[:domain][:constants] = parse_constants
 function parse_predicates(expr::Vector)
     @assert (expr[1].name == :predicates) ":predicates keyword is missing."
     preds = Dict{Symbol,Signature}()
-    for e in expr[2:end]
-        pred, argtypes = parse_typed_fluent(e)
-        preds[pred.name] = Signature(pred.name, :boolean, pred.args, argtypes)
+    declarations, types = parse_typed_declarations(expr[2:end], :boolean)
+    for ((term, argtypes), type) in zip(declarations, types)
+        if type !== :boolean error("Predicate $term is not boolean.") end
+        preds[term.name] = Signature(term, argtypes, type)
     end
     return preds
 end
@@ -83,9 +84,9 @@ head_field_parsers[:domain][:predicates] = parse_predicates
 function parse_functions(expr::Vector)
     @assert (expr[1].name == :functions) ":functions keyword is missing."
     funcs = Dict{Symbol,Signature}()
-    for e in expr[2:end]
-        func, argtypes = parse_typed_fluent(e)
-        funcs[func.name] = Signature(func.name, :numeric, func.args, argtypes)
+    declarations, types = parse_typed_declarations(expr[2:end], :numeric)
+    for ((term, argtypes), type) in zip(declarations, types)
+        funcs[term.name] = Signature(term, argtypes, type)
     end
     return funcs
 end

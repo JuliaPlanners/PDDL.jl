@@ -33,8 +33,8 @@ end
 parse_formula(expr::Symbol) = Const(expr)
 parse_formula(str::AbstractString) = parse_formula(parse_string(str))
 
-"Parse predicates / functions with type signatures."
-function parse_typed_fluent(expr::Vector)
+"Parse predicates or function declarations with type signatures."
+function parse_declaration(expr::Vector)
     if length(expr) == 1 && isa(expr[1], Symbol)
         return Const(expr[1]), Symbol[]
     elseif length(expr) > 1 && isa(expr[1], Symbol)
@@ -42,14 +42,14 @@ function parse_typed_fluent(expr::Vector)
         args, types = parse_typed_vars(expr[2:end])
         return Compound(name, Vector{Term}(args)), types
     else
-        error("Could not parse $(unparse(expr)) to typed predicate.")
+        error("Could not parse $(unparse(expr)) to typed declaration.")
     end
 end
 
-"Parse list of typed variables."
-function parse_typed_vars(expr::Vector)
+"Parse list of typed expressions."
+function parse_typed_list(expr::Vector, T::Type, default, parse_fn)
     # TODO : Handle either-types
-    vars, types = Var[], Symbol[]
+    terms, types = Vector{T}(), Symbol[]
     count, is_type = 0, false
     for e in expr
         if e == :-
@@ -60,31 +60,22 @@ function parse_typed_vars(expr::Vector)
             append!(types, fill(e, count))
             count, is_type = 0, false
         else
-            push!(vars, e)
+            push!(terms, parse_fn(e))
             count += 1
         end
     end
-    append!(types, fill(:object, count))
-    return vars, types
+    append!(types, fill(default, count))
+    return terms, types
 end
 
+"Parse list of typed variables."
+parse_typed_vars(expr::Vector, default=:object) =
+    parse_typed_list(expr, Var, default, identity)
+
 "Parse list of typed constants."
-function parse_typed_consts(expr::Vector)
-    consts, types = Const[], Symbol[]
-    count, is_type = 0, false
-    for e in expr
-        if e == :-
-            is_type = true
-            continue
-        end
-        if is_type
-            append!(types, repeat([e], count))
-            count, is_type = 0, false
-        else
-            push!(consts, Const(e))
-            count += 1
-        end
-    end
-    append!(types, repeat([:object], count))
-    return consts, types
-end
+parse_typed_consts(expr::Vector, default=:object) =
+    parse_typed_list(expr, Const, default, Const)
+
+"Parse list of typed declarations."
+parse_typed_declarations(expr::Vector, default=:boolean) =
+    parse_typed_list(expr, Any, default, parse_declaration)
