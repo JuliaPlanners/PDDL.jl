@@ -1,6 +1,6 @@
 (define (domain gridworld)
     (:requirements :fluents)
-    (:functions (xpos) (ypos) - integer (wallgrid) - bit-array)
+    (:functions (xpos) (ypos) - integer (wallgrid) - bit-matrix)
     (:action down
      :precondition (and (< ypos (height wallgrid))
                         (= (get-index wallgrid (+ ypos 1) xpos) false))

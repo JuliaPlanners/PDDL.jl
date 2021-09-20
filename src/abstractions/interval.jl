@@ -9,12 +9,12 @@ struct IntervalAbs{T <: Real}
     interval::IntervalArithmetic.Interval{T}
 end
 
-IntervalAbs(x::Real) =
-    IntervalAbs(IntervalArithmetic.Interval(x, x))
-IntervalAbs(x::Integer) =
-    IntervalAbs(float(x))
-IntervalAbs(a::T, b::T) where {T <: Real} =
-    IntervalAbs(IntervalArithmetic.Interval(a, b))
+IntervalAbs{T}(x::Integer) where {T <: Integer} =
+    IntervalAbs{T}(T(x), T(x)+1)
+IntervalAbs{T}(x::Union{AbstractFloat,Integer}) where {T <:AbstractFloat} =
+    IntervalAbs{T}(T(x), T(x))
+IntervalAbs{T}(a::T, b::T) where {T <: Real} =
+    IntervalAbs{T}(IntervalArithmetic.Interval{T}(a, b))
 
 Base.copy(x::IntervalAbs) = x
 

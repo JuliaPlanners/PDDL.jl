@@ -5,7 +5,7 @@ function generate_action_defs(domain::Domain, state::State,
     execute_def =
         generate_execute(domain, state, domain_type, state_type)
     all_action_defs = [available_def, execute_def]
-    all_action_names = sort(collect(keys(get_actions(domain))))
+    all_action_names = sortedkeys(get_actions(domain))
     all_action_types = Symbol[]
     for name in all_action_names
         action_defs =

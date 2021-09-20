@@ -8,6 +8,7 @@ by calling `PDDL.Sets.attach!(domain)`.
 module Sets
 
 using ..PDDL
+import ..PDDL: defaultval
 
 construct_set(xs::Symbol...) = Set{Symbol}(xs)
 empty_set() = Set{Symbol}()
@@ -19,6 +20,8 @@ intersect(x::Set, y::Set) = Base.intersect(x, y)
 difference(x::Set, y::Set) = setdiff(x, y)
 add_element(s::Set, x) = push!(copy(s), x)
 rem_element(s::Set, x) = pop!(copy(s), x)
+
+defaultval(::Val{:set}) = Set{Symbol}()
 
 const DATATYPES = Dict("set" => Set{Symbol})
 

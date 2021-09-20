@@ -1,6 +1,6 @@
 "Abstractly interpreted PDDL domain."
-struct AbstractedDomain <: Domain
-    domain::Domain
+struct AbstractedDomain{D <: Domain} <: Domain
+    domain::D
     interpreter::AbstractInterpreter
 end
 

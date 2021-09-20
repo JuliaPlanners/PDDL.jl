@@ -22,6 +22,8 @@ Belnap logic abstraction for Boolean values.
 """
 const BooleanAbs = Union{Missing,Bool,Both}
 
+BooleanAbs(x::BooleanAbs) = x
+
 lub(a::Both, b::Both) = both
 lub(a::Both, b::Bool) = both
 lub(a::Bool, b::Bool) = a === b ? a : both

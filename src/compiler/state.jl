@@ -1,23 +1,49 @@
 abstract type CompiledState <: State end
 
+function generate_field_type(domain::Domain, sig::Signature{N}) where {N}
+    dtype = get(get_datatypes(domain), sig.type, GLOBAL_DATATYPES[sig.type])
+    return N == 0 ? dtype : (dtype == Bool ? BitArray{N} : Array{dtype,N})
+end
+
+function generate_field_type(domain::AbstractedDomain, sig::Signature{N}) where {N}
+    dtype = domain.interpreter.abstractions[sig.type]
+    return N == 0 ? dtype : Array{dtype,N}
+end
+
+function generate_pred_init(domain::Domain, state::State,
+                            sig::Signature{N}) where {N}
+    if N == 0 return false end
+    dims = generate_fluent_dims(domain, state, sig)
+    return :(falses($(dims...)))
+end
+
+function generate_func_init(domain::Domain, state::State,
+                            sig::Signature{N}) where {N}
+    default = QuoteNode(defaultval(Val(sig.type)))
+    if N == 0 return default end
+    dims = generate_fluent_dims(domain, state, sig)
+    return :(fill($default, $(dims...)))
+end
+
+function generate_func_init(domain::AbstractedDomain, state::State,
+                            sig::Signature{N}) where {N}
+    abstype = domain.interpreter.abstractions[sig.type]
+    default = QuoteNode(abstype(defaultval(Val(sig.type))))
+    if N == 0 return default end
+    dims = generate_fluent_dims(domain, state, sig)
+    return :(fill($default, $(dims...)))
+end
+
 function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
     # Generate type definition
     state_fields = Expr[]
-    for (_, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
-        n_args = length(pred.args)
-        type = domain isa AbstractedDomain ?
-            (n_args == 0 ? BooleanAbs : Array{BooleanAbs, n_args}) :
-            (n_args == 0 ? Bool : BitArray{n_args})
+    for (_, pred) in sortedpairs(get_predicates(domain))
+        type = generate_field_type(domain, pred)
         field = Expr(:(::), pred.name, QuoteNode(type))
         push!(state_fields, field)
     end
-    for (_, fn) in sort(collect(pairs(get_functions(domain))), by=first)
-        n_args = length(fn.args)
-        # TODO: Actually use abstractions specified by abstraction function
-        type = domain isa AbstractedDomain ?
-            (n_args == 0 ? IntervalAbs{Float64} :
-                           Array{IntervalAbs{Float64}, n_args}) :
-            (n_args == 0 ? Float64 : Array{Float64, n_args})
+    for (_, fn) in sortedpairs(get_functions(domain))
+        type = generate_field_type(domain, fn)
         field = Expr(:(::), fn.name, QuoteNode(type))
         push!(state_fields, field)
     end
@@ -43,30 +69,12 @@ function generate_state_constructors(domain::Domain, state::State,
     # Generate constructor with no arguments
     state_inits = []
     state_copies = Expr[]
-    for (name, pred) in sort(collect(pairs(get_predicates(domain))), by=first)
-        if length(pred.args) == 0
-            push!(state_inits, false)
-        else
-            dims = generate_fluent_dims(domain, state, pred)
-            push!(state_inits, :(falses($(dims...))))
-        end
+    for (name, pred) in sortedpairs(get_predicates(domain))
+        push!(state_inits, generate_pred_init(domain, state, pred))
         push!(state_copies, :(copy(state.$name)))
     end
-    for (name, fn) in sort(collect(pairs(get_functions(domain))), by=first)
-        if length(fn.args) == 0
-            if domain isa AbstractedDomain
-                push!(state_inits, IntervalAbs(0.0))
-            else
-                push!(state_inits, 0.0)
-            end
-        else
-            dims = generate_fluent_dims(domain, state, fn)
-            if domain isa AbstractedDomain
-                push!(state_inits, :(fill(IntervalAbs(0.0), $(dims...))))
-            else
-                push!(state_inits, :(zeros($(dims...))))
-            end
-        end
+    for (name, fn) in sortedpairs(get_functions(domain))
+        push!(state_inits, generate_func_init(domain, state, fn))
         push!(state_copies, :(copy(state.$name)))
     end
     state_constructor_defs = quote

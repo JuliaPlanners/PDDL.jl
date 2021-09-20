@@ -7,6 +7,7 @@ Attach to a specific `domain` by calling `PDDL.Arrays.attach!(domain)`.
 module Arrays
 
 using ..PDDL
+import ..PDDL: defaultval
 
 # Array constructors
 new_array(val, dims...) = fill!(Array{Any}(undef, dims), val)
@@ -30,6 +31,13 @@ ndims(a::AbstractArray) = Base.ndims(a)
 # Push and pop
 push(v::AbstractVector, x) = push!(copy(v), x)
 pop(v::AbstractVector) = (v = copy(v); pop!(v); v)
+
+defaultval(::Val{:array}) = Array{Any}(undef, ())
+defaultval(::Val{:vector}) = Vector{Any}(undef, 0)
+defaultval(::Val{:matrix}) = Matrix{Any}(undef, 0, 0)
+defaultval(::Val{Symbol("bit-array")}) = falses()
+defaultval(::Val{Symbol("bit-vector")}) = falses(0)
+defaultval(::Val{Symbol("bit-matrix")}) = falses(0, 0)
 
 const DATATYPES = Dict(
     "array" => Array{Any},

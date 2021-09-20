@@ -1,25 +1,23 @@
 
 abstract type CompiledAction <: Action end
 
+# Utility functions
+include("utils.jl")
+# Compiled types
 include("domain.jl")
 include("state.jl")
 include("action.jl")
-
+# Helper functions for objects/accessors/formulas
 include("objects.jl")
 include("accessors.jl")
 include("formulas.jl")
-
+# Interface functions
 include("satisfy.jl")
 include("evaluate.jl")
 include("initstate.jl")
 include("transition.jl")
 include("available.jl")
 include("execute.jl")
-
-function pddl_to_type_name(name)
-    words = split(lowercase(string(name)), '-', keepempty=false)
-    return join(uppercasefirst.(words))
-end
 
 """
     compiled(domain, state)
@@ -36,8 +34,6 @@ function compiled(domain::Domain, state::State)
         generate_domain_type(domain, state)
     state_type, state_typedef, state_defs =
         generate_state_type(domain, state, domain_type)
-    initstate_def =
-        generate_initstate(domain, state, domain_type, state_type)
     object_defs =
         generate_object_defs(domain, state, domain_type, state_type)
     evaluate_def =
@@ -52,9 +48,8 @@ function compiled(domain::Domain, state::State)
     return_expr = :($domain_type(), $state_type($state))
     # Evaluate definitions
     expr = Expr(:block,
-        domain_typedef, domain_defs, state_typedef, state_defs, initstate_def,
-        object_defs, evaluate_def, satisfy_def, action_defs, transition_def,
-        return_expr)
+        domain_typedef, domain_defs, state_typedef, state_defs, object_defs,
+        evaluate_def, satisfy_def, action_defs, transition_def, return_expr)
     return eval(expr)
 end
 

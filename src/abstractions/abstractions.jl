@@ -23,3 +23,9 @@ function widen end
 
 include("boolean.jl")
 include("interval.jl")
+
+const DEFAULT_ABSTRACTIONS = Dict(
+    :boolean => BooleanAbs,
+    :integer => IntervalAbs{Int},
+    :numeric => IntervalAbs{Float64}
+)
