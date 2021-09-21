@@ -47,6 +47,18 @@ initstate(domain::Domain, problem::Problem) =
     error("Not implemented.")
 
 """
+    goalstate(domain::Domain, problem::Problem)
+    goalstate(domain::Domain, state::State, terms)
+
+Construct a (partial) goal state from a `domain` and `problem`, or from
+a `domain`, initial `state` and goal `terms`.
+"""
+goalstate(domain::Domain, problem::Problem) =
+    error("Not implemented.")
+goalstate(domain::Domain, state::State, terms) =
+    error("Not implemented.")
+
+"""
     transition(domain::Domain, state::State, action::Term)
     transition(domain::Domain, state::State, actions)
 

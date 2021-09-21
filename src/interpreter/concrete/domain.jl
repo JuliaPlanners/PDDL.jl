@@ -18,6 +18,11 @@ evaluate(domain::ConcreteDomain, state::State, term::Term) =
 initstate(domain::ConcreteDomain, problem::Problem) =
     initstate(ConcreteInterpreter(), domain, problem)
 
+goalstate(domain::ConcreteDomain, problem::Problem) =
+    goalstate(ConcreteInterpreter(), domain, problem)
+goalstate(domain::ConcreteDomain, state::State, terms) =
+    goalstate(ConcreteInterpreter(), state, terms)
+
 transition(domain::ConcreteDomain, state::State, action::Term; options...) =
     transition(ConcreteInterpreter(), domain, state, action; options...)
 transition!(domain::ConcreteDomain, state::State, action::Term; options...) =
