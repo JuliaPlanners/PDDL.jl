@@ -62,6 +62,7 @@ function parse_pddl(expr::Vector)
 end
 parse_pddl(sym::Symbol) = parse_formula(sym)
 parse_pddl(str::AbstractString) = parse_pddl(parse_string(str))
+parse_pddl(strs::AbstractString...) = [parse_pddl(parse_string(s)) for s in strs]
 
 "Parse string(s) to PDDL construct."
 macro pddl(str::AbstractString)
