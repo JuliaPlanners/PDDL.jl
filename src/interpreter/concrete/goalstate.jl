@@ -14,7 +14,7 @@ function goalstate(interpreter::ConcreteInterpreter,
             term, val = t.args[1], t.args[2]
             @assert(is_func(term, domain) && !is_attached_func(term, domain),
                     "Unrecognized function $(term.name).")
-            @assert(!is_ground(term), "Assigned terms must be ground.")
+            @assert(is_ground(term), "Assigned terms must be ground.")
             @assert(isa(val, Const), "Terms must be equal to constants.")
             goal[term] = val.name
         elseif is_pred(t, domain) # Predicates

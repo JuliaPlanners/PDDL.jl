@@ -21,7 +21,7 @@ initstate(domain::ConcreteDomain, problem::Problem) =
 goalstate(domain::ConcreteDomain, problem::Problem) =
     goalstate(ConcreteInterpreter(), domain, problem)
 goalstate(domain::ConcreteDomain, state::State, terms) =
-    goalstate(ConcreteInterpreter(), state, terms)
+    goalstate(ConcreteInterpreter(), domain, state, terms)
 
 transition(domain::ConcreteDomain, state::State, action::Term; options...) =
     transition(ConcreteInterpreter(), domain, state, action; options...)
