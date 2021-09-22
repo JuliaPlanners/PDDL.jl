@@ -23,7 +23,7 @@ function satisfiers(interpreter::ConcreteInterpreter,
     # Initialize Julog knowledge base
     clauses = Clause[get_clauses(domain); collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(GLOBAL_PREDICATES, state.values, get_funcdefs(domain))
+    funcs = merge(GLOBAL_FUNCTIONS, state.values, get_funcdefs(domain))
     return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
 end
 

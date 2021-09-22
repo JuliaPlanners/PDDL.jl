@@ -7,6 +7,7 @@ function available(interpreter::Interpreter, domain::Domain, state::State)
         # Directly check precondition if action has no parameters
         if isempty(act_vars) && satisfy(domain, state, get_precond(act))
             push!(actions, Const(act_name))
+            continue
         end
         # Include type conditions when necessary for correctness
         typecond = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))

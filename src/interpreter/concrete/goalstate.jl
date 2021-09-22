@@ -11,6 +11,7 @@ function goalstate(interpreter::ConcreteInterpreter,
     goal = GenericState(state.types, Set{Term}(), Dict{Symbol,Any}())
     for t in flatten_conjs(terms)
         if t.name == :(==) # Function equality
+            @assert length(t.args) == 2 "Assignments must have two arguments."
             term, val = t.args[1], t.args[2]
             @assert(is_func(term, domain) && !is_attached_func(term, domain),
                     "Unrecognized function $(term.name).")
