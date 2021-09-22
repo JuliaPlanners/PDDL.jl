@@ -6,7 +6,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 problem = load_problem(joinpath(path, "problem.pddl"))
 
 # Make sure function declarations have the right output type
-@test PDDL.get_function(domain, :wallgrid).type == Symbol("bit-matrix")
+@test PDDL.get_function(domain, :walls).type == Symbol("bit-matrix")
 
 # Register array theory
 PDDL.Arrays.register!()
@@ -20,10 +20,10 @@ implementations = [
 @testset "array fluents ($name)" for (name, (domain, _)) in implementations
     # Initialize state, test array dimensios, access and goal
     state = initstate(domain, problem)
-    @test domain[state => pddl"(width (wallgrid))"] == 3
-    @test domain[state => pddl"(height (wallgrid))"] == 3
-    @test domain[state => pddl"(get-index wallgrid 2 2)"] == true
-    @test domain[state => pddl"(get-index wallgrid 1 2)"] == true
+    @test domain[state => pddl"(width (walls))"] == 3
+    @test domain[state => pddl"(height (walls))"] == 3
+    @test domain[state => pddl"(get-index walls 2 2)"] == true
+    @test domain[state => pddl"(get-index walls 1 2)"] == true
     @test satisfy(domain, state, problem.goal) == false
 
     # Check that we can only move down because of wall
