@@ -2,8 +2,8 @@ function generate_available(domain::Domain, state::State,
                             domain_type::Symbol, state_type::Symbol,
                             action_name::Symbol, action_type::Symbol)
     action = get_actions(domain)[action_name]
-    varmap = Dict(a => :(args[$i].name) for (i, a) in
-                  enumerate(get_argvars(action)))
+    varmap = Dict{Var,Any}(a => :(args[$i].name) for (i, a) in
+                           enumerate(get_argvars(action)))
     precond = generate_check_expr(domain, state, get_precond(action), varmap)
     if domain isa AbstractedDomain
         available_def = quote

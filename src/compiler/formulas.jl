@@ -16,14 +16,46 @@ function generate_eval_expr(domain::Domain, state::State, term::Term,
     return expr
 end
 
+function generate_quantified_expr(domain::Domain, state::State, term::Term,
+                                  varmap=Dict{Var,Any}(), state_var=:state)
+    @assert length(term.args) == 2 "$(term.name) takes two arguments"
+    varmap = copy(varmap) # Make local copy of variable context
+    typeconds, query = flatten_conjs(term.args[1]), term.args[2]
+    types, vars = Symbol[], Symbol[]
+    for (i, cond) in enumerate(typeconds)
+        v = Symbol("o$i") # Create local variable name
+        push!(vars, v)
+        push!(types, cond.name) # Extract type name
+        varmap[cond.args[1]] = :($v.name)
+    end
+    # Generate query expression with local variable context
+    expr = generate_check_expr(domain, state, query, varmap, state_var)
+    # Construct iterator over (typed) objects
+    v, ty = pop!(vars), QuoteNode(pop!(types))
+    expr = :($expr for $v in get_objects(state, $ty))
+    while !isempty(types)
+        v, ty = pop!(vars), QuoteNode(pop!(types))
+        expr = Expr(:flatten, :($expr for $v in get_objects(state, $ty)))
+    end
+    if Domain isa AbstractedDomain
+        accum = term.name == :forall ? :(&) : :(|)
+        return :($accum($expr...))
+    else
+        accum = term.name == :forall ? :all : :any
+        return :($accum($expr))
+    end
+end
+
 function generate_check_expr(domain::Domain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
     if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
+    elseif term.name in (:forall, :exists)
+        return generate_quantified_expr(domain, state, term, varmap, state_var)
     elseif term isa Const
-        return QuoteNode(term.name)
+        return QuoteNode(term.name::Bool)
     end
     subexprs = [generate_check_expr(domain, state, a, varmap, state_var)
                 for a in term.args]
