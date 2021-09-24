@@ -35,7 +35,7 @@ function generate_quantified_expr(domain::Domain, state::State, term::Term,
     expr = :($expr for $v in get_objects(state, $ty))
     while !isempty(types)
         v, ty = pop!(vars), QuoteNode(pop!(types))
-        expr = Expr(:flatten, :($expr for $v in get_objects(state, $ty)))
+        expr = Expr(:flatten, :($expr for $v in get_objects($state_var, $ty)))
     end
     if Domain isa AbstractedDomain
         accum = term.name == :forall ? :(&) : :(|)
@@ -81,8 +81,10 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
         return generate_eval_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
+    elseif term.name in (:forall, :exists)
+        return generate_quantified_expr(domain, state, term, varmap, state_var)
     elseif term isa Const
-        return QuoteNode(term.name)
+        return QuoteNode(term.name::Bool)
     end
     subexprs = [generate_check_expr(domain, state, a, varmap, state_var)
                 for a in term.args]
@@ -102,6 +104,35 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
     return expr
 end
 
+function generate_forall_effect_expr(domain::Domain, state::State, term::Term,
+                                     varmap=Dict{Var,Any}(), state_var=:state)
+    @assert length(term.args) == 2 "$(term.name) takes two arguments"
+    varmap = copy(varmap) # Make local copy of variable context
+    typeconds, effect = flatten_conjs(term.args[1]), term.args[2]
+    types, vars = Symbol[], Symbol[]
+    for (i, cond) in enumerate(typeconds)
+        v = Symbol("o$i") # Create local variable name
+        push!(vars, v)
+        push!(types, cond.name) # Extract type name
+        varmap[cond.args[1]] = :($v.name)
+    end
+    # Generate effect expression with local variable context
+    expr = generate_effect_expr(domain, state, effect, varmap, state_var)
+    # Special case if only one object variable is enumerated over
+    if length(vars) == 1
+        v, ty = vars[1], QuoteNode(types[1])
+        return quote for $v in get_objects($state_var, $ty)
+            $expr
+        end end
+    end
+    # Construct iterator over (typed) objects
+    obj_exprs = (:(get_objects($state_var, $(QuoteNode(ty)))) for ty in types)
+    expr = quote for ($(vars...),) in zip($(obj_exprs...))
+        $expr
+    end end
+    return expr
+end
+
 function generate_effect_expr(domain::Domain, state::State, term::Term,
                               varmap=Dict{Var,Any}(), state_var=:state)
     expr = if term.name == :and
@@ -118,6 +149,14 @@ function generate_effect_expr(domain::Domain, state::State, term::Term,
         term = term.args[1]
         @assert term.name in keys(get_predicates(domain)) "unrecognized predicate"
         generate_set_expr(domain, state, term, false, varmap, state_var)
+    elseif term.name == :when
+        @assert length(term.args) == 2 "when takes two arguments"
+        cond, effect = term.args
+        cond = generate_check_expr(domain, state, cond, varmap, :prev_state)
+        effect = generate_effect_expr(domain, state, effect, varmap, state_var)
+        :(cond = $cond; (cond == true || cond == both) && $effect)
+    elseif term.name == :forall
+        generate_forall_effect_expr(domain, state, term, varmap, state_var)
     elseif term.name in keys(GLOBAL_MODIFIERS)
         @assert length(term.args) == 2 "$(term.name) takes two arguments"
         op = GLOBAL_MODIFIERS[term.name]

@@ -80,6 +80,14 @@ function generate_state_constructors(domain::Domain, state::State,
     state_constructor_defs = quote
         $state_type() = $state_type($(state_inits...))
         $state_type(state::$state_type) = $state_type($(state_copies...))
+        function $state_type(state::State)
+            new = $state_type()
+            for (term, val) in get_fluents(state)
+                if val === false continue end
+                set_fluent!(new, val, term)
+            end
+            return new
+        end
     end
     return state_constructor_defs
 end
