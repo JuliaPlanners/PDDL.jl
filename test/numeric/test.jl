@@ -12,8 +12,9 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.metric == (-1, pddl"(+ (* 4 (total-time)) (* 5 (total-fuel-used)))")
 
 # Test for static functions
-# @test pddl"(capacity ?a)" in get_static_functions(domain, state)
-# @test length(get_static_functions(domain, state)) == 5
+static_fluents = infer_static_fluents(domain)
+@test :capacity in static_fluents
+@test length(static_fluents) == 5
 
 state = initstate(domain, problem)
 implementations = [

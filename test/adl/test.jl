@@ -28,11 +28,12 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
 domain = load_domain(joinpath(path, "assembly-domain.pddl"))
 problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 
-# Test for static predicates
-state = initstate(domain, problem)
-# @test pddl"(requires ?a ?r)" in get_static_predicates(domain, state)
-# @test length(get_static_predicates(domain, state)) == 6
+# Test for static fluents
+static_fluents = infer_static_fluents(domain)
+@test :requires in static_fluents
+@test length(static_fluents) == 6
 
+state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => (domain, state),
     "concrete compiler" => compiled(domain, state),

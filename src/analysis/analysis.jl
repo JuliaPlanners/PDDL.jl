@@ -1,3 +1,4 @@
 # Tools for analyzing domains
-include("depgraph.jl")
 include("utils.jl")
+include("static.jl")
+include("depgraph.jl")

@@ -29,8 +29,8 @@ export CompiledDomain, CompiledAction, CompiledState
 export attach!, register!
 # Analysis tools
 export DependencyGraph, dependency_graph
+export infer_affected_fluents, infer_static_fluents
 # Utilities
-# export get_static_predicates, get_static_functions
 export find_matches, effect_diff, precond_diff
 
 # PDDL requirement definitions and dependencies
