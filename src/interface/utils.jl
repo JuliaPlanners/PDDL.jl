@@ -8,12 +8,15 @@ Base.getindex(domain::Domain, statevar::Pair{<:State, String}) =
 
 get_objects(domain::Domain, state::State) = get_objects(state)
 
-get_objects(domain::Domain, state::State, type::Symbol) =
-    Const[o for (o, ty) in get_objtypes(state)
-          if ty == type || ty in get_all_subtypes(domain, type)]
+function get_objects(domain::Domain, state::State, type::Symbol)
+    return Const[o for (o, ty) in get_objtypes(state)
+                 if ty == type || ty in get_all_subtypes(domain, type)]
+end
 
-function get_all_subtypes(domain::Domain, name::Symbol)
-    types = get_subtypes(domain, name)
-    if isempty(types) return types end
-    return reduce(vcat, [get_all_subtypes(domain, ty) for ty in types], init=types)
+"Returns all (recursive) subtypes of `type` in a domain."
+function get_all_subtypes(domain::Domain, type::Symbol)
+    subtypes = get_subtypes(domain, type)
+    if isempty(subtypes) return subtypes end
+    return reduce(vcat, [get_all_subtypes(domain, ty) for ty in subtypes],
+                  init=subtypes)
 end

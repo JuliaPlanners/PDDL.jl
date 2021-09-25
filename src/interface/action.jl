@@ -1,28 +1,43 @@
 "PDDL action definition."
 abstract type Action end
 
+"Returns the name of an action schema."
 get_name(action::Action) = error("Not implemented.")
 
+"Returns the argument variables for an action schema."
 get_argvars(action::Action) = error("Not implemented.")
 
+"Returns the argument types for an action schema."
 get_argtypes(action::Action) = error("Not implemented.")
 
+"""
+    get_precond(action::Action)
+    get_precond(action::Action, args)
+    get_precond(domain::Domain, action::Term)
+
+Returns the precondition of an action schema as a `Term`, optionally
+parameterized by `args`. Alternatively, an action and its arguments
+can be specified as a `Term`.
+"""
 get_precond(action::Action) = error("Not implemented.")
 
 get_precond(action::Action, args) = error("Not implemented.")
 
-get_precond(domain::Domain, name::Symbol) =
-    get_precond(get_actions(domain)[name])
+get_precond(domain::Domain, action::Term) =
+    get_precond(get_actions(domain)[action.name], action.args)
 
-get_precond(domain::Domain, term::Term) =
-    get_precond(get_actions(domain)[term.name], term.args)
+"""
+    get_effect(action::Action)
+    get_effect(action::Action, args)
+    get_effect(domain::Domain, action::Term)
 
+Returns the effect of an action schema as a `Term`, optionally
+parameterized by `args`. Alternatively, an action and its arguments
+can be specified as a `Term`.
+"""
 get_effect(action::Action) = error("Not implemented.")
 
 get_effect(action::Action, args) = error("Not implemented.")
-
-get_effect(domain::Domain, name::Symbol) =
-    get_effect(get_actions(domain)[name])
 
 get_effect(domain::Domain, term::Term) =
     get_effect(get_actions(domain)[term.name], term.args)

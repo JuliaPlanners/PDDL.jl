@@ -37,7 +37,7 @@ Base.copy(problem::GenericProblem) = deepcopy(problem)
 
 get_objects(problem::GenericProblem) = problem.objects
 
-get_objtypes(problem::GenericProblem) = problem.actions
+get_objtypes(problem::GenericProblem) = problem.objtypes
 
 get_goal(problem::GenericProblem) = problem.goal
 

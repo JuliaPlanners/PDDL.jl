@@ -57,8 +57,6 @@ include("interpreter/interpreter.jl")
 include("compiler/compiler.jl")
 # Tools for analyzing domains
 include("analysis/analysis.jl")
-# Various utilities
-include("utils.jl")
 
 using .Parser, .Writer
 

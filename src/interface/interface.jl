@@ -3,6 +3,7 @@ include("domain.jl")
 include("problem.jl")
 include("state.jl")
 include("action.jl")
+include("utils.jl")
 
 """
     satisfy(domain::Domain, state::State, term::Term)
