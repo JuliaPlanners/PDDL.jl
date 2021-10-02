@@ -41,22 +41,30 @@ evaluate(domain::Domain, state::State, term::Term) =
 
 """
     initstate(domain::Domain, problem::Problem)
+    initstate(domain::Domain, objtypes[, fluents])
 
-Construct the initial state for a given planning `domain` and `problem`.
+Construct the initial state for a given planning `domain` and `problem`, or
+from a `domain`, a map of objects to their types (`objtypes`), and an optional
+list of `fluents`.
+
+Fluents can either be provided as a list of `Term`s representing the initial
+fluents in a PDDL problem, or as a map from fluent names to fluent values.
 """
 initstate(domain::Domain, problem::Problem) =
+    error("Not implemented.")
+initstate(domain::Domain, objtypes::AbstractDict, fluents) =
     error("Not implemented.")
 
 """
     goalstate(domain::Domain, problem::Problem)
-    goalstate(domain::Domain, state::State, terms)
+    goalstate(domain::Domain, objtypes, terms)
 
 Construct a (partial) goal state from a `domain` and `problem`, or from
-a `domain`, initial `state` and goal `terms`.
+a `domain`, a map of objects to their types (`objtypes`), and goal `terms`.
 """
 goalstate(domain::Domain, problem::Problem) =
     error("Not implemented.")
-goalstate(domain::Domain, state::State, terms) =
+goalstate(domain::Domain, objtypes::AbstractDict, terms) =
     error("Not implemented.")
 
 """

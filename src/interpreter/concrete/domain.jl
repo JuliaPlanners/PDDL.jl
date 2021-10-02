@@ -17,11 +17,13 @@ evaluate(domain::ConcreteDomain, state::State, term::Term) =
 
 initstate(domain::ConcreteDomain, problem::Problem) =
     initstate(ConcreteInterpreter(), domain, problem)
+initstate(domain::ConcreteDomain, objtypes::AbstractDict, fluents) =
+    initstate(ConcreteInterpreter(), domain, objtypes, fluents)
 
 goalstate(domain::ConcreteDomain, problem::Problem) =
     goalstate(ConcreteInterpreter(), domain, problem)
-goalstate(domain::ConcreteDomain, state::State, terms) =
-    goalstate(ConcreteInterpreter(), domain, state, terms)
+goalstate(domain::ConcreteDomain, objtypes::AbstractDict, terms) =
+    goalstate(ConcreteInterpreter(), domain, objtypes, terms)
 
 transition(domain::ConcreteDomain, state::State, action::Term; options...) =
     transition(ConcreteInterpreter(), domain, state, action; options...)

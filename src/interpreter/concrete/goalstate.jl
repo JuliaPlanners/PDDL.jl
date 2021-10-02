@@ -7,8 +7,9 @@ function goalstate(interpreter::ConcreteInterpreter,
 end
 
 function goalstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, state::GenericState, terms)
-    goal = GenericState(state.types, Set{Term}(), Dict{Symbol,Any}())
+                   domain::GenericDomain, objtypes::AbstractDict, terms)
+    types = Set{Term}([Compound(ty, Term[o]) for (o, ty) in objtypes])
+    goal = GenericState(types, Set{Term}(), Dict{Symbol,Any}())
     for t in flatten_conjs(terms)
         if t.name == :(==) # Function equality
             @assert length(t.args) == 2 "Assignments must have two arguments."

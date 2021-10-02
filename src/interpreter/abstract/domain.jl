@@ -48,6 +48,8 @@ evaluate(domain::AbstractedDomain, state::State, term::Term) =
 
 initstate(domain::AbstractedDomain, problem::Problem) =
     initstate(domain.interpreter, domain, problem)
+initstate(domain::AbstractedDomain, objtypes::AbstractDict, fluents) =
+    initstate(domain.interpreter, domain, objtypes, fluents)
 
 transition(domain::AbstractedDomain, state::State, action::Term; options...) =
     transition(domain.interpreter, domain, state, action; options...)

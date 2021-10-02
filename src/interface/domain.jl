@@ -13,7 +13,7 @@ get_typetree(domain::Domain) = error("Not implemented.")
 "Returns an iterator over types in the domain."
 get_types(domain::Domain) = keys(get_typetree(domain))
 
-"Returns a list of (immediate) subtypes of `type` in the domain."
+"Returns an iterator over (immediate) subtypes of `type` in the domain."
 get_subtypes(domain::Domain, type::Symbol) = get_typetree(domain)[type]
 
 "Returns a map from domain datatypes to Julia types."
