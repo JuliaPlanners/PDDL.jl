@@ -31,7 +31,7 @@ function initstate(interpreter::ConcreteInterpreter,
                    fluents::AbstractDict)
     state = initstate(interpreter, domain, objtypes)
     for (name, val) in fluents
-        setfluent!(state, val, name)
+        set_fluent!(state, val, name)
     end
     return state
 end
