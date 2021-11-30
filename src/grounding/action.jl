@@ -14,6 +14,19 @@ get_precond(action::GroundAction) = Compound(:and, action.preconds)
 
 get_effect(action::GroundAction) = as_term(action.effect)
 
+"Group of ground actions with a shared schema."
+struct GroundActionGroup <: Action
+    name::Symbol
+    actions::Dict{Compound,GroundAction}
+end
+
+function GroundActionGroup(name::Symbol, actions::AbstractVector{GroundAction})
+    actions = Dict(act.term => act for act in actions)
+    return GroundActionGroup(name, actions)
+end
+
+get_name(action::GroundActionGroup) = action.name
+
 "Returns an iterator over all ground arguments of an `action`."
 function groundargs(domain::Domain, state::State, action::Action)
     iters = (get_objects(domain, state, ty) for ty in get_argtypes(action))
@@ -21,15 +34,15 @@ function groundargs(domain::Domain, state::State, action::Action)
 end
 
 """
-    groundactions(domain::Domain, state::State, action::GenericAction)
+    groundactions(domain::Domain, state::State, action::Action)
 
 Returns ground actions for a lifted `action` in a `domain` and initial `state`.
 """
-function groundactions(domain::Domain, state::State, action::GenericAction)
+function groundactions(domain::Domain, state::State, action::GenericAction,
+                       statics=infer_static_fluents(domain))
     ground_acts = GroundAction[]
     act_name = get_name(action)
     act_vars = get_argvars(action)
-    statics = infer_static_fluents(domain)
     # Dequantify and flatten preconditions and effects
     _precond = dequantify(get_precond(action), domain, state)
     _effect = dequantify(get_effect(action), domain, state)
@@ -74,4 +87,33 @@ function groundactions(domain::Domain, state::State, action::GenericAction)
         push!(ground_acts, act)
     end
     return ground_acts
+end
+
+function groundactions(domain::Domain, state::State, action::GroundActionGroup,
+                       statics=nothing)
+    return values(action.actions)
+end
+
+"""
+    groundactions(domain::Domain, state::State)
+
+Returns all ground actions for a `domain` and initial `state`.
+"""
+function groundactions(domain::Domain, state::State)
+    statics = infer_static_fluents(domain)
+    iters = (groundactions(domain, state, a, statics)
+             for (_, a) in get_actions(domain))
+    return collect(Iterators.flatten(iters))
+end
+
+"""
+    ground(domain::Domain, state::State, action::Action)
+
+Grounds a lifted `action` in a `domain` and initial `state`, returning a
+group of grounded actions.
+"""
+function ground(domain::Domain, state::State, action::GenericAction,
+                statics=infer_static_fluents(domain))
+    ground_acts = groundactions(domain, state, action, statics)
+    return GroundActionGroup(action.name, ground_acts)
 end
