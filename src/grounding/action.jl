@@ -12,6 +12,8 @@ get_argvals(action::GroundAction) = term.args
 
 get_precond(action::GroundAction) = Compound(:and, action.preconds)
 
+get_effect(action::GroundAction) = as_term(action.effect)
+
 "Returns an iterator over all ground arguments of an `action`."
 function groundargs(domain::Domain, state::State, action::Action)
     iters = (get_objects(domain, state, ty) for ty in get_argtypes(action))

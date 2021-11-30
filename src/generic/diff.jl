@@ -14,6 +14,13 @@ function combine!(d1::GenericDiff, d2::GenericDiff)
     return d1
 end
 
+function as_term(diff::GenericDiff)
+    add = diff.add
+    del = [Compound(:not, [t]) for t in diff.del]
+    ops = [Compound(:assign, [t, v]) for (t, v) in diff.ops]
+    return Compound(:and, [add; del; ops])
+end
+
 is_redundant(diff::GenericDiff) =
     issetequal(diff.add, diff.del) && all(k == v for (k, v) in diff.ops)
 
@@ -43,6 +50,16 @@ function combine!(d1::ConditionalDiff{D}, d2::ConditionalDiff{D}) where {D}
     append!(d1.conds, d2.conds)
     append!(d1.diffs, d2.diffs)
     return d1
+end
+
+function as_term(diff::ConditionalDiff)
+    branches = map(zip(diff.conds, diff.diffs)) do (cs, d)
+        effect = as_term(d)
+        isempty(cs) && return effect
+        cond = length(cs) == 1 ? cs[1] : Compound(:and, cs)
+        return Compound(:when, [cond, effect])
+    end
+    return Compound(:and, branches)
 end
 
 is_redundant(diff::ConditionalDiff) = all(is_redundant.(diff.diffs))

@@ -19,6 +19,9 @@ Combine state differences, returning a fresh `Diff`.
 combine(diffs::Diff...) =
     combine!(empty(diffs[1]), diffs...)
 
+"Convert a `Diff` to an equivalent `Term`."
+as_term(diff::Diff) = error("Not implemented.")
+
 "Return whether a `Diff` is redundant (i.e. does nothing)."
 is_redundant(diff::Diff) = error("Not implemented.")
 
