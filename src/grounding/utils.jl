@@ -30,7 +30,7 @@ function dequantify(term::Term, domain::Domain, state::State)
 end
 
 """
-    conds, effects = flatten_conditions(term)
+    conds, effects = flatten_conditions(term::Term)
 
 Flattens a (potentially nested) conditional effect `term` into a list of
 condition lists (`conds`) and a list of effect lists (`effects`).
@@ -63,6 +63,21 @@ function flatten_conditions(term::Term)
         cond, effect = Term[], Term[term]
         return [cond], [effect]
     end
+end
+
+"""
+    actions = flatten_conditions(action::GroundAction)
+
+Flattens ground actions with conditional effects into multiple ground actions.
+"""
+function flatten_conditions(action::GroundAction)
+    if (action.effect isa GenericDiff) return [action] end
+    actions = GroundAction[]
+    for (conds, diff) in zip(action.effect.conds, action.effect.diffs)
+        preconds = [action.preconds; conds]
+        push!(actions, GroundAction(action.name, action.term, preconds, diff))
+    end
+    return actions
 end
 
 """
