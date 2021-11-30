@@ -34,14 +34,6 @@ is_global_pred(term::Term) =
 is_global_func(term::Term) =
     term.name in keys(GLOBAL_FUNCTIONS)
 
-"Check if term is static or composed of static subterms."
-is_static(term::Term, domain::Domain, statics=infer_static_fluents(domain)) =
-    is_external_func(term, domain) ?
-        all(is_static(a, domain, statics) for a in term.args) :
-        term.name in statics
-is_static(term::Const, domain::Domain, statics=nothing) =
-    true
-
 "Check if term is a type predicate."
 is_type(term::Term, domain::Domain) =
     term.name in get_types(domain)
