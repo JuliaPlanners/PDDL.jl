@@ -67,25 +67,3 @@ get_fluents(domain::GenericDomain) = merge(domain.predicates, domain.functions)
 get_axioms(domain::GenericDomain) = domain.axioms
 
 get_actions(domain::GenericDomain) = domain.actions
-
-"Get list of predicates that are never modified by actions in the domain."
-function get_static_predicates(domain::GenericDomain, state::State)
-    ground = t ->
-        substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
-    diffs = [effect_diff(domain, state, ground(act.effect))
-             for act in values(domain.actions)]
-    derived = p -> any(unify(p, ax.head) !== nothing for ax in domain.axioms)
-    modified = p -> any(contains_term(d, p) for d in diffs)
-    return Term[p for p in values(domain.predicates)
-                if !derived(p) && !modified(p)]
-end
-
-"Get list of functions that are never modified by actions in the domain."
-function get_static_functions(domain::GenericDomain, state::State)
-    ground = t ->
-        substitute(t, Subst(v => Const(gensym()) for v in Julog.get_vars(t)))
-    diffs = [effect_diff(domain, state, ground(act.effect))
-             for act in values(domain.actions)]
-    modified = p -> any(contains_term(d, p) for d in diffs)
-    return Term[p for p in values(domain.functions) if !modified(p)]
-end
