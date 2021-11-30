@@ -1,39 +1,16 @@
-struct GroundBasicDiff
-    additions::Vector{Term}
-    deletions::Vector{Term}
-    assignments::Dict{Term,Term}
-end
-
-function GroundBasicDiff(effects::AbstractVector{<:Term})
-    additions, deletions, assignments = Term[], Term[], Dict{Term,Term}()
-    for e in effects
-        if e.name == :assign || e.name in keys(GLOBAL_MODIFIERS)
-            assignments[e.args[1]] = e
-        elseif e.name == :not
-            push!(deletions, e.args[1])
-        else
-            push!(additions, e)
-        end
-    end
-    return GroundBasicDiff(additions, deletions, assignments)
-end
-
-is_redundant(diff::GroundBasicDiff) =
-    isempty(diff.assignments) && issetequal(diff.additions, diff.deletions)
-
-struct GroundCondDiff
-    conds::Vector{Vector{Term}}
-    diffs::Vector{GroundBasicDiff}
-end
-
-const GroundDiff = Union{GroundBasicDiff,GroundCondDiff}
-
+"Ground action definition."
 struct GroundAction <: Action
     name::Symbol
     term::Compound
     preconds::Vector{Term}
-    effect::GroundDiff
+    effect::Union{GenericDiff,ConditionalDiff}
 end
+
+get_name(action::GroundAction) = action.name
+
+get_argvals(action::GroundAction) = term.args
+
+get_precond(action::GroundAction) = Compound(:and, action.preconds)
 
 "Returns an iterator over all ground arguments of an `action`."
 function groundargs(domain::Domain, state::State, action::Action)
@@ -61,7 +38,7 @@ function groundactions(domain::Domain, state::State, action::GenericAction)
         # Substitute and simplify precondition
         precond = substitute(_precond, subst)
         precond = simplify_statics(precond, domain, state, statics)
-        precond.name == false && continue # Skip if never satisfiable
+        precond.name == false && continue # Skip unsatisfiable actions
         preconds = to_cnf_clauses(precond)
         # Simplify conditions of conditional effects
         conds = map(_conds) do cs
@@ -71,17 +48,24 @@ function groundactions(domain::Domain, state::State, action::GenericAction)
             return to_cnf_clauses(cond)
         end
         # Construct diffs from conditional effect terms
-        diffs = map(_effects) do effs
-            effs = [substitute(e, subst) for e in effs]
-            return GroundBasicDiff(effs)
+        diffs = map(_effects) do es
+            eff = substitute(Compound(:and, es), subst)
+            return effect_diff(domain, state, eff)
         end
+        # Delete unsatisfiable branches
+        unsat_idxs = findall(cs -> Const(false) in cs, conds)
+        deleteat!(conds, unsat_idxs)
+        deleteat!(diffs, unsat_idxs)
         # Construct conditional diff if necessary
         if length(diffs) > 1
-            effect = GroundCondDiff(conds, diffs)
-        else
-            is_redundant(diffs[1]) && continue
+            effect = ConditionalDiff(conds, diffs)
+        elseif length(diffs) == 1
+            is_redundant(diffs[1]) && continue # Skip redundant actions
             effect = diffs[1]
-            append!(preconds, conds[1])
+            preconds = append!(preconds, conds[1])
+            filter!(c -> c != Const(true), preconds)
+        else # Skip actions with no active branches
+            continue
         end
         # Construct ground action
         act = GroundAction(act_name, term, preconds, effect)

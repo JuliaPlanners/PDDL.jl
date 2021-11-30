@@ -73,7 +73,8 @@ multiple literals have an `or` around them, but single-literal clauses do not.
 """
 function to_cnf_clauses(term::Term)
     term = to_cnf(term)
-    clauses = map(c -> (length(c.args) == 1) ? c.args[1] : c, term.args)
+    clauses = map!(c -> (length(c.args) == 1) ? c.args[1] : c,
+                   similar(term.args), term.args)
     return clauses
 end
 
@@ -85,6 +86,7 @@ multiple literals have an `and` around them, but single-literal clauses do not.
 """
 function to_dnf_clauses(term::Term)
     term = to_dnf(term)
-    clauses = map(c -> (length(c.args) == 1) ? c.args[1] : c, term.args)
+    clauses = map!(c -> (length(c.args) == 1) ? c.args[1] : c,
+                   similar(term.args), term.args)
     return clauses
 end

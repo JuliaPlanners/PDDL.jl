@@ -1,5 +1,5 @@
 "Generic state difference represented as additions, deletions, and assignments."
-struct GenericDiff
+struct GenericDiff <: Diff
     add::Vector{Term} # List of additions
     del::Vector{Term} # List of deletions
     ops::Dict{Term,Term} # Dictionary of assignment operations
@@ -20,7 +20,7 @@ is_redundant(diff::GenericDiff) =
 Base.empty(diff::GenericDiff) = GenericDiff()
 
 "Conditional state difference, represented as paired conditions and sub-diffs."
-struct ConditionalDiff{D <: Diff}
+struct ConditionalDiff{D <: Diff} <: Diff
     conds::Vector{Vector{Term}}
     diffs::Vector{D}
 end
