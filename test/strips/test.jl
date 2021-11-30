@@ -15,6 +15,7 @@ state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => (domain, state),
     "abstract interpreter" => abstracted(domain, state),
+    "ground interpreter" => (ground(domain, state), state),
     "concrete compiler" => compiled(domain, state),
     "abstract compiler" => compiled(abstracted(domain), state)
 ]
@@ -34,7 +35,7 @@ implementations = [
 
     # Test action availability
     state = initstate(domain, problem)
-    @test Set(available(domain, state)) == Set{Term}(@pddl(
+    @test Set{Term}(available(domain, state)) == Set{Term}(@pddl(
         "(pick ball1 rooma right)", "(pick ball1 rooma left)",
         "(pick ball2 rooma right)", "(pick ball2 rooma left)",
         "(move rooma roomb)", "(move rooma rooma)"
@@ -54,7 +55,7 @@ state = regress(domain, state, pddl"(pick ball1 rooma left)")
 
 # Test action relevance
 state = goalstate(domain, problem)
-@test Set(relevant(domain, state)) == Set{Term}(@pddl(
+@test Set{Term}(relevant(domain, state)) == Set{Term}(@pddl(
     "(drop ball1 roomb left)", "(drop ball1 roomb right)",
     "(drop ball1 roomb ball1)", "(drop ball1 roomb ball2)",
     "(drop ball1 roomb rooma)", "(drop ball1 roomb roomb)"

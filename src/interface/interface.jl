@@ -53,7 +53,7 @@ fluents in a PDDL problem, or as a map from fluent names to fluent values.
 """
 initstate(domain::Domain, problem::Problem) =
     error("Not implemented.")
-initstate(domain::Domain, objtypes::AbstractDict, fluents) =
+initstate(domain::Domain, objtypes::AbstractDict, fluents=Term[]) =
     error("Not implemented.")
 
 """

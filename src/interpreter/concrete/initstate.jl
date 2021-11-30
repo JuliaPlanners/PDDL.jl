@@ -1,16 +1,16 @@
 function initstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, problem::GenericProblem)
+                   domain::Domain, problem::GenericProblem)
     return initstate(interpreter, domain, problem.objtypes, problem.init)
 end
 
 function initstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, objtypes::AbstractDict)
+                   domain::Domain, objtypes::AbstractDict)
    types = Set{Term}([Compound(ty, Term[o]) for (o, ty) in objtypes])
    return GenericState(types, Set{Term}(), Dict{Symbol,Any}())
 end
 
 function initstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, objtypes::AbstractDict,
+                   domain::Domain, objtypes::AbstractDict,
                    fluents::AbstractVector)
     state = initstate(interpreter, domain, objtypes)
     for t in fluents
@@ -27,7 +27,7 @@ function initstate(interpreter::ConcreteInterpreter,
 end
 
 function initstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, objtypes::AbstractDict,
+                   domain::Domain, objtypes::AbstractDict,
                    fluents::AbstractDict)
     state = initstate(interpreter, domain, objtypes)
     for (name, val) in fluents

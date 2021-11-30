@@ -18,6 +18,7 @@ PDDL.Sets.register!()
 state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => (domain, state),
+    "ground interpreter" => (ground(domain, state), state),
     "concrete compiler" => compiled(domain, state),
 ]
 

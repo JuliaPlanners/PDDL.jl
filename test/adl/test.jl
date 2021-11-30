@@ -11,6 +11,7 @@ problem = load_problem(joinpath(path, "flip-problem.pddl"))
 state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => (domain, state),
+    "ground interpreter" => (ground(domain, state), state),
     "concrete compiler" => compiled(domain, state),
 ]
 
@@ -34,8 +35,10 @@ static_fluents = infer_static_fluents(domain)
 @test length(static_fluents) == 6
 
 state = initstate(domain, problem)
+
 implementations = [
     "concrete interpreter" => (domain, state),
+    "ground interpreter" => (ground(domain, state), state),
     "concrete compiler" => compiled(domain, state),
 ]
 

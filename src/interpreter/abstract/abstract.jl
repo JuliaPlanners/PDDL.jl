@@ -1,4 +1,4 @@
-# Abstract interpreter semantics #
+# Abstract interpreter semantics
 
 "Abstract (Cartesian) PDDL interpreter."
 @kwdef struct AbstractInterpreter <: Interpreter
@@ -8,6 +8,7 @@ end
 
 include("utils.jl")
 include("domain.jl")
+include("interface.jl")
 include("satisfy.jl")
 include("initstate.jl")
 include("update.jl")

@@ -20,6 +20,7 @@ state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => (domain, state),
     "abstract interpreter" => abstracted(domain, state),
+    "ground interpreter" => (ground(domain, state), state),
     "concrete compiler" => compiled(domain, state),
     "abstract compiler" => compiled(abstracted(domain), state)
 ]

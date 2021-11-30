@@ -1,5 +1,5 @@
 function goalstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, problem::GenericProblem)
+                   domain::Domain, problem::GenericProblem)
     types = Set{Term}([Compound(ty, Term[o]) for (o, ty) in problem.objtypes])
     facts = Set{Term}(flatten_conjs(problem.goal))
     state = GenericState(types, facts, Dict{Symbol,Any}())
@@ -7,7 +7,7 @@ function goalstate(interpreter::ConcreteInterpreter,
 end
 
 function goalstate(interpreter::ConcreteInterpreter,
-                   domain::GenericDomain, objtypes::AbstractDict, terms)
+                   domain::Domain, objtypes::AbstractDict, terms)
     types = Set{Term}([Compound(ty, Term[o]) for (o, ty) in objtypes])
     goal = GenericState(types, Set{Term}(), Dict{Symbol,Any}())
     for t in flatten_conjs(terms)

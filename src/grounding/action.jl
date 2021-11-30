@@ -75,7 +75,6 @@ function groundactions(domain::Domain, state::State, action::GenericAction,
         if length(diffs) > 1
             effect = ConditionalDiff(conds, diffs)
         elseif length(diffs) == 1
-            is_redundant(diffs[1]) && continue # Skip redundant actions
             effect = diffs[1]
             preconds = append!(preconds, conds[1])
             filter!(c -> c != Const(true), preconds)

@@ -25,6 +25,9 @@ export AbstractedDomain
 # Domain compilation
 export compiled, compilestate
 export CompiledDomain, CompiledAction, CompiledState
+# Domain and action grounding
+export ground, groundargs, groundactions
+export GroundDomain, GroundAction, GroundActionGroup
 # Extension interfaces
 export attach!, register!
 # Analysis tools

@@ -54,7 +54,11 @@ function is_static(term::Term, domain::Domain,
         return term.name in statics
     end
 end
-is_static(term::Const, domain::Domain, statics=nothing) = true
+
+function is_static(term::Const, domain::Domain,
+                   statics=infer_static_fluents(domain))
+    !is_fluent(term, domain) || term.name in statics
+end
 
 "Simplify away static fluents within a `term`."
 function simplify_statics(term::Term, domain::Domain, state::State,

@@ -8,12 +8,12 @@ end
 
 function update!(interpreter::Interpreter,
                  domain::Domain, state::State, diff::ConditionalDiff)
+    if isempty(diff.diffs) return state end
+    combined = empty(diff.diffs[1])
     for (cs, d) in zip(diff.conds, diff.diffs)
-        if satisfy(domain, state, cs)
-            update!(interpreter, domain, state, d)
-        end
+        satisfy(domain, state, cs) && combine!(combined, d)
     end
-    return state
+    return update!(interpreter, domain, state, combined)
 end
 
 "Update a PDDL state with a state difference."
