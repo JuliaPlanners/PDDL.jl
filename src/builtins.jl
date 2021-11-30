@@ -18,11 +18,11 @@ const GLOBAL_FUNCTIONS = Dict{Symbol,Function}(
 )
 
 "Mapping from PDDL modifiers (i.e. in-place assignments) to Julia functions."
-const GLOBAL_MODIFIERS = Dict{Symbol,Function}(
-    :increase => +,
-    :decrease => -,
-    Symbol("scale-up") => *,
-    Symbol("scale-down") => /
+const GLOBAL_MODIFIERS = Dict{Symbol,Symbol}(
+    :increase => :+,
+    :decrease => :-,
+    Symbol("scale-up") => :*,
+    Symbol("scale-down") => :/
 )
 
 """

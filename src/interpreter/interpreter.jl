@@ -10,6 +10,7 @@ include("available.jl")
 include("execute.jl")
 include("relevant.jl")
 include("regress.jl")
+include("update.jl")
 
 include("concrete/concrete.jl")
 include("abstract/abstract.jl")

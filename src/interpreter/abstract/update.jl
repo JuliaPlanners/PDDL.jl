@@ -1,31 +1,28 @@
 ## State updates ##
 
-"Update a state (in-place) with a state difference."
 function update!(interpreter::AbstractInterpreter,
-                 state::GenericState, diff::Diff)
-    if interpreter.autowiden return widen!(interpreter, state, diff) end
+                 domain::Domain, state::GenericState, diff::GenericDiff)
+    if interpreter.autowiden
+        return widen!(interpreter, domain, state, diff)
+    end
     union!(state.facts, negate.(diff.del))
     setdiff!(state.facts, diff.del)
     union!(state.facts, diff.add)
     setdiff!(state.facts, negate.(diff.del))
-    for (term, val) in diff.ops
+    vals = [evaluate(domain, state, v) for v in values(diff.ops)]
+    for (term, val) in zip(keys(diff.ops), vals)
         set_fluent!(state, val, term)
     end
     return state
 end
 
-"Update a state with a state difference."
-function update(interpreter::AbstractInterpreter,
-                state::GenericState, diff::Diff)
-    return update!(interpreter, copy(state), diff)
-end
-
 "Widen a state (in-place) with a state difference."
 function widen!(interpreter::AbstractInterpreter,
-                state::GenericState, diff::Diff)
+                domain::Domain, state::GenericState, diff::GenericDiff)
     union!(state.facts, negate.(diff.del))
     union!(state.facts, diff.add)
-    for (term, val) in diff.ops
+    vals = [evaluate(domain, state, v) for v in values(diff.ops)]
+    for (term, val) in zip(keys(diff.ops), vals)
         widened = widen(get_fluent(state, term), val)
         set_fluent!(state, widened, term)
     end

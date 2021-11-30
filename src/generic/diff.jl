@@ -1,0 +1,50 @@
+"Generic state difference represented as additions, deletions, and assignments."
+struct GenericDiff
+    add::Vector{Term} # List of additions
+    del::Vector{Term} # List of deletions
+    ops::Dict{Term,Term} # Dictionary of assignment operations
+end
+
+GenericDiff() = GenericDiff(Term[], Term[], Dict{Term,Any}())
+
+function combine!(d1::GenericDiff, d2::GenericDiff)
+    append!(d1.add, d2.add)
+    append!(d1.del, d2.del)
+    merge!(d1.ops, d2.ops)
+    return d1
+end
+
+is_redundant(diff::GenericDiff) =
+    issetequal(diff.add, diff.del) && all(k == v for (k, v) in diff.ops)
+
+Base.empty(diff::GenericDiff) = GenericDiff()
+
+"Conditional state difference, represented as paired conditions and sub-diffs."
+struct ConditionalDiff{D <: Diff}
+    conds::Vector{Vector{Term}}
+    diffs::Vector{D}
+end
+
+ConditionalDiff{D}() where {D} = ConditionalDiff{D}([], Vector{D}())
+
+function combine!(d1::ConditionalDiff{D}, d2::D) where {D}
+    for (i, cs) in enumerate(d1.conds)
+        if isempty(cs)
+            combine!(d1.diffs[i], d2)
+            return d1
+        end
+    end
+    push!(d1.conds, Term[])
+    push!(d1.diffs, d2)
+    return d1
+end
+
+function combine!(d1::ConditionalDiff{D}, d2::ConditionalDiff{D}) where {D}
+    append!(d1.conds, d2.conds)
+    append!(d1.diffs, d2.diffs)
+    return d1
+end
+
+is_redundant(diff::ConditionalDiff) = all(is_redundant.(diff.diffs))
+
+Base.empty(diff::ConditionalDiff{D}) where {D} = ConditionalDiff{D}()

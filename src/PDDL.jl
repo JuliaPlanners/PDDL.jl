@@ -51,12 +51,12 @@ include("extensions.jl")
 include("theories/theories.jl")
 # Abstractions for fluents of various types
 include("abstractions/abstractions.jl")
-# Domain and action grounding
-include("grounding/grounding.jl")
 # Interpreter-based interface implementation
 include("interpreter/interpreter.jl")
 # Compiler-based interface implementations
 include("compiler/compiler.jl")
+# Domain and action grounding
+include("grounding/grounding.jl")
 # Tools for analyzing domains
 include("analysis/analysis.jl")
 

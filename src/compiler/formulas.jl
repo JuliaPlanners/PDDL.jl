@@ -163,7 +163,7 @@ function generate_effect_expr(domain::Domain, state::State, term::Term,
         term, val = term.args
         prev_val = generate_get_expr(domain, state, term, varmap, :prev_state)
         val = generate_eval_expr(domain, state, val, varmap, :prev_state)
-        new_val = Expr(:call, QuoteNode(op), prev_val, val)
+        new_val = Expr(:call, op, prev_val, val)
         generate_set_expr(domain, state, term, new_val, varmap, state_var)
     elseif term.name in keys(get_predicates(domain))
         generate_set_expr(domain, state, term, true, varmap, state_var)

@@ -29,7 +29,7 @@ function execute!(interpreter::Interpreter,
     effect = substitute(get_effect(action), subst)
     # Compute effect as a state diffference
     diff = effect_diff(domain, state, effect)
-    return update!(interpreter, state, diff)
+    return update!(interpreter, domain, state, diff)
 end
 
 function execute!(interpreter::Interpreter,

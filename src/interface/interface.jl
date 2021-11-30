@@ -3,6 +3,7 @@ include("domain.jl")
 include("problem.jl")
 include("state.jl")
 include("action.jl")
+include("diff.jl")
 include("utils.jl")
 
 """

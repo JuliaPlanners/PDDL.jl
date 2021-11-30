@@ -1,18 +1,13 @@
 ## State updates ##
 
-"Update a world state (in-place) with a state difference."
+"Update a PDDL state (in-place) with a state difference."
 function update!(interpreter::ConcreteInterpreter,
-                 state::GenericState, diff::Diff)
+                 domain::Domain, state::GenericState, diff::GenericDiff)
     setdiff!(state.facts, diff.del)
     union!(state.facts, diff.add)
-    for (term, val) in diff.ops
+    vals = [evaluate(domain, state, v) for v in values(diff.ops)]
+    for (term, val) in zip(keys(diff.ops), vals)
         set_fluent!(state, val, term)
     end
     return state
-end
-
-"Update a world state with a state difference."
-function update(interpreter::ConcreteInterpreter,
-                state::GenericState, diff::Diff)
-    return update!(interpreter, copy(state), diff)
 end

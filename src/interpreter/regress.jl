@@ -25,5 +25,5 @@ function regress!(interpreter::Interpreter,
     pre_diff = precond_diff(domain, state, precond)
     eff_diff = effect_diff(domain, state, effect)
     append!(pre_diff.del, eff_diff.add)
-    return update!(interpreter, state, pre_diff)
+    return update!(interpreter, domain, state, pre_diff)
 end
