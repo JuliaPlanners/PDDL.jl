@@ -67,3 +67,11 @@ has_quantifier(term::Term) =
 "Check if term contains a fluent name."
 has_fluent(term::Term, domain::Domain) =
     has_pred(term, domain) || has_func(term, domain)
+
+"Returns list of constituent fluents."
+constituents(term::Const, domain::Domain) =
+    is_fluent(term, domain) ? [term] : []
+constituents(term::Var, domain::Domain) =
+    false
+constituents(term::Compound, domain) = is_fluent(term, domain) ?
+    Term[term] : reduce(vcat, (constituents(a, domain) for a in term.args))
