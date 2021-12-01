@@ -92,6 +92,8 @@ function to_cnf_clauses(term::Term)
                    similar(term.args), term.args)
     return clauses
 end
+to_cnf_clauses(terms::AbstractVector{<:Term}) =
+    reduce(vcat, (to_cnf_clauses(t) for t in terms))
 
 """
     clauses = to_dnf_clauses(term)
@@ -105,3 +107,5 @@ function to_dnf_clauses(term::Term)
                    similar(term.args), term.args)
     return clauses
 end
+to_dnf_clauses(terms::AbstractVector{<:Term}) =
+    reduce(vcat, (to_dnf_clauses(t) for t in terms))
