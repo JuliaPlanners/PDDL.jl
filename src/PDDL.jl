@@ -31,7 +31,6 @@ export GroundDomain, GroundAction, GroundActionGroup
 # Extension interfaces
 export attach!, register!
 # Analysis tools
-export DependencyGraph, dependency_graph
 export infer_affected_fluents, infer_static_fluents
 # Utilities
 export find_matches, effect_diff, precond_diff
