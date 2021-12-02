@@ -2,7 +2,7 @@ function generate_satisfy(domain::Domain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     satisfy_def = quote
         function check(::$domain_type, state::$state_type, term::Const)
-            return state[term.name]
+            return getfield(state, term.name)
         end
         function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
@@ -41,7 +41,7 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     satisfy_def = quote
         function check(::$domain_type, state::$state_type, term::Const)
-            return state[term.name]
+            return getfield(state, term.name)
         end
         function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
