@@ -44,5 +44,8 @@ function ground(domain::GenericDomain, state::State)
     return ground_domain
 end
 
-ground(domain::GenericDomain, problem::Problem) =
+ground(domain::Domain, state::State) =
+    ground(get_source(domain), GenericState(state))
+
+ground(domain::Domain, problem::Problem) =
     ground(domain, initstate(domain, problem))

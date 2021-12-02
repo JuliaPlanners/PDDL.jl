@@ -38,7 +38,7 @@ end
 
 Returns ground actions for a lifted `action` in a `domain` and initial `state`.
 """
-function groundactions(domain::Domain, state::State, action::GenericAction,
+function groundactions(domain::Domain, state::State, action::Action,
                        statics=infer_static_fluents(domain))
     ground_acts = GroundAction[]
     act_name = get_name(action)
@@ -100,8 +100,8 @@ Returns all ground actions for a `domain` and initial `state`.
 """
 function groundactions(domain::Domain, state::State)
     statics = infer_static_fluents(domain)
-    iters = (groundactions(domain, state, a, statics)
-             for (_, a) in get_actions(domain))
+    iters = (groundactions(domain, state, act, statics)
+             for act in values(get_actions(domain)))
     return collect(Iterators.flatten(iters))
 end
 
