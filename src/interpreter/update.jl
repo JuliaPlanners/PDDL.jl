@@ -1,6 +1,5 @@
 ## State updates ##
 
-"Update a PDDL state (in-place) with a state difference."
 function update!(interpreter::Interpreter,
                  domain::Domain, state::State, diff::Diff)
     error("Not implemented.")
@@ -16,7 +15,6 @@ function update!(interpreter::Interpreter,
     return update!(interpreter, domain, state, combined)
 end
 
-"Update a PDDL state with a state difference."
 function update(interpreter::Interpreter,
                 domain::Domain, state::State, diff::Diff)
     return update!(interpreter, domain, copy(state), diff)

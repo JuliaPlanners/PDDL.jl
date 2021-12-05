@@ -1,6 +1,5 @@
 ## State updates ##
 
-"Update a PDDL state (in-place) with a state difference."
 function update!(interpreter::ConcreteInterpreter,
                  domain::Domain, state::GenericState, diff::GenericDiff)
     setdiff!(state.facts, diff.del)

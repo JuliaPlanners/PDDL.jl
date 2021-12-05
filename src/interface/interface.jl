@@ -200,3 +200,19 @@ regress!(domain::Domain, state::State, action::Term; options...) =
         regress!(domain, state, get_actions(domain)[action.name],
                  action.args; options...)
     end
+
+"""
+    update(domain::Domain, state::State, diff::Diff)
+
+Updates a PDDL `state` with a state difference.
+"""
+update(domain::Domain, state::State, diff::Diff) =
+    update(domain, copy(state), diff)
+
+"""
+    update!(domain::Domain, state::State, diff::Diff)
+
+Updates a PDDL `state` in-place with a state difference.
+"""
+update!(domain::Domain, state::State, diff::Diff) =
+    error("Not implemented.")
