@@ -28,7 +28,8 @@ function generate_execute(domain::Domain, state::State,
     varmap = Dict{Var,Any}(a => :(args[$i].name) for (i, a) in
                            enumerate(get_argvars(action)))
     # TODO: Fix mutating execute
-    precond = generate_check_expr(domain, state, get_precond(action), varmap)
+    precond = generate_check_expr(domain, state, get_precond(action), varmap,
+                                  :prev_state)
     effect = generate_effect_expr(domain, state, get_effect(action), varmap)
     effect! = generate_effect_expr(domain, state, get_effect(action), varmap,
                                    :prev_state)
