@@ -17,7 +17,7 @@ new_bit_array(val::Bool, dims...) = val ? trues(dims) : falses(dims)
 new_bit_matrix(val::Bool, h, w) = val ? trues(h, w) : falses(h, w)
 new_bit_vector(val::Bool, n) = val ? trues(n) : falses(n)
 vec(xs...) = collect(Any, xs)
-bit_vec(xs...) = BitVector(xs)
+bit_vec(xs...) = BitVector(collect(xs))
 mat(vs::Vector{Any}...) = Matrix{Any}(hcat(vs...))
 bit_mat(vs::BitVector...) = hcat(vs...)::BitMatrix
 # Array accessors
