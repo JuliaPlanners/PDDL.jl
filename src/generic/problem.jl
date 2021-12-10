@@ -25,8 +25,12 @@ function GenericProblem(
     objects = collect(get_objects(state))
     init = Term[]
     for (name, val) in get_fluents(state)
-        term = val isa Bool && val == true ?
-            name : Compound(:(==), Term[name, Const(val)])
+        if val isa Bool && val == true # Handle Boolean predicates
+            term = name
+        else # Handle non-Boolean fluents
+            val = valterm(val) # Express value as term
+            term = Compound(:(==), Term[name, val]) # Assignment expression
+        end
         push!(init, term)
     end
     return GenericProblem(Symbol(name), Symbol(domain),
