@@ -2,13 +2,17 @@
 ; W: wall, g: goal, s: start, .: empty
 ; sWg
 ; .W.
-; .D.
+; ...
 (define (problem gridworld-problem)
   (:domain gridworld)
   (:init
-    (= walls (new-bit-matrix false 3 3))
-    (= walls (set-index walls true 1 2))
-    (= walls (set-index walls true 2 2))
+    (= walls
+      (transpose (bit-mat ; transpose from column-order to row-order
+        (bit-vec 0 1 0)
+        (bit-vec 0 1 0)
+        (bit-vec 0 0 0)
+      ))
+    )
     (= xpos 1) (= ypos 1)
   )
   (:goal (and (= xpos 3) (= ypos 1)))

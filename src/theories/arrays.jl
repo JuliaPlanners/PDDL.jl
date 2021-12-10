@@ -16,8 +16,10 @@ new_vector(val, n) = fill!(Vector{Any}(undef, n), val)
 new_bit_array(val::Bool, dims...) = val ? trues(dims) : falses(dims)
 new_bit_matrix(val::Bool, h, w) = val ? trues(h, w) : falses(h, w)
 new_bit_vector(val::Bool, n) = val ? trues(n) : falses(n)
-vec(xs...) = Vector{Any}(xs)
-bit_vec(xs::Bool...) = BitVector(xs)
+vec(xs...) = collect(Any, xs)
+bit_vec(xs...) = BitVector(xs)
+mat(vs::Vector{Any}...) = Matrix{Any}(hcat(vs...))
+bit_mat(vs::BitVector...) = hcat(vs...)::BitMatrix
 # Array accessors
 get_index(a::AbstractArray{T,N}, idxs::Vararg{Int,N}) where {T,N} =
     getindex(a, idxs...)
@@ -31,6 +33,9 @@ ndims(a::AbstractArray) = Base.ndims(a)
 # Push and pop
 push(v::AbstractVector, x) = push!(copy(v), x)
 pop(v::AbstractVector) = (v = copy(v); pop!(v); v)
+# Transformations
+_transpose(v::AbstractVector) = permutedims(v)
+_transpose(m::AbstractMatrix) = permutedims(m)
 
 defaultval(::Val{:array}) = Array{Any}(undef, ())
 defaultval(::Val{:vector}) = Vector{Any}(undef, 0)
@@ -58,6 +63,8 @@ const FUNCTIONS = Dict(
     "new-bit-matrix" => new_bit_matrix,
     "vec" => vec,
     "bit-vec" => bit_vec,
+    "mat" => mat,
+    "bit-mat" => bit_mat,
     # Array accessors
     "get-index" => get_index,
     "set-index" => set_index,
@@ -68,7 +75,9 @@ const FUNCTIONS = Dict(
     "ndims" => ndims,
     # Push and pop
     "push" => push,
-    "pop" => pop
+    "pop" => pop,
+    # Transformations
+    "transpose" => _transpose
 )
 
 function register!()
