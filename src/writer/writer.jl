@@ -222,4 +222,13 @@ function save_problem(path::String, problem::Problem)
     return path
 end
 
+Base.show(io::IO, ::MIME"text/pddl", domain::Domain) =
+    print(io, write_pddl(domain))
+Base.show(io::IO, ::MIME"text/pddl", problem::Problem) =
+    print(io, write_pddl(problem))
+Base.show(io::IO, ::MIME"text/pddl", action::Action) =
+    print(io, write_pddl(action))
+Base.show(io::IO, ::MIME"text/pddl", term::Term) =
+    print(io, write_pddl(term))
+
 end
