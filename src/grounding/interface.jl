@@ -23,11 +23,6 @@ goalstate(domain::GroundDomain, problem::Problem) =
 goalstate(domain::GroundDomain, objtypes::AbstractDict, terms) =
     goalstate(ConcreteInterpreter(), domain, objtypes, terms)
 
-transition(domain::GroundDomain, state::State, action::Term; options...) =
-    transition(ConcreteInterpreter(), domain, state, action; options...)
-transition!(domain::GroundDomain, state::State, action::Term; options...) =
-    transition!(ConcreteInterpreter(), domain, state, action; options...)
-
 update!(domain::GroundDomain, state::State, diff::Diff) =
     update!(ConcreteInterpreter(), domain, state, diff)
 update(domain::GroundDomain, state::State, diff::Diff) =

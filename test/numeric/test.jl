@@ -85,7 +85,8 @@ implementations = [
         "(refuel plane1 city0)",
         "(zoom plane1 city0 city1)"
     )
-    state = execute(domain, state, plan)
+    sim = EndStateSimulator()
+    state = sim(domain, state, plan)
     @test satisfy(domain, state, problem.goal) == true
 
 end

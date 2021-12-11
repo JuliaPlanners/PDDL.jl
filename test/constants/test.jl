@@ -30,7 +30,8 @@ plan = @pddl(
     "(move loc9 loc4 north)",
     "(dropoff loc4 green)"
 )
-state = execute(domain, state, plan)
+sim = EndStateSimulator()
+state = sim(domain, state, plan)
 @test satisfy(domain, state, problem.goal) == true
 
 end # domain constants
