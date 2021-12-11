@@ -4,8 +4,13 @@ export write_pddl, write_domain, write_problem
 export save_domain, save_problem
 
 using Julog
-using ..PDDL: GenericDomain, GenericProblem, GenericAction
-using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
+using ..PDDL:
+    IMPLIED_REQUIREMENTS, Domain, Problem, Action,
+    get_name, get_requirements, get_typetree, get_constants, get_constypes,
+    get_predicates, get_functions, get_actions, get_axioms,
+    get_domain_name, get_objects, get_objtypes,
+    get_init_terms, get_goal, get_metric,
+    get_argvars, get_argtypes, get_precond, get_effect
 
 "Write list of typed formulae in PDDL syntax."
 function write_typed_list(formulae::Vector{<:Term}, types::Vector{Symbol})
@@ -92,56 +97,66 @@ write_subformula(f::Const) = repr(f)
 write_pddl(f::Term) = write_formula(f)
 
 "Write domain in PDDL syntax."
-function write_domain(domain::GenericDomain, indent::Int=2)
+function write_domain(domain::Domain, indent::Int=2)
     strs = Dict{Symbol,String}()
     fields = [:requirements, :types, :constants, :predicates, :functions]
-    strs[:requirements] = write_requirements(domain.requirements)
-    strs[:types] = write_types(domain.types)
+    strs[:requirements] = write_requirements(get_requirements(domain))
+    strs[:types] = write_typetree(get_typetree(domain))
     strs[:constants] = indent_typed_list(
-        write_typed_list(domain.constants, domain.constypes), 14)
-    strs[:predicates] = write_predicates(domain.predicates, domain.predtypes)
-    strs[:functions] = write_predicates(domain.functions, domain.functypes)
+        write_typed_list(get_constants(domain), get_constypes(domain)), 14)
+    strs[:predicates] = write_signatures(get_predicates(domain))
+    strs[:functions] = write_signatures(get_functions(domain))
     strs = ["($(repr(k)) $(strs[k]))" for k in fields
             if haskey(strs, k) && length(strs[k]) > 0]
-    append!(strs, write_axiom.(values(domain.axioms)))
-    append!(strs, write_action.(values(domain.actions), 3))
+    append!(strs, write_axiom.(values(get_axioms(domain))))
+    append!(strs, write_action.(values(get_actions(domain)), indent=3))
     pushfirst!(strs, "(define (domain $(domain.name))")
     return join(strs, "\n" * ' '^indent) * "\n)"
 end
-write_pddl(domain::GenericDomain) = write_domain(domain)
+write_pddl(domain::Domain) = write_domain(domain)
 
 "Write domain requirements."
 function write_requirements(requirements::Dict{Symbol,Bool})
-    return join([":$k" for (k, v) in requirements if v], " ")
+    reqs = Set(k for (k, v) in requirements if v)
+    for (k, implied) in IMPLIED_REQUIREMENTS
+        if haskey(requirements, k)
+            setdiff!(reqs, implied)
+        end
+    end
+    return join([":$r" for r in reqs], " ")
 end
 
-"Write domain types."
-function write_types(types::Dict{Symbol,Vector{Symbol}})
+"Write domain typetree."
+function write_typetree(typetree)
     strs = Dict{Symbol,String}()
-    for (type, subtypes) in types
+    for (type, subtypes) in pairs(typetree)
         if isempty(subtypes) || type == :object continue end
         subtype_str = join(subtypes, " ")
         strs[type] = "$subtype_str - $type"
     end
-    maxtypes = collect(setdiff(types[:object], keys(strs)))
+    maxtypes = collect(setdiff(get(typetree, :object, Symbol[]), keys(strs)))
     strs[:object] = join(maxtypes, " ")
     return strip(join(values(strs), " "))
 end
 
 "Write domain predicates or functions."
-function write_predicates(predicates::Dict{Symbol,Term},
-                          predtypes::Dict{Symbol,Vector{Symbol}})
+function write_signatures(signatures)
     strs = String[]
-    for (name, pred) in predicates
-        types = predtypes[name]
-        args_str = write_typed_list(pred.args, types)
-        push!(strs, "($name $args_str)")
+    for (name, sig) in pairs(signatures)
+        args = collect(Term, sig.args)
+        types = collect(Symbol, sig.argtypes)
+        args_str = write_typed_list(args, types)
+        sig_str = isempty(args_str) ? "($name)" : "($name $args_str)"
+        if sig.type != :boolean && sig.type != :numeric
+            sig_str = "$sig_str - $(sig.type)"
+        end
+        push!(strs, sig_str)
     end
     return join(strs, " ")
 end
 
 "Write PDDL axiom / derived predicate."
-function write_axiom(c::Clause, key=":derived")
+function write_axiom(c::Clause; key=":derived")
     head_str = write_formula(c.head)
     body_str = length(c.body) == 1 ? write_formula(c.body[1]) :
         "(and " * join(write_formula.(c.body), " ") * ")"
@@ -149,34 +164,35 @@ function write_axiom(c::Clause, key=":derived")
 end
 
 "Write action in PDDL syntax."
-function write_action(action::GenericAction, indent::Int=1)
+function write_action(action::Action; indent::Int=1)
     strs = Dict{Symbol,String}()
     fields = [:action, :parameters, :precondition, :effect]
-    strs[:action] = string(action.name)
-    strs[:parameters] = "(" * write_typed_list(action.args, action.types) * ")"
-    strs[:precondition] = write_formula(action.precond)
-    strs[:effect] = write_formula(action.effect)
+    strs[:action] = string(get_name(action))
+    strs[:parameters] =
+        "(" * write_typed_list(get_argvars(action), get_argtypes(action)) * ")"
+    strs[:precondition] = write_formula(get_precond(action))
+    strs[:effect] = write_formula(get_effect(action))
     strs = ["$(repr(k)) $(strs[k])" for k in fields]
     return "(" * join(strs, "\n" * ' '^indent) * ")"
 end
-write_pddl(action::GenericAction) = write_action(action)
+write_pddl(action::Action) = write_action(action)
 
 "Write problem in PDDL syntax."
-function write_problem(problem::GenericProblem, indent::Int=2)
+function write_problem(problem::Problem, indent::Int=2)
     strs = Dict{Symbol,String}()
     fields = [:domain, :objects, :init, :goal, :metric]
     strs[:domain] = string(problem.domain)
     strs[:objects] = indent_typed_list(
-        write_typed_list(problem.objects, problem.objtypes), 12)
-    strs[:init] = write_init(problem.init, 9)
-    strs[:goal] = write_formula(problem.goal)
-    strs[:metric] = write_metric(problem.metric)
+        write_typed_list(get_objects(problem), get_objtypes(problem)), 12)
+    strs[:init] = write_init(get_init_terms(problem), 9)
+    strs[:goal] = write_formula(get_goal(problem))
+    strs[:metric] = write_metric(get_metric(problem))
     strs = ["($(repr(k)) $(strs[k]))" for k in fields
             if haskey(strs, k) && length(strs[k]) > 0]
-    pushfirst!(strs, "(define (problem $(problem.name))")
+    pushfirst!(strs, "(define (problem $(get_name(problem)))")
     return join(strs, "\n" * ' '^indent) * "\n)"
 end
-write_pddl(problem::GenericProblem) = write_problem(problem)
+write_pddl(problem::Problem) = write_problem(problem)
 
 "Write initial problem formulae in PDDL syntax."
 function write_init(init::Vector{<:Term}, indent::Int=2, maxchars::Int=80)
@@ -195,13 +211,13 @@ end
 write_metric(::Nothing) = ""
 
 "Save PDDL domain to specified path."
-function save_domain(path::String, domain::GenericDomain)
+function save_domain(path::String, domain::Domain)
     open(f->write(f, write_domain(domain)), path, "w")
     return path
 end
 
 "Save PDDL problem to specified path."
-function save_problem(path::String, problem::GenericProblem)
+function save_problem(path::String, problem::Problem)
     open(f->write(f, write_problem(problem)), path, "w")
     return path
 end
