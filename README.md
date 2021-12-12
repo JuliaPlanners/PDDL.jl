@@ -108,7 +108,9 @@ PDDL.jl exposes a high-level interface for interacting with planning domains and
 - `initstate` constructs an initial state from a PDDL domain and problem.
 - `goalstate` constructs a (partial) goal state from a PDDL domain and problem
 - `transition` returns the successor to a state after applying an action or set of actions.
-- `available` checks whether an action can be executed in a state. If no action is specified, it returns the list of available actions.
 - `execute` applies an action to a state, returning the resulting state.
-- `relevant` checks whether an action can lead to a state. If no action is specified, it returns the list of relevant actions.
 - `regress` computes the pre-image of an action with respect to a state.
+- `available` checks whether an action can be executed in a state.
+  - If no action is specified, it returns the list of available actions.
+- `relevant` checks whether an action can lead to a state.
+  - If no action is specified, it returns the list of relevant actions.
