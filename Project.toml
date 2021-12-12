@@ -10,7 +10,7 @@ Julog = "5d8bcb5e-2b2c-4a96-a2b1-d40b3d3c344f"
 ParserCombinator = "fae87a5f-d1ad-5cf0-8f61-c941e1580b46"
 
 [compat]
-AutoHashEquals = "1.0"
+AutoHashEquals = "0.2, 1.0"
 IntervalArithmetic = "0.19, 0.20"
 Julog = "0.1.11"
 ParserCombinator = "2.0.0"
