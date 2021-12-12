@@ -1,6 +1,3 @@
-export Simulator
-export EndStateSimulator, StateRecorder
-
 "Abstract type for PDDL simulators."
 abstract type Simulator end
 
