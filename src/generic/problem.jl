@@ -6,7 +6,8 @@
     objtypes::Dict{Const,Symbol} # Types of objects
     init::Vector{Term} # Predicates that hold in initial state
     goal::Term # Goal formula
-    metric::Union{Tuple{Int,Term},Nothing} # Metric direction (+/-) and formula
+    metric::Union{Term,Nothing} # Metric formula
+    constraints::Union{Term,Nothing} # Constraints formula
 end
 
 GenericProblem(problem::GenericProblem) = copy(problem)
@@ -18,7 +19,8 @@ function GenericProblem(problem::Problem)
         Dict{Const,Symbol}(pairs(get_objtypes(state))...),
         collect(Term, get_init_terms(problem)),
         get_goal(problem),
-        get_metric(problem)
+        get_metric(problem),
+        get_constraints(problem)
     )
 end
 
@@ -35,7 +37,8 @@ function GenericProblem(
     domain=:domain,
     name=Symbol(domain, "-problem"),
     goal::Term=Compound(:and, []),
-    metric=nothing
+    metric=nothing,
+    constraints=nothing,
 )
     objtypes = Dict{Const,Symbol}(pairs(get_objtypes(state))...)
     objects = collect(get_objects(state))
@@ -50,7 +53,8 @@ function GenericProblem(
         push!(init, term)
     end
     return GenericProblem(Symbol(name), Symbol(domain),
-                          objects, objtypes, init, goal, metric)
+                          objects, objtypes, init,
+                          goal, metric, constraints)
 end
 
 Base.copy(problem::GenericProblem) = deepcopy(problem)
@@ -68,3 +72,5 @@ get_init_terms(problem::GenericProblem) = problem.init
 get_goal(problem::GenericProblem) = problem.goal
 
 get_metric(problem::GenericProblem) = problem.metric
+
+get_constraints(problem::GenericProblem) = problem.constraints

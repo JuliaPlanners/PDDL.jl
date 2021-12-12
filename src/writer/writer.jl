@@ -9,7 +9,7 @@ using ..PDDL:
     get_name, get_requirements, get_typetree, get_constants, get_constypes,
     get_predicates, get_functions, get_actions, get_axioms,
     get_domain_name, get_objects, get_objtypes,
-    get_init_terms, get_goal, get_metric,
+    get_init_terms, get_goal, get_metric, get_constraints,
     get_argvars, get_argtypes, get_precond, get_effect
 
 "Write list of typed formulae in PDDL syntax."
@@ -88,6 +88,7 @@ function write_formula(f::Compound)
 end
 write_formula(f::Var) = "?" * lowercasefirst(repr(f))
 write_formula(f::Const) = "(" * repr(f) * ")"
+write_formula(::Nothing) = ""
 
 write_subformula(f::Compound) = write_formula(f)
 write_subformula(f::Var) = "?" * lowercasefirst(repr(f))
@@ -180,13 +181,14 @@ write_pddl(action::Action) = write_action(action)
 "Write problem in PDDL syntax."
 function write_problem(problem::Problem, indent::Int=2)
     strs = Dict{Symbol,String}()
-    fields = [:domain, :objects, :init, :goal, :metric]
+    fields = [:domain, :objects, :init, :goal, :metric, :constraints]
     strs[:domain] = string(problem.domain)
     strs[:objects] = indent_typed_list(
         write_typed_list(get_objects(problem), get_objtypes(problem)), 12)
     strs[:init] = write_init(get_init_terms(problem), 9)
     strs[:goal] = write_formula(get_goal(problem))
-    strs[:metric] = write_metric(get_metric(problem))
+    strs[:metric] = write_formula(get_metric(problem))[2:end-1]
+    strs[:constraints] = write_formula(get_constraints(problem))
     strs = ["($(repr(k)) $(strs[k]))" for k in fields
             if haskey(strs, k) && length(strs[k]) > 0]
     pushfirst!(strs, "(define (problem $(get_name(problem)))")
@@ -201,14 +203,6 @@ function write_init(init::Vector{<:Term}, indent::Int=2, maxchars::Int=80)
         return join(strs, " ") end
     return join(strs, "\n" * ' '^indent)
 end
-
-"Write metric for PDDL problem."
-function write_metric(metric::Tuple{Int,Term})
-    sign, formula = metric
-    direction = sign > 0 ? "maximize" : "minimize"
-    return direction * " " * write_formula(formula)
-end
-write_metric(::Nothing) = ""
 
 "Save PDDL domain to specified path."
 function save_domain(path::String, domain::Domain)

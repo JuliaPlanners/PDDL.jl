@@ -21,3 +21,6 @@ get_goal(problem::Problem) = error("Not implemented.")
 
 "Returns the metric specification of a problem."
 get_metric(problem::Problem) = error("Not implemented.")
+
+"Returns the constraint specification of a problem."
+get_constraints(problem::Problem) = error("Not implemented.")

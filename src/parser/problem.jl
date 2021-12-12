@@ -39,8 +39,16 @@ head_field_parsers[:problem][:goal] = parse_goal
 "Parse metric expression in planning problem."
 function parse_metric(expr::Vector)
     @assert (expr[1].name == :metric) ":metric keyword is missing."
-    @assert (expr[2] in [:minimize, :maximize]) "Unrecognized optimization."
-    return (expr[2] == :maximize ? 1 : -1, parse_formula(expr[3]))
+    @assert (expr[2] in (:minimize, :maximize)) "Unrecognized optimization."
+    return Compound(expr[2], [parse_formula(expr[3])])
 end
 parse_metric(expr::Nothing) = nothing
 head_field_parsers[:problem][:metric] = parse_metric
+
+"Parse constraints formula in planning problem."
+function parse_constraints(expr::Vector)
+    @assert (expr[1].name == :constraints) ":constraints keyword is missing."
+    return parse_formula(expr[2])
+end
+parse_constraints(::Nothing) = nothing
+head_field_parsers[:problem][:constraints] = parse_constraints
