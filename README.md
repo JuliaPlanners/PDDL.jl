@@ -6,7 +6,7 @@
 
 A Julia parser, interpreter, and compiler interface for the Planning Domain Definition Language (PDDL).
 
-Planners not included.
+Planners not included, but see [`SymbolicPlanners.jl`](https://github.com/JuliaPlanners/SymbolicPlanners.jl).
 
 ## Installation
 
@@ -17,11 +17,11 @@ add https://github.com/JuliaPlanners/PDDL.jl.git
 
 ## Features
 
-- Parsing of PDDL domain and problem files
+- Parsing and writing of PDDL domain and problem files
 - A high-level symbolic planning API
 - Execution of PDDL actions and plans
 - Abstract interpretation of PDDL semantics
-- Domain compilation for high performance
+- Domain grounding and/or compilation for increased performance
 - Support for the following PDDL requirements:
   - `:strips` - the most restricted functionality
   - `:typing` - (hierarchically) typed objects
@@ -30,8 +30,9 @@ add https://github.com/JuliaPlanners/PDDL.jl.git
   - `:disjunctive-preconditions` - `or` predicates
   - `:conditional-effects` - `when` and `forall` effects
   - `:adl` - shorthand for the above 6 requirements
+  - `:constants` - domain constants
   - `:fluents` - numeric fluents
-  - `:derived-predicates` - a.k.a. domain axioms / Horn clauses
+  - `:derived-predicates` - a.k.a. domain axioms
 
 `PDDL.jl` does not include any planning algorithms. Rather, it aims to provide an
 interface so that planners for PDDL domains can easily be written in Julia, as
@@ -96,3 +97,18 @@ We can then check that the problem is successfully solved in the final state:
 ```
 
 More examples can be found in the [`test`](test) directory.
+
+## Interface
+
+PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](src/interface/interface.jl). A summary is provided below:
+
+- `satisfy` checks whether a logical formula is satisfied (or satisfiable) in a PDDL state.
+- `satisfiers` returns all satisfying substitutions to free variables in a logical formula.
+- `evaluate` returns the value of a functional or logical expression within the context of a state.
+- `initstate` constructs an initial state from a PDDL domain and problem.
+- `goalstate` constructs a (partial) goal state from a PDDL domain and problem
+- `transition` returns the successor to a state after applying an action or set of actions.
+- `available` checks whether an action can be executed in a state. If no action is specified, it returns the list of available actions.
+- `execute` applies an action to a state, returning the resulting state.
+- `relevant` checks whether an action can lead to a state. If no action is specified, it returns the list of relevant actions.
+- `regress` computes the pre-image of an action with respect to a state.
