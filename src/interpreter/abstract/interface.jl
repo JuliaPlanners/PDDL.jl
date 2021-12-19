@@ -49,3 +49,8 @@ update!(domain::AbstractedDomain, state::State, diff::Diff) =
     update!(domain.interpreter, domain, state, diff)
 update(domain::AbstractedDomain, state::State, diff::Diff) =
     update(domain.interpreter, domain, state, diff)
+
+widen!(domain::AbstractedDomain, state::State, diff::Diff) =
+    widen!(domain.interpreter, domain, state, diff)
+widen(domain::AbstractedDomain, state::State, diff::Diff) =
+    widen(domain.interpreter, domain, state, diff)
