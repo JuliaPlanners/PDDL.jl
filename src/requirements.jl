@@ -2,6 +2,7 @@
 const DEFAULT_REQUIREMENTS = Dict{Symbol,Bool}(
     Symbol("strips") => true,
     Symbol("typing") => false,
+    Symbol("fluents") => false,
     Symbol("negative-preconditions") => false,
     Symbol("disjunctive-preconditions") => false,
     Symbol("equality") => false,

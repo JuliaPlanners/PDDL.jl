@@ -87,7 +87,7 @@ function write_formula(f::Compound)
     end
 end
 write_formula(f::Var) = "?" * lowercasefirst(repr(f))
-write_formula(f::Const) = "(" * repr(f) * ")"
+write_formula(f::Const) = f.name isa Symbol ? "(" * repr(f) * ")" : repr(f)
 write_formula(::Nothing) = ""
 
 write_subformula(f::Compound) = write_formula(f)
@@ -135,8 +135,8 @@ function write_typetree(typetree)
         subtype_str = join(subtypes, " ")
         strs[type] = "$subtype_str - $type"
     end
-    maxtypes = collect(setdiff(get(typetree, :object, Symbol[]), keys(strs)))
-    strs[:object] = join(maxtypes, " ")
+    maxtypes = collect(union(get(typetree, :object, Symbol[]), keys(strs)))
+    strs[:object] = join(sort(maxtypes), " ")
     return strip(join(values(strs), " "))
 end
 
