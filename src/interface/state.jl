@@ -22,12 +22,8 @@ get_facts(state::State) = error("Not implemented.")
 "Gets the value of a fluent specified by `term`."
 get_fluent(state::State, term::Term) = error("Not implemented.")
 
-get_fluent(state::State, name::Symbol, args...) = error("Not implemented.")
-
 "Sets the value of a fluent specified by `term` to `val`."
 set_fluent!(state::State, val, term::Term) = error("Not implemented.")
-
-set_fluent!(state::State, val, name::Symbol, args...) = error("Not implemented.")
 
 "Returns a map from fluent names to values (false predicates may be omitted)."
 get_fluents(state::State) = error("Not implemented.")

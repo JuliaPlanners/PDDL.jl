@@ -61,12 +61,6 @@ function get_fluent(state::GenericState, term::Compound)
     end
 end
 
-get_fluent(state::GenericState, name::Symbol) =
-    get_fluent(state, Const(name))
-
-get_fluent(state::GenericState, name::Symbol, args...) =
-    get_fluent(state, Compound(name, collect(args)))
-
 function set_fluent!(state::GenericState, val::Bool, term::Compound)
     if val push!(state.facts, term) else delete!(state.facts, term) end
     return val
@@ -85,12 +79,6 @@ function set_fluent!(state::GenericState, val::Any, term::Compound)
     d = get!(state.values, term.name, Dict())
     d[Tuple(a.name for a in term.args)] = val
 end
-
-set_fluent!(state::GenericState, val, name::Symbol) =
-    set_fluent!(state, val, Const(name))
-
-set_fluent!(state::GenericState, val, name::Symbol, args...) =
-    set_fluent!(state, val, Compound(name, collect(args)))
 
 get_fluents(state::GenericState) =
     ((name => get_fluent(state, name)) for name in get_fluent_names(state))
