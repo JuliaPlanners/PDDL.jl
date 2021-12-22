@@ -116,37 +116,42 @@ function generate_state_methods(domain::Domain, state::State,
         end
     end
     # Fluent accessors
-    get_fluent_defs, set_fluent_defs, groundargs_defs = [], [], []
+    fluent_conds, get_fluent_brs, set_fluent_brs, groundargs_defs =
+        Expr[], Expr[], Expr[], Expr[]
     for (name, sig) in pairs(get_fluents(domain))
         # Ground args
         def = generate_groundargs(domain, state, domain_type, state_type, name)
         push!(groundargs_defs, def)
-        # Only generate for compound terms
-        if length(sig.args) == 0 continue end
+        # Generate accessor branch conditions
+        push!(fluent_conds, :(term.name == $(QuoteNode(name))))
+        # Generate accessor branch defs for 0-arity fluents
+        if length(sig.args) == 0
+            push!(get_fluent_brs, :(state.$name))
+            push!(set_fluent_brs, :(state.$name = val))
+            continue
+        end
+        # Generate accessor branch defs multiple-arity fluents
         term = convert(Term, sig)
-        args = [Symbol(:arg, i) for i in 1:length(sig.args)]
-        varmap = Dict(a => :($(Symbol(:arg, i)).name)
+        varmap = Dict(a => :(term.args[$i].name)
                       for (i, a) in enumerate(sig.args))
         idxs = generate_fluent_ids(domain, state, term, sig, varmap)
-        valtype = QuoteNode(Val{name})
-        # Getter
-        get_fluent_def = quote
-            function get_fluent(state::$state_type, ::$valtype, $(args...))
-                return (state.$name)[$(idxs...)]
-            end
+        push!(get_fluent_brs, :(state.$name[$(idxs...)]))
+        push!(set_fluent_brs, :(state.$name[$(idxs...)] = val))
+    end
+    err_br = :(error("Unrecognized fluent: $(term.name)"))
+    get_fluent_def = quote
+        function get_fluent(state::$state_type, term::Term)
+            return $(generate_switch_stmt(fluent_conds, get_fluent_brs, err_br))
         end
-        push!(get_fluent_defs, get_fluent_def)
-        # Setter
-        set_fluent_def = quote
-            function set_fluent!(state::$state_type, val, ::$valtype, $(args...))
-                state.$name[$(idxs...)] = val
-            end
+    end
+    set_fluent_def = quote
+        function set_fluent!(state::$state_type, val, term::Term)
+            return $(generate_switch_stmt(fluent_conds, set_fluent_brs, err_br))
         end
-        push!(set_fluent_defs, set_fluent_def)
     end
     state_method_defs = Expr(:block, types_def,
         get_fluent_names_def, groundargs_defs...,
-        get_fluent_defs..., set_fluent_defs...)
+        get_fluent_def, set_fluent_def)
     return state_method_defs
 end
 
@@ -185,24 +190,6 @@ Base.copy(state::S) where {S <: CompiledState} =
 
 groundargs(domain::CompiledDomain, state::State, fluent::Symbol) =
     groundargs(domain, state, Val(fluent))
-
-get_fluent(state::CompiledState, term::Symbol) =
-    getproperty(state, term)
-get_fluent(state::CompiledState, term::Symbol, args::Vararg{Any,N}) where {N} =
-    get_fluent(state, Val(term), args...)
-get_fluent(state::CompiledState, term::Const) =
-    get_fluent(state, term.name)
-get_fluent(state::CompiledState, term::Compound) =
-    get_fluent(state, term.name, term.args...)
-
-set_fluent!(state::CompiledState, val, name::Symbol) =
-    setproperty!(state, name, val)
-set_fluent!(state::CompiledState, val, term::Symbol, args::Vararg{Any,N}) where {N} =
-    set_fluent!(state, val, Val(term), args...)
-set_fluent!(state::CompiledState, val, term::Const) =
-    set_fluent!(state, val, term.name)
-set_fluent!(state::CompiledState, val, term::Compound) =
-    set_fluent!(state, val, term.name, term.args...)
 
 get_fluents(state::CompiledState) =
     (term => get_fluent(state, term) for term in get_fluent_names(state))
