@@ -135,8 +135,8 @@ function generate_state_methods(domain::Domain, state::State,
         varmap = Dict(a => :(term.args[$i].name)
                       for (i, a) in enumerate(sig.args))
         idxs = generate_fluent_ids(domain, state, term, sig, varmap)
-        push!(get_fluent_brs, :(state.$name[$(idxs...)]))
-        push!(set_fluent_brs, :(state.$name[$(idxs...)] = val))
+        push!(get_fluent_brs, :(@inbounds state.$name[$(idxs...)]))
+        push!(set_fluent_brs, :(@inbounds state.$name[$(idxs...)] = val))
     end
     err_br = :(error("Unrecognized fluent: $(term.name)"))
     get_fluent_def = quote
