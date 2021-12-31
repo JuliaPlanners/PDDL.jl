@@ -56,6 +56,10 @@ has_pred(term::Term, domain::Domain) =
 has_func(term::Term, domain::Domain) =
     has_name(term, keys(get_functions(domain)))
 
+"Check if term contains the name of global function."
+has_global_func(term::Term) =
+    has_name(term, keys(GLOBAL_PREDICATES))
+
 "Check if term contains a derived predicate"
 has_derived(term::Term, domain::Domain) =
     has_name(term, keys(get_axioms(domain)))
@@ -63,6 +67,10 @@ has_derived(term::Term, domain::Domain) =
 "Check if term contains a universal or existential quantifier."
 has_quantifier(term::Term) =
     has_name(term, Set(Symbol[:forall, :exists]))
+
+"Check if term contains a negated literal."
+has_negation(term::Term) =
+    has_name(term, (:not,))
 
 "Check if term contains a fluent name."
 has_fluent(term::Term, domain::Domain) =

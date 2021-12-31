@@ -12,7 +12,8 @@ function available(interpreter::Interpreter, domain::Domain, state::State)
         # Include type conditions when necessary for correctness
         typecond = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
         p = get_precond(act)
-        if has_func(p, domain) || has_derived(p, domain) || has_quantifier(p)
+        if (has_func(p, domain) || has_global_func(p) || has_negation(p) ||
+            has_derived(p, domain) || has_quantifier(p))
             conds = prepend!(flatten_conjs(p), typecond)
         elseif get_requirements(domain)[:typing]
             conds = append!(flatten_conjs(p), typecond)
