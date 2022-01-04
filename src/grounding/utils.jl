@@ -1,5 +1,17 @@
 # Various term manipulation utilities
 
+"Returns an iterator over all ground arguments of a `fluent`."
+function groundargs(domain::Domain, state::State, fluent::Symbol)
+    if get_requirements(domain)[:typing]
+        argtypes = get_fluent(domain, fluent).argtypes
+        obj_iters = (get_objects(domain, state, ty) for ty in argtypes)
+    else
+        n = arity(get_fluent(domain, fluent))
+        obj_iters = (get_objects(state) for i in 1:n)
+    end
+    return Iterators.product(obj_iters...)
+end
+
 """
     dequantify(term::Term, domain::Domain, state::State)
 
