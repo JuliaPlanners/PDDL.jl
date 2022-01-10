@@ -1,12 +1,12 @@
 function available(interpreter::Interpreter, domain::Domain, state::State)
     # Ground all action definitions with arguments
-    actions = Term[]
+    actions = Compound[]
     for act in values(get_actions(domain))
         act_name = get_name(act)
         act_vars, act_types = get_argvars(act), get_argtypes(act)
         # Directly check precondition if action has no parameters
         if isempty(act_vars) && satisfy(domain, state, get_precond(act))
-            push!(actions, Const(act_name))
+            push!(actions, Compound(act_name, Term[]))
             continue
         end
         # Include type conditions when necessary for correctness
@@ -26,8 +26,7 @@ function available(interpreter::Interpreter, domain::Domain, state::State)
         for s in subst
             args = [s[v] for v in act_vars if v in keys(s)]
             if any(!is_ground(a) for a in args) continue end
-            term = isempty(args) ? Const(act_name) : Compound(act_name, args)
-            push!(actions, term)
+            push!(actions, Compound(act_name, args))
         end
     end
     return actions

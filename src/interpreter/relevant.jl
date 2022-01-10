@@ -1,5 +1,5 @@
 function relevant(interpreter::Interpreter, domain::Domain, state::State)
-    actions = Term[]
+    actions = Compound[]
     for act in values(get_actions(domain))
         act_name = get_name(act)
         act_vars, act_types = get_argvars(act), get_argtypes(act)
@@ -21,8 +21,7 @@ function relevant(interpreter::Interpreter, domain::Domain, state::State)
         for s in subst
             args = [get(s, var, var) for var in act_vars]
             if any(!is_ground(a) for a in args) continue end
-            term = isempty(args) ? Const(act_name) : Compound(act_name, args)
-            push!(actions, term)
+            push!(actions, Compound(act_name, args))
         end
     end
     return actions
