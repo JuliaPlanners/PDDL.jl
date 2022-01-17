@@ -33,8 +33,8 @@ Base.setproperty!(d::GenericDomain, s::Symbol, val) =
     hasfield(GenericDomain, s) && s != :_extras ?
         setfield!(d, s, val) : setindex!(d._extras, val, s)
 
-function Base.propertynames(d::GenericDomain, private=false)
-    if !private
+function Base.propertynames(d::GenericDomain, private::Bool=false)
+    if private
         tuple(fieldnames(GenericDomain)..., keys(d._extras)...)
     else
         tuple(filter(f -> f != :_extras, fieldnames(GenericDomain))...,
