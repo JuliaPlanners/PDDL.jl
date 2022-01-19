@@ -42,6 +42,15 @@ get_effect(action::Action, args) = error("Not implemented.")
 get_effect(domain::Domain, term::Term) =
     get_effect(get_actions(domain)[term.name], term.args)
 
+Base.convert(::Type{Term}, action::Action) =
+    convert(Compound, action)
+
+Base.convert(::Type{Compound}, action::Action) =
+    Compound(get_name(action), get_argvars(action))
+
+Base.convert(::Type{Const}, action::Action) = isempty(get_argvars(action)) ?
+    Const(get_name(action)) : error("Action has arguments.")
+
 "No-op action."
 struct NoOp <: Action end
 
@@ -72,3 +81,9 @@ relevant(::Domain, state::State, ::NoOp, args; options...) = false
 regress(::Domain, state::State, ::NoOp, args; options...) = state
 
 regress!(::Domain, state::State, ::NoOp, args; options...) = state
+
+Base.convert(::Type{Term}, ::NoOp) = convert(Compound, no_op)
+
+Base.convert(::Type{Compound}, ::NoOp) = Compound(Symbol("--"), Term[])
+
+Base.convert(::Type{Const}, ::NoOp) = Const(Symbol("--"))

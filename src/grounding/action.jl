@@ -14,6 +14,11 @@ get_precond(action::GroundAction) = Compound(:and, action.preconds)
 
 get_effect(action::GroundAction) = as_term(action.effect)
 
+Base.convert(::Type{Compound}, action::GroundAction) = action.term
+
+Base.convert(::Type{Const}, action::GroundAction) =
+    isempty(action.term.args) ? action.term : error("Action has arguments.")
+
 "Group of ground actions with a shared schema."
 struct GroundActionGroup <: Action
     name::Symbol
