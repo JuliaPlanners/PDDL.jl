@@ -27,12 +27,12 @@ function generate_execute(domain::Domain, state::State,
     action = get_actions(domain)[action_name]
     varmap = Dict{Var,Any}(a => :(args[$i].name) for (i, a) in
                            enumerate(get_argvars(action)))
-    # TODO: Fix mutating execute
+    # TODO: Fix mutating execute to ensure parallel composition of effects
     precond = generate_check_expr(domain, state, get_precond(action), varmap,
                                   :prev_state)
     effect = generate_effect_expr(domain, state, get_effect(action), varmap)
-    effect! = generate_effect_expr(domain, state, get_effect(action), varmap,
-                                   :prev_state)
+    meffect = generate_effect_expr(domain, state, get_effect(action), varmap,
+                                   :prev_state, :prev_state)
     execute_def = quote
         function execute(domain::$domain_type, prev_state::$state_type,
                          action::$action_type, args; check::Bool=false)
@@ -48,7 +48,7 @@ function generate_execute(domain::Domain, state::State,
             if check && !(@inbounds $precond)
                 error("Precondition not satisfied")
             end
-            @inbounds $effect!
+            @inbounds $meffect
             return prev_state
         end
     end

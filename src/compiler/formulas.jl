@@ -32,7 +32,7 @@ function generate_quantified_expr(domain::Domain, state::State, term::Term,
     expr = generate_check_expr(domain, state, query, varmap, state_var)
     # Construct iterator over (typed) objects
     v, ty = pop!(vars), QuoteNode(pop!(types))
-    expr = :($expr for $v in get_objects(state, $ty))
+    expr = :($expr for $v in get_objects($state_var, $ty))
     while !isempty(types)
         v, ty = pop!(vars), QuoteNode(pop!(types))
         expr = Expr(:flatten, :($expr for $v in get_objects($state_var, $ty)))
@@ -105,7 +105,8 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
 end
 
 function generate_forall_effect_expr(domain::Domain, state::State, term::Term,
-                                     varmap=Dict{Var,Any}(), state_var=:state)
+                                     varmap=Dict{Var,Any}(),
+                                     state_var=:state, prev_var=:prev_state)
     @assert length(term.args) == 2 "$(term.name) takes two arguments"
     varmap = copy(varmap) # Make local copy of variable context
     typeconds, effect = flatten_conjs(term.args[1]), term.args[2]
@@ -117,7 +118,8 @@ function generate_forall_effect_expr(domain::Domain, state::State, term::Term,
         varmap[cond.args[1]] = :($v.name)
     end
     # Generate effect expression with local variable context
-    expr = generate_effect_expr(domain, state, effect, varmap, state_var)
+    expr = generate_effect_expr(domain, state, effect, varmap,
+                                state_var, prev_var)
     # Special case if only one object variable is enumerated over
     if length(vars) == 1
         v, ty = vars[1], QuoteNode(types[1])
@@ -134,15 +136,17 @@ function generate_forall_effect_expr(domain::Domain, state::State, term::Term,
 end
 
 function generate_effect_expr(domain::Domain, state::State, term::Term,
-                              varmap=Dict{Var,Any}(), state_var=:state)
+                              varmap=Dict{Var,Any}(),
+                              state_var=:state, prev_var=:prev_state)
     expr = if term.name == :and
-        subexprs = [generate_effect_expr(domain, state, a, varmap, state_var)
+        subexprs = [generate_effect_expr(domain, state, a, varmap,
+                                         state_var, prev_var)
                     for a in term.args]
         Expr(:block, subexprs...)
     elseif term.name == :assign
         @assert length(term.args) == 2 "assign takes two arguments"
         term, val = term.args
-        val = generate_eval_expr(domain, state, val, varmap, :prev_state)
+        val = generate_eval_expr(domain, state, val, varmap, prev_var)
         generate_set_expr(domain, state, term, val, varmap, state_var)
     elseif term.name == :not
         @assert length(term.args) == 1 "not takes one argument"
@@ -152,17 +156,19 @@ function generate_effect_expr(domain::Domain, state::State, term::Term,
     elseif term.name == :when
         @assert length(term.args) == 2 "when takes two arguments"
         cond, effect = term.args
-        cond = generate_check_expr(domain, state, cond, varmap, :prev_state)
-        effect = generate_effect_expr(domain, state, effect, varmap, state_var)
+        cond = generate_check_expr(domain, state, cond, varmap, prev_var)
+        effect = generate_effect_expr(domain, state, effect, varmap,
+                                      state_var, prev_var)
         :(cond = $cond; (cond == true || cond == both) && $effect)
     elseif term.name == :forall
-        generate_forall_effect_expr(domain, state, term, varmap, state_var)
+        generate_forall_effect_expr(domain, state, term, varmap,
+                                    state_var, prev_var)
     elseif term.name in keys(GLOBAL_MODIFIERS)
         @assert length(term.args) == 2 "$(term.name) takes two arguments"
         op = GLOBAL_MODIFIERS[term.name]
         term, val = term.args
-        prev_val = generate_get_expr(domain, state, term, varmap, :prev_state)
-        val = generate_eval_expr(domain, state, val, varmap, :prev_state)
+        prev_val = generate_get_expr(domain, state, term, varmap, prev_var)
+        val = generate_eval_expr(domain, state, val, varmap, prev_var)
         new_val = Expr(:call, op, prev_val, val)
         generate_set_expr(domain, state, term, new_val, varmap, state_var)
     elseif term.name in keys(get_predicates(domain))
