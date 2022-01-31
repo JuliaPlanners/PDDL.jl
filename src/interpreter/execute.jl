@@ -38,12 +38,3 @@ function execute!(interpreter::Interpreter,
     return execute!(interpreter, domain, state, get_action(domain, action.name),
                     action.args; options...)
 end
-
-function execute(domain::Domain, state::State, actions::AbstractVector{<:Term};
-                 options...)
-    state = copy(state)
-    for act in actions
-        execute!(domain, state, get_action(domain, act.name), act.args; options...)
-    end
-    return state
-end
