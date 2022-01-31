@@ -47,6 +47,8 @@ get_facts(state::GenericState) =
 function get_fluent(state::GenericState, term::Const)
     if term in state.facts
         return true
+    elseif !(term.name isa Symbol) || is_global_func(term)
+        error("$(write_pddl(term)) is not a fluent, use `evaluate` instead.")
     else
         return get(state.values, term.name, false)
     end
@@ -57,7 +59,15 @@ function get_fluent(state::GenericState, term::Compound)
         return true
     else
         d = get(state.values, term.name, nothing)
-        return d === nothing ? false : d[Tuple(a.name for a in term.args)]
+        if !isnothing(d)
+            return get(d, Tuple(a.name for a in term.args)) do
+                error("Fluent $term undefined for arguments $(term.args)")
+            end
+        elseif is_logical_op(term) || is_global_func(term)
+            error("$(write_pddl(term)) is not a fluent, use `evaluate` instead.")
+        else
+            return false
+        end
     end
 end
 
@@ -72,11 +82,17 @@ function set_fluent!(state::GenericState, val::Bool, term::Const)
 end
 
 function set_fluent!(state::GenericState, val::Any, term::Const)
+    if !(term.name isa Symbol) || is_global_func(term)
+        error("$(write_pddl(term)) is not a fluent and cannot be set.")
+    end
     state.values[term.name] = val
 end
 
 function set_fluent!(state::GenericState, val::Any, term::Compound)
-    d = get!(state.values, term.name, Dict())
+    d = get!(state.values, term.name) do
+        is_logical_op(term) || is_global_func(term) ?
+            error("$(write_pddl(term)) is not a fluent and cannot be set") : Dict()
+    end
     d[Tuple(a.name for a in term.args)] = val
 end
 

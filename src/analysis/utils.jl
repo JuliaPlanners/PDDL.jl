@@ -34,6 +34,10 @@ is_global_pred(term::Term) =
 is_global_func(term::Term) =
     term.name in keys(GLOBAL_FUNCTIONS)
 
+"Check if term is a logical operator."
+is_logical_op(term::Term) =
+    term.name in (:and, :or, :not, :imply, :exists, :forall)
+
 "Check if term is a type predicate."
 is_type(term::Term, domain::Domain) =
     term.name in get_types(domain)
@@ -60,13 +64,17 @@ has_func(term::Term, domain::Domain) =
 has_global_func(term::Term) =
     has_name(term, keys(GLOBAL_PREDICATES))
 
+"Check if contains a logical operator."
+has_logical_op(term::Term) =
+    has_name(term, Set([:and, :or, :not, :imply, :exists, :forall]))
+
 "Check if term contains a derived predicate"
 has_derived(term::Term, domain::Domain) =
     has_name(term, keys(get_axioms(domain)))
 
 "Check if term contains a universal or existential quantifier."
 has_quantifier(term::Term) =
-    has_name(term, Set(Symbol[:forall, :exists]))
+    has_name(term, Set([:forall, :exists]))
 
 "Check if term contains a negated literal."
 has_negation(term::Term) =
