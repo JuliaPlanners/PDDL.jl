@@ -44,12 +44,14 @@ function compiled(domain::Domain, state::State)
         generate_action_defs(domain, state, domain_type, state_type)
     transition_def =
         generate_transition(domain, state, domain_type, state_type)
-    # Generate return expression
+    # Generate warm-up and return expressions
+    warmup_expr = :(_compiler_warmup($domain_type(), $state_type($state)))
     return_expr = :($domain_type(), $state_type($state))
     # Evaluate definitions
     expr = Expr(:block,
         domain_typedef, domain_defs, state_typedef, state_defs, object_defs,
-        evaluate_def, satisfy_def, action_defs, transition_def, return_expr)
+        evaluate_def, satisfy_def, action_defs, transition_def,
+        warmup_expr, return_expr)
     return eval(expr)
 end
 
@@ -77,4 +79,33 @@ end
 function abstractstate(domain::CompiledDomain, state::State)
     S = statetype(domain)
     return S(state)
+end
+
+"Warm up interface functions for a compiled domain and state."
+function _compiler_warmup(domain::CompiledDomain, state::CompiledState)
+    # Warm up state constructors and accessors
+    hash(state)
+    copy(state)
+    state == state
+    term = first(get_fluent_names(state))
+    state[term] = state[term]
+    # Warm up satisfy and evaluate
+    for term in get_fluent_names(state)
+        is_pred(term, domain) || continue
+        satisfy(domain, state, term)
+        evaluate(domain, state, term)
+        break
+    end
+    # Warm up action availability, execution, and state transition
+    available(domain, state)
+    for (name, act) in pairs(get_actions(domain))
+        args = first(groundargs(domain, state, act))
+        term = Compound(name, collect(args))
+        available(domain, state, term)
+        execute!(domain, copy(state), term)
+        execute(domain, state, term)
+        transition!(domain, copy(state), term)
+        transition(domain, state, term)
+    end
+    return nothing
 end
