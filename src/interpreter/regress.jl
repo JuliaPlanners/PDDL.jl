@@ -4,7 +4,7 @@ function regress(interpreter::Interpreter,
     # Check whether action is relevant
     if check && !relevant(interpreter, domain, state, action, args)
         if fail_mode == :no_op return state end
-        error("Effect $(get_effect(action)) is not relevant.")
+        error("Effect $(write_pddl(get_effect(action))) is not relevant.")
     end
     return regress!(interpreter, domain, copy(state), action, args; check=false)
 end
