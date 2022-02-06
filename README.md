@@ -12,6 +12,11 @@ Planners not included, but see [`SymbolicPlanners.jl`](https://github.com/JuliaP
 
 Press `]` at the Julia REPL to enter the package manager, then run:
 ```
+add PDDL
+```
+
+For the latest development version, run:
+```
 add https://github.com/JuliaPlanners/PDDL.jl.git
 ```
 
