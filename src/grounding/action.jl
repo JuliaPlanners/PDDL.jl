@@ -34,8 +34,12 @@ get_name(action::GroundActionGroup) = action.name
 
 "Returns an iterator over all ground arguments of an `action`."
 function groundargs(domain::Domain, state::State, action::Action)
-    iters = (get_objects(domain, state, ty) for ty in get_argtypes(action))
-    return Iterators.product(iters...)
+    if isempty(get_argtypes(action))
+        return ()
+    else
+        iters = (get_objects(domain, state, ty) for ty in get_argtypes(action))
+        return Iterators.product(iters...)
+    end
 end
 
 """
