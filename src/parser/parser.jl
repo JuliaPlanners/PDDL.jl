@@ -78,16 +78,28 @@ macro pddl_str(str::AbstractString)
     return parse_pddl(str)
 end
 
-"Load PDDL domain from specified path."
-function load_domain(path::AbstractString)
-    str = open(f->read(f, String), path)
+"""
+    load_domain(path::AbstractString)
+    load_domain(io::IO)
+
+Load PDDL domain from specified path or IO object.
+"""
+function load_domain(io::IO)
+    str = read(io, String)
     return parse_domain(str)
 end
+load_domain(path::AbstractString) = open(io->load_domain(io), path)
 
-"Load PDDL problem from specified path."
-function load_problem(path::AbstractString)
-    str = open(f->read(f, String), path)
+"""
+    load_problem(path::AbstractString)
+    load_problem(io::IO)
+
+Load PDDL problem from specified path or IO object.
+"""
+function load_problem(io::IO)
+    str = read(io, String)
     return parse_problem(str)
 end
+load_problem(path::AbstractString) = open(io->load_problem(io), path)
 
 end
