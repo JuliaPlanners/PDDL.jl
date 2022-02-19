@@ -13,20 +13,87 @@ struct Keyword
 end
 Base.show(io::IO, kw::Keyword) = print(io, "KW:", kw.name)
 
-"Parsers for top-level PDDL descirptions."
-const top_level_parsers = Dict{Symbol,Function}()
+"Parse top level description to a PDDL.jl data structure."
+parse_top_level(name::Symbol, expr) = parse_top_level(Val(name), expr)
 
-"Header field parsers for top-level PDDL descriptions (domains, problems, etc.)."
-const head_field_parsers = Dict{Symbol,Dict{Symbol,Function}}(
-    :domain => Dict{Symbol,Function}(),
-    :problem => Dict{Symbol,Function}()
-)
+"Returns whether `name` is associated with a top-level description."
+is_top_level(name::Symbol) = is_top_level(Val(name))
+is_top_level(name) = false
 
-"Body field parsers for top-level PDDL descriptions (domains, problems, etc.)."
-const body_field_parsers = Dict{Symbol,Dict{Symbol,Function}}(
-    :domain => Dict{Symbol,Function}(),
-    :problem => Dict{Symbol,Function}()
-)
+"""
+    @add_top_level(name, f)
+
+Register `f` as a top-level parser for PDDL descriptions (e.g domains, problems).
+"""
+macro add_top_level(name, f)
+    f = esc(f)
+    _parse_top_level = GlobalRef(@__MODULE__, :parse_top_level)
+    _is_top_level = GlobalRef(@__MODULE__, :is_top_level)
+    quote
+        $_parse_top_level(::Val{$name}, expr) = $f(expr)
+        $_is_top_level(::Val{$name}) = true
+    end
+end
+
+"Parse header field for a PDDL description."
+parse_header_field(desc::Symbol, fieldname, expr) =
+    parse_header_field(Val(desc), fieldname, expr)
+parse_header_field(desc::Union{Val,Nothing}, fieldname::Symbol, expr) =
+    parse_header_field(desc, Val(fieldname), expr)
+
+"Returns whether `fieldname` is a header field for a PDDL description."
+is_header_field(desc::Symbol, fieldname) =
+    is_header_field(Val(desc), fieldname)
+is_header_field(desc::Union{Val,Nothing}, fieldname::Symbol) =
+    is_header_field(desc, Val(fieldname))
+is_header_field(desc, fieldname) = false
+
+"""
+    @add_header_field(desc, fieldname, f)
+
+Register `f` as a parser for a header field in a PDDL description.
+"""
+macro add_header_field(desc, fieldname, f)
+    f = esc(f)
+    _parse_header_field = GlobalRef(@__MODULE__, :parse_header_field)
+    _is_header_field = GlobalRef(@__MODULE__, :is_header_field)
+    quote
+        $_parse_header_field(::Val{$desc}, ::Val{$fieldname}, expr) = $f(expr)
+        $_parse_header_field(::Nothing, ::Val{$fieldname}, expr) = $f(expr)
+        $_is_header_field(::Val{$desc}, ::Val{$fieldname}) = true
+        $_is_header_field(::Nothing, ::Val{$fieldname}) = true
+    end
+end
+
+"Parse body field for a PDDL description."
+parse_body_field(desc::Symbol, fieldname, expr) =
+    parse_body_field(Val(desc), fieldname, expr)
+parse_body_field(desc::Union{Val,Nothing}, fieldname::Symbol, expr) =
+    parse_body_field(desc, Val(fieldname), expr)
+
+"Returns whether `fieldname` is a body field for a PDDL description."
+is_body_field(desc::Symbol, fieldname) =
+    is_body_field(Val(desc), fieldname)
+is_body_field(desc::Union{Val,Nothing}, fieldname::Symbol) =
+    is_body_field(desc, Val(fieldname))
+is_body_field(desc, fieldname) = false
+
+"""
+    @add_body_field(desc, fieldname, f)
+
+Register `f` as a parser for a body field in a PDDL description.
+"""
+macro add_body_field(desc, fieldname, f)
+    f = esc(f)
+    _parse_body_field = GlobalRef(@__MODULE__, :parse_body_field)
+    _is_body_field = GlobalRef(@__MODULE__, :is_body_field)
+    quote
+        $_parse_body_field(::Val{$desc}, ::Val{$fieldname}, expr) = $f(expr)
+        $_parse_body_field(::Nothing, ::Val{$fieldname}, expr) = $f(expr)
+        $_is_body_field(::Val{$desc}, ::Val{$fieldname}) = true
+        $_is_body_field(::Nothing, ::Val{$fieldname}) = true
+    end
+end
 
 # Utility functions
 include("utils.jl")
@@ -45,17 +112,15 @@ include("problem.jl")
 function parse_pddl(expr::Vector)
     if isa(expr[1], Keyword)
         kw = expr[1].name
-        for desc in keys(top_level_parsers)
-            if kw in keys(head_field_parsers[desc])
-                return head_field_parsers[desc][kw](expr)
-            elseif kw in keys(body_field_parsers[desc])
-                return body_field_parsers[desc][kw](expr)
-            end
+        if is_header_field(nothing, kw)
+            return parse_header_field(nothing, kw, expr)
+        elseif is_body_field(nothing, kw)
+            return parse_body_field(nothing, kw, expr)
         end
         error("Keyword $kw not recognized.")
     elseif expr[1] == :define
         kw = expr[2][1]
-        return top_level_parsers[kw](expr)
+        return parse_top_level(kw, expr)
     else
         return parse_formula(expr)
     end

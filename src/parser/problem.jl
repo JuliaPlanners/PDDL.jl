@@ -3,11 +3,11 @@ parse_problem(expr::Vector) =
     GenericProblem(parse_description(:problem, expr)...)
 parse_problem(str::AbstractString) =
     parse_problem(parse_string(str))
-top_level_parsers[:problem] = parse_problem
+@add_top_level(:problem, parse_problem)
 
 "Parse domain for planning problem."
 parse_domain_name(expr::Vector) = expr[2]
-head_field_parsers[:problem][:domain] = parse_domain_name
+@add_header_field(:problem, :domain, parse_domain_name)
 
 "Parse objects in planning problem."
 function parse_objects(expr::Vector)
@@ -18,7 +18,7 @@ function parse_objects(expr::Vector)
 end
 parse_objects(::Nothing) =
     (objects=Const[], objtypes=Dict{Const,Symbol}())
-head_field_parsers[:problem][:objects] = parse_objects
+@add_header_field(:problem, :objects, parse_objects)
 
 "Parse initial formula literals in planning problem."
 function parse_init(expr::Vector)
@@ -26,7 +26,7 @@ function parse_init(expr::Vector)
     return [parse_formula(e) for e in expr[2:end]]
 end
 parse_init(::Nothing) = Term[]
-head_field_parsers[:problem][:init] = parse_init
+@add_header_field(:problem, :init, parse_init)
 
 "Parse goal formula in planning problem."
 function parse_goal(expr::Vector)
@@ -34,7 +34,7 @@ function parse_goal(expr::Vector)
     return parse_formula(expr[2])
 end
 parse_goal(::Nothing) = Const(true)
-head_field_parsers[:problem][:goal] = parse_goal
+@add_header_field(:problem, :goal, parse_goal)
 
 "Parse metric expression in planning problem."
 function parse_metric(expr::Vector)
@@ -43,7 +43,7 @@ function parse_metric(expr::Vector)
     return Compound(expr[2], [parse_formula(expr[3])])
 end
 parse_metric(expr::Nothing) = nothing
-head_field_parsers[:problem][:metric] = parse_metric
+@add_header_field(:problem, :metric, parse_metric)
 
 "Parse constraints formula in planning problem."
 function parse_constraints(expr::Vector)
@@ -51,4 +51,4 @@ function parse_constraints(expr::Vector)
     return parse_formula(expr[2])
 end
 parse_constraints(::Nothing) = nothing
-head_field_parsers[:problem][:constraints] = parse_constraints
+@add_header_field(:problem, :constraints, parse_constraints)

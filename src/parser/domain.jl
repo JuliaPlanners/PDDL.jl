@@ -7,7 +7,7 @@ parse_domain(expr::Vector, domain_type::Type) =
     domain_type(parse_description(:domain, expr)...)
 parse_domain(str::AbstractString, domain_type::Type) =
     parse_domain(parse_string(str), domain_type)
-top_level_parsers[:domain] = parse_domain
+@add_top_level(:domain, parse_domain)
 
 "Parse domain requirements."
 function parse_requirements(expr::Vector)
@@ -23,8 +23,8 @@ function parse_requirements(expr::Vector)
     end
     return reqs
 end
-parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
-head_field_parsers[:domain][:requirements] = parse_requirements
+# parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
+@add_header_field(:domain, :requirements, parse_requirements)
 
 "Parse type hierarchy."
 function parse_types(expr::Vector)
@@ -52,8 +52,8 @@ function parse_types(expr::Vector)
     append!(types[:object], collect(maxtypes))
     return (typetree=types,)
 end
-parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
-head_field_parsers[:domain][:types] = parse_types
+# parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
+@add_header_field(:domain, :types, parse_types)
 
 "Parse constants in a planning domain."
 function parse_constants(expr::Vector)
@@ -64,7 +64,7 @@ function parse_constants(expr::Vector)
 end
 parse_constants(::Nothing) =
     (constants=Const[], constypes=Dict{Const,Symbol}())
-head_field_parsers[:domain][:constants] = parse_constants
+@add_header_field(:domain, :constants, parse_constants)
 
 "Parse predicate list."
 function parse_predicates(expr::Vector)
@@ -78,7 +78,7 @@ function parse_predicates(expr::Vector)
     return preds
 end
 parse_predicates(::Nothing) = Dict{Symbol,Signature}()
-head_field_parsers[:domain][:predicates] = parse_predicates
+@add_header_field(:domain, :predicates, parse_predicates)
 
 "Parse list of function (i.e. fluent) declarations."
 function parse_functions(expr::Vector)
@@ -91,7 +91,7 @@ function parse_functions(expr::Vector)
     return funcs
 end
 parse_functions(::Nothing) = Dict{Symbol,Signature}()
-head_field_parsers[:domain][:functions] = parse_functions
+@add_header_field(:domain, :functions, parse_functions)
 
 "Parse axioms (a.k.a. derived predicates)."
 function parse_axiom(expr::Vector)
@@ -100,11 +100,11 @@ function parse_axiom(expr::Vector)
     body = parse_formula(expr[3])
     return Clause(head, Term[body])
 end
-body_field_parsers[:domain][:axiom] = parse_axiom
+@add_body_field(:domain, :axiom, parse_axiom)
 
 "Parse axioms (a.k.a. derived predicates)."
 parse_derived(expr::Vector) = parse_axiom(expr)
-body_field_parsers[:domain][:derived] = parse_derived
+@add_body_field(:domain, :derived, parse_derived)
 
 "Parse action definition."
 function parse_action(expr::Vector)
@@ -116,4 +116,4 @@ function parse_action(expr::Vector)
     effect = parse_formula(args[:effect])
     return GenericAction(name, params, types, precondition, effect)
 end
-body_field_parsers[:domain][:action] = parse_action
+@add_body_field(:domain, :action, parse_action)

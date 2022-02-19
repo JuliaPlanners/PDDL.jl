@@ -1,13 +1,13 @@
 "Generic PDDL planning problem."
 @kwdef mutable struct GenericProblem <: Problem
     name::Symbol # Name of problem
-    domain::Symbol # Name of associated domain
-    objects::Vector{Const} # List of objects
-    objtypes::Dict{Const,Symbol} # Types of objects
-    init::Vector{Term} # Predicates that hold in initial state
-    goal::Term # Goal formula
-    metric::Union{Term,Nothing} # Metric formula
-    constraints::Union{Term,Nothing} # Constraints formula
+    domain::Symbol = gensym() # Name of associated domain
+    objects::Vector{Const} = Const[] # List of objects
+    objtypes::Dict{Const,Symbol} = Dict{Const,Symbol}() # Types of objects
+    init::Vector{Term} = Term[] # Predicates that hold in initial state
+    goal::Term = Compound(:and, []) # Goal formula
+    metric::Union{Term,Nothing} = nothing # Metric formula
+    constraints::Union{Term,Nothing} = nothing # Constraints formula
 end
 
 GenericProblem(problem::GenericProblem) = copy(problem)

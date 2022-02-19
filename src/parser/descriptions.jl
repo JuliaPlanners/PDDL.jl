@@ -3,11 +3,15 @@ function parse_description(desc::Symbol, expr::Vector)
     @assert (expr[1] == :define) "'define' keyword is missing."
     @assert (expr[2][1] == desc) "'$desc' keyword is missing."
     name = expr[2][2]
+    field_exprs = ((e[1].name, e) for e in expr[3:end])
     # Parse description header (requirements, types, etc.)
     header = Dict{Symbol,Any}()
-    exprs = Dict(e[1].name => e for e in expr[3:end])
-    for (fieldname, parser) in head_field_parsers[desc]
-        field = parser(get(exprs, fieldname, nothing))
+    for (fieldname::Symbol, e) in field_exprs
+        if !is_header_field(Val(desc), fieldname) continue end
+        if haskey(header, fieldname)
+            error("Header field :$fieldname appears more than once.")
+        end
+        field = parse_header_field(Val(desc), fieldname, e)
         if isa(field, NamedTuple)
             merge!(header, Dict(pairs(field)))
         else
@@ -16,13 +20,11 @@ function parse_description(desc::Symbol, expr::Vector)
     end
     # Parse description body (actions, etc.)
     body = Dict{Symbol,Any}()
-    exprs = [(e[1].name, e) for e in expr[3:end]]
-    for (fieldname, e) in exprs
-        if !haskey(body_field_parsers[desc], fieldname) continue end
-        parser = body_field_parsers[desc][fieldname]
-        fieldname = Symbol(string(fieldname) * "s")
-        fields = get!(body, fieldname, [])
-        push!(fields, parser(e))
+    for (fieldname::Symbol, e) in field_exprs
+        if !is_body_field(Val(desc), fieldname) continue end
+        field = parse_body_field(Val(desc), fieldname, e)
+        fields = get!(body, Symbol(string(fieldname) * "s"), [])
+        push!(fields, field)
     end
     return name, header, body
 end

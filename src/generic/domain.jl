@@ -1,17 +1,28 @@
 "Generic PDDL planning domain."
 @kwdef mutable struct GenericDomain <: Domain
     name::Symbol # Name of domain
-    requirements::Dict{Symbol,Bool} = Dict() # PDDL requirements used
-    typetree::Dict{Symbol,Vector{Symbol}} = Dict() # Types and their subtypes
-    datatypes::Dict{Symbol,Type} = Dict() # Non-object data types
-    constants::Vector{Const} = [] # List of constants
-    constypes::Dict{Const,Symbol} = Dict() # Types of constants
-    predicates::Dict{Symbol,Signature} = Dict() # Dictionary of predicates
-    functions::Dict{Symbol,Signature} = Dict() # Dictionary of function declarations
-    funcdefs::Dict{Symbol,Any} = Dict() # Dictionary of function definitions
-    axioms::Dict{Symbol,Clause} = Dict() # Axioms / derived predicates
-    actions::Dict{Symbol,Action} = Dict() # Action definitions
-    _extras::Dict{Symbol,Any} # Extra fields
+    requirements::Dict{Symbol,Bool} = # PDDL requirements
+        copy(DEFAULT_REQUIREMENTS)
+    typetree::Dict{Symbol,Vector{Symbol}} = # Types and their subtypes
+        Dict(:object => Symbol[])
+    datatypes::Dict{Symbol,Type} = # Non-object data types
+        Dict{Symbol,Type}()
+    constants::Vector{Const} = # List of object constants
+        Const[]
+    constypes::Dict{Const,Symbol} = # Types of constants
+        Dict{Const,Symbol}()
+    predicates::Dict{Symbol,Signature} = # Predicate signatures
+        Dict{Symbol,Signature}()
+    functions::Dict{Symbol,Signature} = # Function signatures
+        Dict{Symbol,Signature}()
+    funcdefs::Dict{Symbol,Any} = # External function implementations
+        Dict{Symbol,Any}()
+    axioms::Dict{Symbol,Clause} = # Axioms / derived predicates
+        Dict{Symbol,Clause}()
+    actions::Dict{Symbol,Action} = # Action definitions
+        Dict{Symbol,Any}()
+    _extras::Dict{Symbol,Any} = # Extra fields for PDDL extensions
+        Dict{Symbol,Any}()
 end
 
 function GenericDomain(name::Symbol, header::Dict{Symbol,Any}, body::Dict{Symbol,Any})
