@@ -3,7 +3,7 @@ module Parser
 export parse_domain, parse_problem, parse_pddl, @pddl, @pddl_str
 export load_domain, load_problem
 
-using ParserCombinator, Julog
+using ParserCombinator, Julog, ValSplit
 using ..PDDL: Signature, GenericDomain, GenericProblem, GenericAction
 using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 
@@ -14,11 +14,11 @@ end
 Base.show(io::IO, kw::Keyword) = print(io, "KW:", kw.name)
 
 "Parse top level description to a PDDL.jl data structure."
-parse_top_level(name::Symbol, expr) = parse_top_level(Val(name), expr)
+@valsplit parse_top_level(Val(name::Symbol), expr) =
+    error("Unrecognized description: :$name")
 
 "Returns whether `name` is associated with a top-level description."
-is_top_level(name::Symbol) = is_top_level(Val(name))
-is_top_level(name) = false
+@valsplit is_top_level(Val(name::Symbol)) = false
 
 """
     @add_top_level(name, f)
@@ -36,17 +36,14 @@ macro add_top_level(name, f)
 end
 
 "Parse header field for a PDDL description."
-parse_header_field(desc::Symbol, fieldname, expr) =
-    parse_header_field(Val(desc), fieldname, expr)
-parse_header_field(desc::Union{Val,Nothing}, fieldname::Symbol, expr) =
-    parse_header_field(desc, Val(fieldname), expr)
+@valsplit parse_header_field(Val(desc::Symbol), fieldname, expr) =
+    error("Unrecognized description: :$desc")
+@valsplit parse_header_field(desc::Union{Val,Nothing}, Val(fieldname::Symbol), expr) =
+    error("Unrecognized fieldname: :$fieldname")
 
 "Returns whether `fieldname` is a header field for a PDDL description."
-is_header_field(desc::Symbol, fieldname) =
-    is_header_field(Val(desc), fieldname)
-is_header_field(desc::Union{Val,Nothing}, fieldname::Symbol) =
-    is_header_field(desc, Val(fieldname))
-is_header_field(desc, fieldname) = false
+@valsplit is_header_field(Val(desc::Symbol), fieldname::Symbol) = false
+@valsplit is_header_field(desc::Union{Val,Nothing}, Val(fieldname::Symbol)) = false
 
 """
     @add_header_field(desc, fieldname, f)
@@ -66,17 +63,14 @@ macro add_header_field(desc, fieldname, f)
 end
 
 "Parse body field for a PDDL description."
-parse_body_field(desc::Symbol, fieldname, expr) =
-    parse_body_field(Val(desc), fieldname, expr)
-parse_body_field(desc::Union{Val,Nothing}, fieldname::Symbol, expr) =
-    parse_body_field(desc, Val(fieldname), expr)
+@valsplit parse_body_field(Val(desc::Symbol), fieldname, expr) =
+    error("Unrecognized description: :$desc")
+@valsplit parse_body_field(desc::Union{Val,Nothing}, Val(fieldname::Symbol), expr) =
+    error("Unrecognized fieldname: :$fieldname")
 
 "Returns whether `fieldname` is a body field for a PDDL description."
-is_body_field(desc::Symbol, fieldname) =
-    is_body_field(Val(desc), fieldname)
-is_body_field(desc::Union{Val,Nothing}, fieldname::Symbol) =
-    is_body_field(desc, Val(fieldname))
-is_body_field(desc, fieldname) = false
+@valsplit is_body_field(Val(desc::Symbol), fieldname::Symbol) = false
+@valsplit is_body_field(desc::Union{Val,Nothing}, Val(fieldname::Symbol)) = false
 
 """
     @add_body_field(desc, fieldname, f)
