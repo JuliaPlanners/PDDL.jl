@@ -1,8 +1,9 @@
 module PDDL
 
 using Base: @kwdef
-using Julog
 using AutoHashEquals
+using Julog
+using ValSplit
 
 # Logical formulae and terms
 export Term, Compound, Var, Const, Clause

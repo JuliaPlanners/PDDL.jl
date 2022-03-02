@@ -14,9 +14,9 @@ function generate_satisfy(domain::Domain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
-            elseif term.name in keys(GLOBAL_PREDICATES)
-                GLOBAL_PREDICATES[term.name](evaluate(domain, state, term.args[1]),
-                                    evaluate(domain, state, term.args[2]))
+            elseif is_global_pred(term.name)
+                predicate_def(term.name)(evaluate(domain, state, term.args[1]),
+                                         evaluate(domain, state, term.args[2]))
             elseif !is_ground(term)
                 missing
             else
@@ -53,9 +53,9 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
-            elseif term.name in keys(GLOBAL_PREDICATES)
-                GLOBAL_PREDICATES[term.name](evaluate(domain, state, term.args[1]),
-                                    evaluate(domain, state, term.args[2]))
+            elseif is_global_pred(term.name)
+                predicate_def(term.name)(evaluate(domain, state, term.args[1]),
+                                         evaluate(domain, state, term.args[2]))
             elseif !is_ground(term)
                 missing
             else

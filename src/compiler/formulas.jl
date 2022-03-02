@@ -8,7 +8,7 @@ function generate_eval_expr(domain::Domain, state::State, term::Term,
     subexprs = [generate_eval_expr(domain, state, a, varmap, state_var)
                 for a in term.args]
     expr = if is_global_func(term)
-        op = GLOBAL_FUNCTIONS[term.name]
+        op = function_def(term.name)
         Expr(:call, QuoteNode(op), subexprs...)
     else
         error("Unrecognized predicate or operator $(term.name).")
@@ -163,9 +163,9 @@ function generate_effect_expr(domain::Domain, state::State, term::Term,
     elseif term.name == :forall
         generate_forall_effect_expr(domain, state, term, varmap,
                                     state_var, prev_var)
-    elseif term.name in keys(GLOBAL_MODIFIERS)
+    elseif is_global_modifier(term.name)
         @assert length(term.args) == 2 "$(term.name) takes two arguments"
-        op = GLOBAL_MODIFIERS[term.name]
+        op = modifier_def(term.name)
         term, val = term.args
         prev_val = generate_get_expr(domain, state, term, varmap, prev_var)
         val = generate_eval_expr(domain, state, val, varmap, prev_var)

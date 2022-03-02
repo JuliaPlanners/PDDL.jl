@@ -35,7 +35,7 @@ function builtin_affected!(affected::Vector{Symbol}, effect::Term)
         append!(affected, get_affected(effect.args[2]))
     elseif effect.name == :assign
         push!(affected, effect.args[1].name)
-    elseif effect.name in keys(GLOBAL_MODIFIERS)
+    elseif is_global_modifier(effect.name)
         push!(affected, effect.args[1].name)
     elseif effect.name == :not
         push!(affected, effect.args[1].name)

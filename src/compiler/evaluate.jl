@@ -6,7 +6,7 @@ function generate_evaluate(domain::Domain, state::State,
                 getfield(state, term.name) : term.name
         end
         function evaluate(domain::$domain_type, state::$state_type, term::Compound)
-            func = get(GLOBAL_FUNCTIONS, term.name, nothing)
+            func = is_global_func(term.name) ? function_def(term.name) : nothing
             val = if func !== nothing
                 argvals = (evaluate(domain, state, arg) for arg in term.args)
                 func(argvals...)

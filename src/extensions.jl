@@ -23,23 +23,26 @@ register!(category::Symbol, name::AbstractString, x) =
 
 "Register global datatype."
 function register_datatype!(name::Symbol, ty)
-    GLOBAL_DATATYPES[name] = ty
+    _datatype_def = GlobalRef(@__MODULE__, :datatype_def)
+    @eval $_datatype_def(::Val{$(QuoteNode(name))}) = $(QuoteNode(ty))
 end
 
 "Register global predicate."
 function register_predicate!(name::Symbol, f)
-    GLOBAL_PREDICATES[name] = f
-    GLOBAL_FUNCTIONS[name] = f
+    _predicate_def = GlobalRef(@__MODULE__, :predicate_def)
+    @eval $_predicate_def(::Val{$(QuoteNode(name))}) = $(QuoteNode(f))
 end
 
 "Register global function."
 function register_function!(name::Symbol, f)
-    GLOBAL_FUNCTIONS[name] = f
+    _function_def = GlobalRef(@__MODULE__, :function_def)
+    @eval $_function_def(::Val{$(QuoteNode(name))}) = $(QuoteNode(f))
 end
 
 "Register global modifier."
 function register_modifier!(name::Symbol, f)
-    GLOBAL_MODIFIERS[name] = f
+    _modifier_def = GlobalRef(@__MODULE__, :modifier_def)
+    @eval $_modifier_def(::Val{$(QuoteNode(name))}) = $(QuoteNode(f))
 end
 
 """
@@ -66,24 +69,42 @@ deregister!(category::Symbol, name::AbstractString) =
 
 "Deregister global datatype."
 function deregister_datatype!(name::Symbol)
-    delete!(GLOBAL_DATATYPES, name)
+    if hasmethod(datatype_def, Tuple{Val{name}})
+        m = first(methods(datatype_def, Tuple{Val{name}}))
+        Base.delete_method(m)
+    else
+        @warn "No registered datatype :$name to deregister."
+    end
 end
 
 "Deregister global predicate."
 function deregister_predicate!(name::Symbol)
-    delete!(GLOBAL_FUNCTIONS, name)
-    delete!(GLOBAL_PREDICATES, name)
+    if hasmethod(predicate_def, Tuple{Val{name}})
+        m = first(methods(predicate_def, Tuple{Val{name}}))
+        Base.delete_method(m)
+    else
+        @warn "No registered predicate :$name to deregister."
+    end
 end
 
 "Deregister global function."
 function deregister_function!(name::Symbol)
-    delete!(GLOBAL_PREDICATES, name)
-    delete!(GLOBAL_FUNCTIONS, name)
+    if hasmethod(function_def, Tuple{Val{name}})
+        m = first(methods(function_def, Tuple{Val{name}}))
+        Base.delete_method(m)
+    else
+        @warn "No registered predicate :$name to deregister."
+    end
 end
 
 "Deregister global modifier."
 function deregister_modifier!(name::Symbol)
-    delete!(GLOBAL_MODIFIERS, name)
+    if hasmethod(modifier_def, Tuple{Val{name}})
+        m = first(methods(modifier_def, Tuple{Val{name}}))
+        Base.delete_method(m)
+    else
+        @warn "No registered predicate :$name to deregister."
+    end
 end
 
 """

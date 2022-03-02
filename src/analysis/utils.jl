@@ -28,11 +28,11 @@ is_quantifier(term::Term) =
 
 "Check if term is a global predicate (comparison, equality, etc.)."
 is_global_pred(term::Term) =
-    term.name in keys(GLOBAL_PREDICATES)
+    term.name isa Symbol && is_global_pred(term.name)
 
 "Check if term is a global function, including global predicates."
 is_global_func(term::Term) =
-    term.name in keys(GLOBAL_FUNCTIONS)
+    term.name isa Symbol && is_global_func(term.name)
 
 "Check if term is a logical operator."
 is_logical_op(term::Term) =
@@ -56,17 +56,21 @@ has_name(term::Compound, names) =
 has_pred(term::Term, domain::Domain) =
     has_name(term, keys(get_predicates(domain)))
 
+"Check if term contains the name of global predicate."
+has_global_pred(term::Term) =
+    has_name(term, global_predicate_names())
+
 "Check if term contains the name of numeric fluent (i.e. function)."
 has_func(term::Term, domain::Domain) =
     has_name(term, keys(get_functions(domain)))
 
-"Check if term contains the name of global function."
+"Check if term contains the name of a global function."
 has_global_func(term::Term) =
-    has_name(term, keys(GLOBAL_PREDICATES))
+    has_name(term, global_function_names())
 
 "Check if contains a logical operator."
 has_logical_op(term::Term) =
-    has_name(term, Set([:and, :or, :not, :imply, :exists, :forall]))
+    has_name(term, (:and, :or, :not, :imply, :exists, :forall))
 
 "Check if term contains a derived predicate"
 has_derived(term::Term, domain::Domain) =
@@ -74,7 +78,7 @@ has_derived(term::Term, domain::Domain) =
 
 "Check if term contains a universal or existential quantifier."
 has_quantifier(term::Term) =
-    has_name(term, Set([:forall, :exists]))
+    has_name(term, (:forall, :exists))
 
 "Check if term contains a negated literal."
 has_negation(term::Term) =

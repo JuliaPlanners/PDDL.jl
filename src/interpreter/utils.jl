@@ -1,6 +1,6 @@
 "Evaluate formula as fully as possible."
 function partialeval(domain::Domain, state::GenericState, term::Term)
-    funcs = merge(GLOBAL_FUNCTIONS, state.values, get_funcdefs(domain))
+    funcs = merge(global_functions(), state.values, get_funcdefs(domain))
     return eval_term(term, Subst(), funcs)
 end
 

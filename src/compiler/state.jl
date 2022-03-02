@@ -1,7 +1,7 @@
 abstract type CompiledState <: State end
 
 function generate_field_type(domain::Domain, sig::Signature{N}) where {N}
-    dtype = get(get_datatypes(domain), sig.type, GLOBAL_DATATYPES[sig.type])
+    dtype = get(get_datatypes(domain), sig.type, datatype_def(sig.type))
     return N == 0 ? dtype : (dtype == Bool ? BitArray{N} : Array{dtype,N})
 end
 

@@ -70,11 +70,11 @@ EFFECT_FUNCS[:assign] = assign_effect!
 function modify_effect!(diff::GenericDiff,
                         domain::Domain, state::State, effect::Term)
     term, val = effect.args[1], effect.args[2]
-    op = GLOBAL_MODIFIERS[effect.name]
+    op = modifier_def(effect.name)
     diff.ops[term] = Compound(op, Term[term, val])
     return diff
 end
-for name in keys(GLOBAL_MODIFIERS)
+for name in global_modifier_names()
     EFFECT_FUNCS[name] = modify_effect!
 end
 
