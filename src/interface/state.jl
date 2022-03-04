@@ -14,7 +14,7 @@ get_objects(state::State, type::Symbol) = error("Not implemented.")
 get_objtypes(state::State) = error("Not implemented.")
 
 "Returns the type of an `object` in a `state`."
-get_objtype(state::State, object) = get_objtypes[object]
+get_objtype(state::State, object) = get_objtypes(state)[object]
 
 "Returns an iterator over true Boolean predicates in a `state`."
 get_facts(state::State) = error("Not implemented.")
