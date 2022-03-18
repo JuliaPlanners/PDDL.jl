@@ -2,7 +2,7 @@
     PDDL.Sets
 
 Extends PDDL with set-valued fluents. Set members must be PDDL objects.
-Register by calling `PDDL.Sets.register!`. Attach to a specific `domain`
+Register by calling `PDDL.Sets.@register()`. Attach to a specific `domain`
 by calling `PDDL.Sets.attach!(domain)`.
 """
 module Sets
@@ -43,6 +43,24 @@ const FUNCTIONS = Dict(
     "add-element" => add_element,
     "rem-element" => rem_element
 )
+
+macro register()
+    expr = Expr(:block)
+    for (name, ty) in DATATYPES
+        e = :(PDDL.@register(:datatype, $(QuoteNode(name)), $(QuoteNode(ty))))
+        push!(expr.args, e)
+    end
+    for (name, f) in PREDICATES
+        e = :(PDDL.@register(:predicate, $(QuoteNode(name)), $(QuoteNode(f))))
+        push!(expr.args, e)
+    end
+    for (name, f) in FUNCTIONS
+        e = :(PDDL.@register(:function, $(QuoteNode(name)), $(QuoteNode(f))))
+        push!(expr.args, e)
+    end
+    push!(expr.args, nothing)
+    return expr
+end
 
 function register!()
     for (name, ty) in DATATYPES

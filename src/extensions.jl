@@ -1,4 +1,35 @@
 """
+    @register([:datatype|:predicate|:function|:modifier], name, x)
+
+Register `x` as a global datatype, predicate, function or modifier under
+the specified `name`.
+"""
+macro register(category, name, x)
+    return _register(category, name, x)
+end
+
+function _register(category::Symbol, name::Symbol, x)
+    if category == :datatype
+        fname = GlobalRef(@__MODULE__, :datatype_def)
+    elseif category == :predicate
+        fname = GlobalRef(@__MODULE__, :predicate_def)
+    elseif category == :function
+        fname = GlobalRef(@__MODULE__, :function_def)
+    elseif category == :modifier
+        fname = GlobalRef(@__MODULE__, :modifier_def)
+    else
+        error("Category must be :datatype, :predicate, :function or :modifier.")
+    end
+    return :($fname(::Val{$(QuoteNode(name))}) = $(esc(x)))
+end
+_register(category::QuoteNode, name, x) =
+    _register(category.value, name, x)
+_register(category::Symbol, name::QuoteNode, x) =
+    _register(category, name.value, x)
+_register(category::Symbol, name::AbstractString, x) =
+    _register(category, Symbol(name), x)
+
+"""
     register!([:datatype|:predicate|:function|:modifier], name, x)
 
 Register `x` as a global datatype, predicate, function or modifier under
@@ -28,7 +59,6 @@ function register!(category::Symbol, name::Symbol, x)
     end
     @eval $fname(::Val{$(QuoteNode(name))}) = $(QuoteNode(x))
 end
-
 register!(category::Symbol, name::AbstractString, x) =
     register!(category, Symbol(name), x)
 

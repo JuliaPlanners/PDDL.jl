@@ -9,7 +9,7 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test PDDL.get_function(domain, :walls).type == Symbol("bit-matrix")
 
 # Register array theory
-PDDL.Arrays.register!()
+PDDL.Arrays.@register()
 
 state = initstate(domain, problem)
 implementations = [

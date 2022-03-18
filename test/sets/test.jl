@@ -13,7 +13,7 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 @test_throws Exception state = initstate(domain, problem)
 
 # Register set theory
-PDDL.Sets.register!()
+PDDL.Sets.@register()
 
 state = initstate(domain, problem)
 implementations = [

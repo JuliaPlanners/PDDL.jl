@@ -1,7 +1,7 @@
 """
     PDDL.Arrays
 
-Extends PDDL with array-valued fluents. Register by calling `PDDL.Arrays.register!`.
+Extends PDDL with array-valued fluents. Register by calling `PDDL.Arrays.@register()`.
 Attach to a specific `domain` by calling `PDDL.Arrays.attach!(domain)`.
 """
 module Arrays
@@ -87,6 +87,20 @@ const FUNCTIONS = Dict(
     # Transformations
     "transpose" => _transpose
 )
+
+macro register()
+    expr = Expr(:block)
+    for (name, ty) in DATATYPES
+        e = :(PDDL.@register(:datatype, $(QuoteNode(name)), $(QuoteNode(ty))))
+        push!(expr.args, e)
+    end
+    for (name, f) in FUNCTIONS
+        e = :(PDDL.@register(:function, $(QuoteNode(name)), $(QuoteNode(f))))
+        push!(expr.args, e)
+    end
+    push!(expr.args, nothing)
+    return expr
+end
 
 function register!()
     for (name, ty) in DATATYPES
