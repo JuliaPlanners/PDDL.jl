@@ -54,6 +54,8 @@ const DATATYPES = Dict(
     "bit-matrix" => (type=BitMatrix, default=falses(0, 0))
 )
 
+const PREDICATES = Dict()
+
 const FUNCTIONS = Dict(
     # Array constructors
     "new-array" => new_array,
@@ -82,47 +84,19 @@ const FUNCTIONS = Dict(
 )
 
 macro register()
-    expr = Expr(:block)
-    for (name, ty) in DATATYPES
-        e = :(PDDL.@register(:datatype, $(QuoteNode(name)), $(QuoteNode(ty))))
-        push!(expr.args, e)
-    end
-    for (name, f) in FUNCTIONS
-        e = :(PDDL.@register(:function, $(QuoteNode(name)), $(QuoteNode(f))))
-        push!(expr.args, e)
-    end
-    push!(expr.args, nothing)
-    return expr
+    return PDDL.register_theory_expr(@__MODULE__)
 end
 
 function register!()
-    for (name, ty) in DATATYPES
-        PDDL.register!(:datatype, name, ty)
-    end
-    for (name, f) in FUNCTIONS
-        PDDL.register!(:function, name, f)
-    end
-    return nothing
+    return PDDL.register_theory!(@__MODULE__)
 end
 
 function deregister!()
-    for (name, ty) in DATATYPES
-        PDDL.deregister!(:datatype, name)
-    end
-    for (name, f) in FUNCTIONS
-        PDDL.deregister!(:function, name)
-    end
-    return nothing
+    return PDDL.deregister_theory!(@__MODULE__)
 end
 
-function attach!(domain::GenericDomain)
-    for (name, ty) in DATATYPES
-        PDDL.attach!(domain, :datatype, name, ty)
-    end
-    for (name, f) in FUNCTIONS
-        PDDL.attach!(domain, :function, name, f)
-    end
-    return nothing
+function attach!(domain::Domain)
+    return PDDL.attach_theory!(domain, @__MODULE__)
 end
 
 end
