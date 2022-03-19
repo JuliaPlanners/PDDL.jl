@@ -65,6 +65,35 @@ function attach_theory!(domain::Domain, theory::Module)
     return nothing
 end
 
+"""
+    @pddltheory module M ... end
+
+Declares a module `M` as a PDDL theory. This defines the `M.@register`,
+`M.register!`, `M.deregister!` and `M.attach!` functions automatically.
+"""
+macro pddltheory(module_expr)
+    if !Meta.isexpr(module_expr, :module)
+        error("Only `module` expressions can be declared as PDDL theories.")
+    end
+    autodefs = quote
+        macro register()
+            return $(GlobalRef(PDDL, :register_theory_expr))(@__MODULE__)
+        end
+        function register!()
+            return $(GlobalRef(PDDL, :register_theory!))(@__MODULE__)
+        end
+        function deregister!()
+            return $(GlobalRef(PDDL, :deregister_theory!))(@__MODULE__)
+        end
+        function attach!(domain::$(GlobalRef(PDDL, :Domain)))
+            return $(GlobalRef(PDDL, :attach_theory!))(domain, @__MODULE__)
+        end
+    end
+    module_block = module_expr.args[3]
+    append!(module_block.args, autodefs.args)
+    return esc(module_expr)
+end
+
 # Array-valued fluents
 include("arrays.jl")
 # Set-valued fluents

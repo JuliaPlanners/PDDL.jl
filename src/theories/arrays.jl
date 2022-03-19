@@ -4,7 +4,7 @@
 Extends PDDL with array-valued fluents. Register by calling `PDDL.Arrays.@register()`.
 Attach to a specific `domain` by calling `PDDL.Arrays.attach!(domain)`.
 """
-module Arrays
+@pddltheory module Arrays
 
 using ..PDDL
 import ..PDDL: valterm
@@ -82,21 +82,5 @@ const FUNCTIONS = Dict(
     # Transformations
     "transpose" => _transpose
 )
-
-macro register()
-    return PDDL.register_theory_expr(@__MODULE__)
-end
-
-function register!()
-    return PDDL.register_theory!(@__MODULE__)
-end
-
-function deregister!()
-    return PDDL.deregister_theory!(@__MODULE__)
-end
-
-function attach!(domain::Domain)
-    return PDDL.attach_theory!(domain, @__MODULE__)
-end
 
 end

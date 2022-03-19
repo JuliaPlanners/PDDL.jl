@@ -32,7 +32,7 @@ export CompiledDomain, CompiledAction, CompiledState
 export ground, groundargs, groundactions
 export GroundDomain, GroundAction, GroundActionGroup
 # Extension interfaces
-export attach!, register!, @register
+export attach!, register!, @register, @pddltheory
 # Analysis tools
 export infer_affected_fluents, infer_static_fluents
 # Utilities

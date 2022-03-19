@@ -5,7 +5,7 @@ Extends PDDL with set-valued fluents. Set members must be PDDL objects.
 Register by calling `PDDL.Sets.@register()`. Attach to a specific `domain`
 by calling `PDDL.Sets.attach!(domain)`.
 """
-module Sets
+@pddltheory module Sets
 
 using ..PDDL
 import ..PDDL: valterm
@@ -43,21 +43,5 @@ const FUNCTIONS = Dict(
     "add-element" => add_element,
     "rem-element" => rem_element
 )
-
-macro register()
-    return PDDL.register_theory_expr(@__MODULE__)
-end
-
-function register!()
-    return PDDL.register_theory!(@__MODULE__)
-end
-
-function deregister!()
-    return PDDL.deregister_theory!(@__MODULE__)
-end
-
-function attach!(domain::Domain)
-    return PDDL.attach_theory!(domain, @__MODULE__)
-end
 
 end
