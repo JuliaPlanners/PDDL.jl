@@ -1,11 +1,14 @@
 ## Effect differences ##
 
-const EFFECT_FUNCS = Dict{Symbol,Function}()
-
 "Convert effect formula to a state difference (additions, deletions, etc.)"
 function effect_diff(domain::Domain, state::State, effect::Term)
-    effect_fn! = get(EFFECT_FUNCS, effect.name, add_effect!)
-    return effect_fn!(GenericDiff(), domain, state, effect)
+    return effect_diff!(effect.name, GenericDiff(), domain, state, effect)
+end
+
+@valsplit function effect_diff!(Val(name::Symbol), diff::GenericDiff,
+                                domain::Domain, state::State, effect::Term)
+    # Assume addition by default
+    return add_effect!(diff, domain, state, effect)
 end
 
 function add_effect!(diff::GenericDiff,
@@ -30,7 +33,8 @@ function del_effect!(diff::GenericDiff,
     push!(diff.del, effect)
     return diff
 end
-EFFECT_FUNCS[:not] = del_effect!
+effect_diff!(::Val{:not}, diff::Diff, d::Domain, s::State, e::Term) =
+    del_effect!(diff, d, s, e)
 
 function and_effect!(diff::GenericDiff,
                      domain::Domain, state::State, effect::Term)
@@ -39,7 +43,8 @@ function and_effect!(diff::GenericDiff,
     end
     return diff
 end
-EFFECT_FUNCS[:and] = and_effect!
+effect_diff!(::Val{:and}, diff::Diff, d::Domain, s::State, e::Term) =
+    and_effect!(diff, d, s, e)
 
 function when_effect!(diff::GenericDiff,
                       domain::Domain, state::State, effect::Term)
@@ -47,7 +52,8 @@ function when_effect!(diff::GenericDiff,
     if !satisfy(domain, state, cond) return diff end
     return combine!(diff, effect_diff(domain, state, eff))
 end
-EFFECT_FUNCS[:when] = when_effect!
+effect_diff!(::Val{:when}, diff::Diff, d::Domain, s::State, e::Term) =
+    when_effect!(diff, d, s, e)
 
 function forall_effect!(diff::GenericDiff,
                         domain::Domain, state::State, effect::Term)
@@ -57,7 +63,8 @@ function forall_effect!(diff::GenericDiff,
     end
     return diff
 end
-EFFECT_FUNCS[:forall] = forall_effect!
+effect_diff!(::Val{:forall}, diff::Diff, d::Domain, s::State, e::Term) =
+    forall_effect!(diff, d, s, e)
 
 function assign_effect!(diff::GenericDiff,
                         domain::Domain, state::State, effect::Term)
@@ -65,7 +72,8 @@ function assign_effect!(diff::GenericDiff,
     diff.ops[term] = val
     return diff
 end
-EFFECT_FUNCS[:assign] = assign_effect!
+effect_diff!(::Val{:assign}, diff::Diff, d::Domain, s::State, e::Term) =
+    assign_effect!(diff, d, s, e)
 
 function modify_effect!(diff::GenericDiff,
                         domain::Domain, state::State, effect::Term)
@@ -75,7 +83,9 @@ function modify_effect!(diff::GenericDiff,
     return diff
 end
 for name in global_modifier_names()
-    EFFECT_FUNCS[name] = modify_effect!
+    name = QuoteNode(name)
+    @eval effect_diff!(::Val{$name}, diff::Diff, d::Domain, s::State, e::Term) =
+        modify_effect!(diff, d, s, e)
 end
 
 ## Precondition differences ##
@@ -84,8 +94,13 @@ const PRECOND_FUNCS = Dict{Symbol,Function}()
 
 "Convert precondition formula to a state difference."
 function precond_diff(domain::Domain, state::State, precond::Term)
-    precond_fn! = get(PRECOND_FUNCS, precond.name, add_precond!)
-    return precond_fn!(GenericDiff(), domain, state, precond)
+    return precond_diff!(precond.name, GenericDiff(), domain, state, precond)
+end
+
+@valsplit function precond_diff!(Val(name::Symbol), diff::GenericDiff,
+                                 domain::Domain, state::State, precond::Term)
+    # Assume addition by default
+    return add_precond!(diff, domain, state, precond)
 end
 
 function add_precond!(diff::GenericDiff,
@@ -99,7 +114,8 @@ function del_precond!(diff::GenericDiff,
     push!(diff.del, precond.args[1])
     return diff
 end
-PRECOND_FUNCS[:not] = del_precond!
+precond_diff!(::Val{:not}, diff::Diff, d::Domain, s::State, p::Term) =
+    del_precond!(diff, d, s, p)
 
 function and_precond!(diff::GenericDiff,
                       domain::Domain, state::State, precond::Term)
@@ -108,7 +124,8 @@ function and_precond!(diff::GenericDiff,
     end
     return diff
 end
-PRECOND_FUNCS[:and] = and_precond!
+precond_diff!(::Val{:and}, diff::Diff, d::Domain, s::State, p::Term) =
+    and_precond!(diff, d, s, p)
 
 function forall_precond!(diff::GenericDiff,
                          domain::Domain, state::State, precond::Term)
@@ -118,4 +135,5 @@ function forall_precond!(diff::GenericDiff,
     end
     return diff
 end
-PRECOND_FUNCS[:forall] = forall_precond!
+precond_diff!(::Val{:forall}, diff::Diff, d::Domain, s::State, p::Term) =
+    forall_precond!(diff, d, s, p)
