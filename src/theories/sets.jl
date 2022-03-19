@@ -8,7 +8,7 @@ by calling `PDDL.Sets.attach!(domain)`.
 module Sets
 
 using ..PDDL
-import ..PDDL: defaultval, valterm
+import ..PDDL: valterm
 
 construct_set(xs::Symbol...) = Set{Symbol}(xs)
 empty_set() = Set{Symbol}()
@@ -21,12 +21,12 @@ difference(x::Set, y::Set) = setdiff(x, y)
 add_element(s::Set, x) = push!(copy(s), x)
 rem_element(s::Set, x) = pop!(copy(s), x)
 
-defaultval(::Val{:set}) = Set{Symbol}()
-
 valterm(s::Set) = isempty(s) ? Const(Symbol("(empty-set)")) :
     Compound(Symbol("construct-set"), valterm.(collect(s)))
 
-const DATATYPES = Dict("set" => Set{Symbol})
+const DATATYPES = Dict(
+    "set" => (type=Set{Symbol}, default=Set{Symbol}())
+)
 
 const PREDICATES = Dict(
     "member" => member,

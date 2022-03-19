@@ -14,19 +14,19 @@ Non-equivalence in concrete and abstract domains. Defaults to `a != b`.
 """
 nequiv(a, b) = a != b
 
-"Mapping from PDDL data types to Julia types."
+"Mapping from PDDL data types to Julia types and default values."
 @valsplit datatype_def(Val(name::Symbol)) =
     error("Unknown datatype: $name")
-datatype_def(::Val{:boolean}) = Bool
-datatype_def(::Val{:integer}) = Int
-datatype_def(::Val{:numeric}) = Float64
+datatype_def(::Val{:boolean}) = (type=Bool, default=false)
+datatype_def(::Val{:integer}) = (type=Int, default=0)
+datatype_def(::Val{:numeric}) = (type=Float64, default=0.0)
 
 "Return list of global datatypes."
 global_datatype_names() =
     valarg_params(datatype_def, Tuple{Val}, Val(1), Symbol)
 "Return dictionary mapping global datatype names to implementations."
 global_datatypes() =
-    Dict{Symbol,Type}(d => datatype_def(Val(d)) for d in global_datatype_names())
+    Dict{Symbol,Any}(d => datatype_def(Val(d)) for d in global_datatype_names())
 "Return whether a symbol refers to global datatype."
 is_global_datatype(name::Symbol) =
     valarg_has_param(name, datatype_def, Tuple{Val}, Val(1), Symbol)

@@ -1,7 +1,7 @@
 abstract type CompiledState <: State end
 
 function generate_field_type(domain::Domain, sig::Signature{N}) where {N}
-    dtype = get(get_datatypes(domain), sig.type, datatype_def(sig.type))
+    dtype = get(get_datatypes(domain), sig.type, datatype_def(sig.type).type)
     return N == 0 ? dtype : (dtype == Bool ? BitArray{N} : Array{dtype,N})
 end
 
@@ -19,7 +19,7 @@ end
 
 function generate_func_init(domain::Domain, state::State,
                             sig::Signature{N}) where {N}
-    default = QuoteNode(defaultval(Val(sig.type)))
+    default = QuoteNode(datatype_def(sig.type).default)
     if N == 0 return default end
     dims = generate_fluent_dims(domain, state, sig)
     return :(fill($default, $(dims...)))
@@ -28,7 +28,7 @@ end
 function generate_func_init(domain::AbstractedDomain, state::State,
                             sig::Signature{N}) where {N}
     abstype = domain.interpreter.abstractions[sig.type]
-    default = QuoteNode(abstype(defaultval(Val(sig.type))))
+    default = QuoteNode(abstype(datatype_def(sig.type).default))
     if N == 0 return default end
     dims = generate_fluent_dims(domain, state, sig)
     return :(fill($default, $(dims...)))
