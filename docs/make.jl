@@ -1,10 +1,11 @@
 using Documenter, PDDL
 
-push!(LOAD_PATH,"../src/")
-
 makedocs(
    sitename="PDDL.jl",
-   format=Documenter.HTML(prettyurls=get(ENV, "CI", nothing) == "true"),
+   format=Documenter.HTML(
+      prettyurls=get(ENV, "CI", nothing) == "true",
+      highlights=["lisp"] # Use Lisp highlighting as PDDL substitute
+   ),
    pages=[
       "PDDL.jl" => "index.md",
       "Tutorials" => [
