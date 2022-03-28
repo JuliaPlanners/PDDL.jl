@@ -277,19 +277,11 @@ julia> PDDL.get_objtype(zt_state, pddl"(person1)")
 
 ## Executing Actions and Plans
 
-Having constructed an initial state in the Blocksworld domain, we can query the list of actions we can execute in that state (i.e. the list of available actions). We do this using the [`available`](@ref) function:
+PDDL domains not only define the predicates and functions which describe a state, but also a set of actions which can modify a state. Having learned how to inspect the contents of a state, we can now modify them using actions.
 
-```julia-repl
-julia> available(domain, state) |> collect
-3-element Vector{Compound}:
- pick-up(a)
- pick-up(b)
- pick-up(c)
-```
+### Instantiating Action Schemas
 
-Each action is represented as a [`Term`](@ref) (of which `Compound` is a concrete subtype), where the term's arguments correspond to action parameters, i.e., the objects the action is operating on.
-
-Technically, in PDDL, we should distinguish between **ground actions**, which are represented by `Term`s, and **action schemas** (also known as **operators**), which specify the lifted semantics of an action, and have the abstract type `Action`. Whether we are referring to (ground) actions or action schemas shall be made clear by context. We can inspect the definition of an action schema in a particular domain, using [`PDDL.get_action`](@ref):
+In PDDL and symbolic planning more broadly, we distinguish between **action schemas** (also known as **operators**), which specify the general semantics of an action, and **ground actions**, which represent instantiations of actions for specific objects. We can inspect the definition of an action schema in a domain using [`PDDL.get_action`](@ref), such as the definition of `stack` below:
 
 ```julia-repl
 julia> PDDL.get_action(domain, :stack) |> write_pddl |> print
@@ -299,7 +291,40 @@ julia> PDDL.get_action(domain, :stack) |> write_pddl |> print
  :effect (and (not (holding ?x)) (not (clear ?y)) (clear ?x) (handempty) (on ?x ?y)))
 ```
 
-Since we now know what actions are available in the current state, we can [`execute`](@ref) one of them to get the next state:
+The `stack` schema has two **parameters** (or arguments) of type `block`. This means that ground instances of the `stack` schema have to be applied to two `block` objects. The schema also specifies a **precondition** formula, which has to hold true in order for the action to be executable (a.k.a. available) in the current state. Finally, the schema contains an **effect** formula, which specifies facts that will either be added or deleted in the next state. In domains with non-Boolean fluents, effects may also assign or modify the values of fluents.
+
+To refer to a specific application of this action schema to blocks `a` and `b` (i.e., a ground action), we can simply write `pddl"(stack a b)"`, which constructs a `Term` with `stack` as its name, and with `a` and `b` as arguments:
+
+```julia-repl
+julia> pddl"(stack a b)" |> dump
+Compound
+  name: Symbol stack
+  args: Array{Term}((2,))
+    1: Const
+      name: Symbol a
+    2: Const
+      name: Symbol b
+```
+
+If unspecified, whether we are referring to action schemas or ground actions shall be clear from context.
+
+### Listing Available Actions
+
+For our initial state in the Blocksworld domain, we can iterate over the list of available ground actions (i.e. those with satisfied preconditions) using the [`available`](@ref) function:
+
+```julia-repl
+julia> available(domain, state) |> collect
+3-element Vector{Compound}:
+ pick-up(a)
+ pick-up(b)
+ pick-up(c)
+```
+
+Note that [`available`](@ref) returns an iterator over such actions, so we have to `collect` this iterator in order to get a `Vector` result. As before, action `Term`s are printed in Prolog-style syntax.
+
+### Executing Actions
+
+Since we now know which actions are available, we can [`execute`](@ref) one of them to get another state:
 
 ```julia-repl
 julia> next_state = execute(domain, state, pddl"(pick-up a)");
@@ -316,21 +341,55 @@ ERROR: Precondition (and (holding ?x) (clear ?y) (not (= ?x ?y))) does not hold.
 ⋮
 ```
 
-Now that we know how to execute an action, we can execute a series of actions (i.e. a plan) to achieve our goal. We can do this by repeatedly calling execute:
+Instead of using [`execute`](@ref), we can also use the [`transition`](@ref) function. For domains written in standard PDDL, these functions have the same behavior, but there are extensions of PDDL which include events and processes that are handled by [`transition`](@ref) only. Note that both [`execute`](@ref) and [`transition`](@ref) do not mutate the original state passed in as an argument. For mutating versions, see [`execute!`](@ref) and [`transition!`](@ref).
+
+### Executing and Simulating Plans
+
+Now that we know how to execute an action, we can execute a series of actions (i.e. a plan) to achieve our goal in the Blocksworld domain. We can do this by repeatedly calling  [`transition`](@ref):
 
 ```julia
-state = execute(domain, state, pddl"(pick-up a)")
-state = execute(domain, state, pddl"(stack a b)")
-state = execute(domain, state, pddl"(pick-up c)");
-state = execute(domain, state, pddl"(stack c a)");
+state = initstate(domain, problem)
+state = transition(domain, state, pddl"(pick-up a)")
+state = transition(domain, state, pddl"(stack a b)")
+state = transition(domain, state, pddl"(pick-up c)");
+state = transition(domain, state, pddl"(stack c a)");
 ```
 
 And then check that our goal is indeed satisfied:
 
 ```julia-repl
-julia> PDDL.get_goal(problem) # Our goal is stack `c` on `a` on `b`
+julia> goal = PDDL.get_goal(problem) # Our goal is stack `c` on `a` on `b`
 and(clear(c), ontable(b), on(c, a), on(a, b))
 
-julia> satisfy(domain, state, PDDL.get_goal(problem))
+julia> satisfy(domain, state, goal)
 true
 ```
+
+Rather than repeatedly call [`transition`](@ref), we can use the [`PDDL.simulate`](@ref) function to directly simulate the end result of a sequence of actions:
+
+```julia
+state = initstate(domain, problem)
+plan = @pddl("(pick-up a)", "(stack a b)", "(pick-up c)", "(stack c a)")
+end_state = PDDL.simulate(EndStateSimulator(), domain, state, plan)
+```
+
+As before, the goal is satisfied in the final state:
+
+```julia-repl
+julia> satisfy(domain, end_state, goal)
+true
+```
+
+The first argument to [`PDDL.simulate`](@ref) is a concrete instance of a [`Simulator`](@ref), which controls what information is collected as the simulation progresses. By default, the first argument is a [`StateRecorder`](@ref), which leads [`PDDL.simulate`](@ref) to return the trajectory of all states encountered, including the first:
+
+```julia-repl
+julia> traj = PDDL.simulate(domain, state, plan);
+
+julia> eltype(traj)
+GenericState
+
+julia> length(traj)
+5
+```
+
+You've now learned how to load PDDL domains and problems, construct and inspect states, and execute (sequences of) actions -- congratulations! In the [next tutorial](./writing_planners.md), you can learn how to write your very own planning algorithms using the functions introduced here.
