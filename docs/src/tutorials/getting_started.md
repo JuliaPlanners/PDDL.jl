@@ -4,14 +4,19 @@ Welcome to using PDDL.jl! This tutorial covers how to install PDDL.jl, how to lo
 
 ## Installation
 
-First, download and run Julia, [available here](https://julialang.org/downloads/) (version 1.3 or later required). In the Julia REPL, press `]` to enter the package manager, then run:
+First, download and run Julia, [available here](https://julialang.org/downloads/) (version 1.3 or later required). Optionally, [create your own project](https://pkgdocs.julialang.org/v1/environments/) and activate its environment. Next, press `]` in the Julia REPL to enter the package manager, then install the registered version of PDDL.jl by running:
 ```
 add PDDL
 ```
 
-For the latest development version, you may instead run:
+To install the latest development version, you may instead run:
 ```
 add https://github.com/JuliaPlanners/PDDL.jl.git
+```
+
+PDDL.jl can now be used in the Julia REPL, or at the top of a script:
+```julia
+using PDDL
 ```
 
 ## Loading Domains and Problems
@@ -51,7 +56,7 @@ A **PDDL domain** defines the high-level "physics" or transition dynamics of a p
 )
 ```
 
-Suppose this domain definition is saved in a file named `blocksworld.pddl` in the current directory. We can load it by calling [`load_domain`](@ref):
+Suppose this domain definition is saved in a file named `blocksworld.pddl` in the current directory. After loading PDDL.jl with `using PDDL`, we can load the Blocksworld domain by calling [`load_domain`](@ref):
 
 ```julia
 domain = load_domain("blocksworld.pddl")
