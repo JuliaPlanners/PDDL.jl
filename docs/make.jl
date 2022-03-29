@@ -25,3 +25,7 @@ makedocs(
       ]
    ]
 )
+
+deploydocs(
+    repo = "github.com/JuliaPlanners/PDDL.jl.git",
+)
