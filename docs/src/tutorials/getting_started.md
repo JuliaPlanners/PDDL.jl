@@ -397,4 +397,4 @@ julia> length(traj)
 5
 ```
 
-You've now learned how to load PDDL domains and problems, construct and inspect states, and execute (sequences of) actions -- congratulations! In the [next tutorial](./writing_planners.md), you can learn how to write your very own planning algorithms using the functions introduced here.
+You've now learned how to load PDDL domains and problems, construct and inspect states, and execute (sequences of) actions -- congratulations! In the [next tutorial](writing_planners.md), you can learn how to write your very own planning algorithms using the functions introduced here.

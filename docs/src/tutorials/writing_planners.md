@@ -1,6 +1,6 @@
 # Writing Planners
 
-Using the [PDDL.jl interface](..\ref\interface.md), it is straightforward to implement planning algorithms which solve problems in PDDL domains. Since all domain and implementation specific details are encapsulated by the interface, the same algorithm can operate across multiple domains, and even multiple representations of the same domain (e.g. [interpreted](..\ref\interpreter.md) vs. [compiled](..\ref\compiler.md)).
+Using the [PDDL.jl interface](..\ref\interface.md), it is straightforward to implement planning algorithms which solve problems in PDDL domains. Since all domain and implementation specific details are encapsulated by the interface, the same algorithm can operate across multiple domains, and even multiple representations of the same domain (e.g. [interpreted](../ref/interpreter.md) vs. [compiled](../ref/compiler.md)).
 
 In this tutorial, we present two simple planners as examples: forward breadth-first search, and backward breadth-first search.
 
@@ -41,7 +41,7 @@ As can be seen, search proceeds by popping a state and corresponding plan off th
 !!! note "Implementation Efficiency"
     While easy to understand, the implementation of breadth-first search presented here is memory inefficient because it stores the plan to each state as part of the search queue. Efficient implementations of planners using breadth-first search should be based off [Djikstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) instead.
 
-## Backward Search
+## Regression Search
 
 PDDL.jl also supports planning via **backward search**, also known as [**regression search**](https://artint.info/2e/html/ArtInt2e.Ch6.S3.html). Backward search operates by treating the goal condition as a *partial* or *abstract* state which only specifies that some predicates must be true. It then searches the space by considering all actions that could possibly achieve the current abstract state (called **relevant** actions), and inverting the semantics of each action (called **regression**). This results in a successor abstract state that represents the pre-image of the action: the set of all states that could have reached the current abstract state through that action.
 
