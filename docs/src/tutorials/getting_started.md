@@ -108,8 +108,6 @@ julia> PDDL.get_goal(problem) |> write_pddl
 "(and (clear c) (ontable b) (on c a) (on a b))"
 ```
 
-Note that the goal is displayed using Prolog-style syntax instead of PDDL-style syntax, because
-
 ### Loading From A Repository
 
 A wide variety of standard PDDL domains and problems can be found online, such as [this repository](https://github.com/potassco/pddl-instances) of instances from the International Planning Competition (IPC). To ease the (down)loading of these domains and problems, the PDDL.jl ecosystem includes [PlanningDomains.jl](https://github.com/JuliaPlanners/PlanningDomains.jl), which contains both a built-in repository of domains and problems, and an interface for accessing domains and problems from other online repositories.
