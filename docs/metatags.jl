@@ -81,6 +81,8 @@ function HTMLWriter.render_head(ctx::MetaTaggedHTMLContext, navnode)
         meta[:name => "viewport", :content => "width=device-width, initial-scale=1.0"],
 
         # NOTE: Custom meta tags are inserted here,
+        meta[:name => "og:title", :content => page_title],
+        meta[:name => "twitter:title", :content => page_title],
         ctx.metatags...,
 
         title(page_title),

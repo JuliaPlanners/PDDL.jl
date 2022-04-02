@@ -7,15 +7,17 @@ include("metatags.jl")
 empty!(CUSTOM_META_TAGS)
 PREVIEW_IMAGE_URL =
    "https://juliaplanners.github.io/PDDL.jl/dev/assets/preview-image.png"
+SITE_DESCRIPTION = "Documentation for the PDDl.jl automated planning library."
 append!(CUSTOM_META_TAGS, [
-   meta[:property => "description",
-        :content => "Documentation for the PDDl.jl automated planning library."],
+   meta[:property => "description", :content => SITE_DESCRIPTION],
    # OpenGraph tags
    meta[:property => "og:type", :content => "website"],
    meta[:property => "og:image", :content => PREVIEW_IMAGE_URL],
+   meta[:property => "og:description", :content => SITE_DESCRIPTION],
    # Twitter tags
    meta[:property => "twitter:card", :content => "summary_large_image"],
    meta[:property => "twitter:image", :content => PREVIEW_IMAGE_URL],
+   meta[:property => "twitter:description", :content => SITE_DESCRIPTION],
 ])
 
 makedocs(
