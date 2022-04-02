@@ -1,10 +1,10 @@
 # PDDL.jl
 
+[![Documentation (Stable)](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliaplanners.github.io/PDDL.jl/stable)
+[![Documentation (Latest)](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliaplanners.github.io/PDDL.jl/dev)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/JuliaPlanners/PDDL.jl/CI)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/JuliaPlanners/PDDL.jl)
 ![GitHub](https://img.shields.io/github/license/JuliaPlanners/PDDL.jl?color=lightgrey)
-[![Documentation (Stable)](https://img.shields.io/badge/docs-stable-blue.svg)]](https://juliaplanners.github.io/PDDL.jl/stable)
-[![Documentation (Dev)](https://img.shields.io/badge/docs-dev-blue.svg)]](https://juliaplanners.github.io/PDDL.jl/dev)
 
 A Julia parser, interpreter, and compiler interface for the Planning Domain Definition Language (PDDL).
 
