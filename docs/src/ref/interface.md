@@ -1,5 +1,7 @@
 # Interface Functions
 
+PDDL.jl defines a set of interface functions that serve as basic operations in a wide variety of symbolic planning algorithms and applications. These functions are intended to be low-level enough such that planning algorithms can be expressed primarily in terms of the operations they represent, but high-level enough so as to abstract away from implementational details. A schematic overview of most of these interface functions is shown below.
+
 ```@raw html
 <div style="text-align:center">
     <img src="../../assets/function-interface.svg" alt="A schematic diagram showing how the PDDL.jl interface functions relate to each other." width="90%"/>
