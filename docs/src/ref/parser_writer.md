@@ -83,7 +83,7 @@ write_domain
 write_problem
 ```
 
-To save domains or problems as text files to a file, use [`save_domain`](@ref) and [`save_problem`](@ref).
+To save domains or problems as text files to a path, use [`save_domain`](@ref) and [`save_problem`](@ref).
 
 ```@docs
 save_domain
