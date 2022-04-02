@@ -19,10 +19,10 @@ Learn how to install and use PDDL.jl by following these tutorials:
 
 ```@contents
 Pages = [
-    "tutorials\\getting_started.md",
-    "tutorials\\writing_planners.md",
-    "tutorials\\speeding_up.md",
-    "tutorials\\extending.md"
+    "tutorials/getting_started.md",
+    "tutorials/writing_planners.md",
+    "tutorials/speeding_up.md",
+    "tutorials/extending.md"
 ]
 Depth = 1
 ```
@@ -33,14 +33,14 @@ Learn about the architecture of PDDL.jl, its high-level interface for symbolic p
 
 ```@contents
 Pages = [
-    "ref\\overview.md",
-    "ref\\datatypes.md",
-    "ref\\interface.md",
-    "ref\\parser_writer.md",
-    "ref\\interpreter.md",
-    "ref\\compiler.md",
-    "ref\\absint.md",
-    "ref\\utilities.md"
+    "ref/overview.md",
+    "ref/datatypes.md",
+    "ref/interface.md",
+    "ref/parser_writer.md",
+    "ref/interpreter.md",
+    "ref/compiler.md",
+    "ref/absint.md",
+    "ref/utilities.md"
 ]
 Depth = 1
 ```
