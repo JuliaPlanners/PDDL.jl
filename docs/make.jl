@@ -1,5 +1,23 @@
 using Documenter, PDDL
 
+# Include workaround to inject custom meta tags
+include("metatags.jl")
+
+# Add custom metatags
+empty!(CUSTOM_META_TAGS)
+PREVIEW_IMAGE_URL =
+   "https://juliaplanners.github.io/PDDL.jl/dev/assets/preview-image.png"
+append!(CUSTOM_META_TAGS, [
+   meta[:property => "description",
+        :content => "Documentation for the PDDl.jl automated planning library."],
+   # OpenGraph tags
+   meta[:property => "og:type", :content => "website"],
+   meta[:property => "og:image", :content => PREVIEW_IMAGE_URL],
+   # Twitter tags
+   meta[:property => "twitter:card", :content => "summary_large_image"],
+   meta[:property => "twitter:image", :content => PREVIEW_IMAGE_URL],
+])
+
 makedocs(
    sitename="PDDL.jl",
    format=Documenter.HTML(
