@@ -1,7 +1,5 @@
 # Interface Functions
 
-[![Documentation (Stable)](https://img.shields.io/badge/docs-dev-blue.svg)]](https://juliaplanners.github.io/PDDL.jl/dev)
-
 ```@raw html
 <div style="text-align:center">
     <img src="../../assets/function-interface.svg" alt="A schematic diagram showing how the PDDL.jl interface functions relate to each other." width="90%"/>
