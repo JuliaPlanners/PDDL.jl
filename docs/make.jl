@@ -7,6 +7,7 @@ include("metatags.jl")
 empty!(CUSTOM_META_TAGS)
 PREVIEW_IMAGE_URL =
    "https://juliaplanners.github.io/PDDL.jl/dev/assets/preview-image.png"
+IMAGE_SUFFIX = Int(rand(UInt32))
 SITE_DESCRIPTION = "Documentation for the PDDl.jl automated planning library."
 append!(CUSTOM_META_TAGS, [
    meta[:property => "description", :content => SITE_DESCRIPTION],
@@ -16,7 +17,7 @@ append!(CUSTOM_META_TAGS, [
    meta[:property => "og:description", :content => SITE_DESCRIPTION],
    # Twitter tags
    meta[:property => "twitter:card", :content => "summary_large_image"],
-   meta[:property => "twitter:image", :content => PREVIEW_IMAGE_URL],
+   meta[:property => "twitter:image", :content => "$PREVIEW_IMAGE_URL?$IMAGE_SUFFIX"],
    meta[:property => "twitter:description", :content => SITE_DESCRIPTION],
 ])
 
