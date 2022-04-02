@@ -3,6 +3,8 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/JuliaPlanners/PDDL.jl/CI)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/JuliaPlanners/PDDL.jl)
 ![GitHub](https://img.shields.io/github/license/JuliaPlanners/PDDL.jl?color=lightgrey)
+[![Documentation (Stable)](https://img.shields.io/badge/docs-stable-blue.svg)]](https://juliaplanners.github.io/PDDL.jl/stable)
+[![Documentation (Dev)](https://img.shields.io/badge/docs-dev-blue.svg)]](https://juliaplanners.github.io/PDDL.jl/dev)
 
 A Julia parser, interpreter, and compiler interface for the Planning Domain Definition Language (PDDL).
 
@@ -101,11 +103,11 @@ We can then check that the problem is successfully solved in the final state:
 @assert satisfy(domain, state, problem.goal) == true
 ```
 
-More examples can be found in the [`test`](test) directory.
+More examples can be found in the [`test`](test) directory. Documentation can be found [here](https://juliaplanners.github.io/PDDL.jl/stable).
 
 ## Interface
 
-PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](src/interface/interface.jl). A summary is provided below:
+PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](https://juliaplanners.github.io/PDDL.jl/stable/ref/interface.md). A summary is provided below:
 
 - `satisfy` checks whether a logical formula is satisfied (or satisfiable) in a PDDL state.
 - `satisfiers` returns all satisfying substitutions to free variables in a logical formula.
