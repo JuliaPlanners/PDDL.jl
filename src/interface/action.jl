@@ -1,4 +1,9 @@
-"PDDL action definition."
+"""
+    Action
+
+Abstract supertype for action schemas, which specify the general semantics of
+an action parameterized by a set of arguments.
+"""
 abstract type Action end
 
 "Returns the name of an action schema."

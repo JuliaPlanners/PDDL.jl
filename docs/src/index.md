@@ -34,6 +34,7 @@ Learn about the architecture of PDDL.jl, its high-level interface for symbolic p
 ```@contents
 Pages = [
     "ref\\overview.md",
+    "ref\\datatypes.md",
     "ref\\interface.md",
     "ref\\parser_writer.md",
     "ref\\interpreter.md",

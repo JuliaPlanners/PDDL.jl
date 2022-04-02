@@ -16,6 +16,7 @@ makedocs(
       ],
       "Reference" => [
          "ref/overview.md",
+         "ref/datatypes.md",
          "ref/interface.md",
          "ref/parser_writer.md",
          "ref/interpreter.md",

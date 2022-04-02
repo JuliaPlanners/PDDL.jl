@@ -282,7 +282,7 @@ julia> PDDL.get_objtype(zt_state, pddl"(person1)")
 
 PDDL domains not only define the predicates and functions which describe a state, but also a set of actions which can modify a state. Having learned how to inspect the contents of a state, we can now modify them using actions.
 
-### Instantiating Action Schemas
+### Instantiating Actions
 
 In PDDL and symbolic planning more broadly, we distinguish between **action schemas** (also known as **operators**), which specify the general semantics of an action, and **ground actions**, which represent instantiations of actions for specific objects. We can inspect the definition of an action schema in a domain using [`PDDL.get_action`](@ref), such as the definition of `stack` below:
 
