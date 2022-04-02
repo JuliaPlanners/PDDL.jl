@@ -24,7 +24,7 @@ Term
 There are three subtypes of `Term`s:
   - `Const` terms, which are used to represent object constants, and have no arguments.
   - `Var` terms are used to represent variables in the context of first-order expressions.
-  - `Compound` terms are terms with arguments. They can be used to represent fluents, action preconditions or effects, logical expressions, or [ground actions](../tutorials/getting_started.md#instantiating-action-schemas).
+  - `Compound` terms are terms with arguments. They can be used to represent fluents, action preconditions or effects, logical expressions, or [ground actions](../tutorials/getting_started.md#Instantiating-Actions).
 
 To construct a `Term` using PDDL syntax, the [`@pddl`](@ref) macro or `pddl"..."` [string macro](https://docs.julialang.org/en/v1/manual/metaprogramming/#meta-non-standard-string-literals) can be used:
 
@@ -66,7 +66,7 @@ PDDL.get_fluents(::State)
 
 ## Actions
 
-As described in the [Getting Started](../tutorials/getting_started#instantiating-actions), symbolic planning formalisms distinguish between **action schemas** (also known as **operators**), which specify the general semantics of an action, and **ground actions**,  which represent instantiations of an action schema for specific objects.
+As described in the [Getting Started](../tutorials/getting_started.md#Instantiating-Actions), symbolic planning formalisms distinguish between **action schemas** (also known as **operators**), which specify the general semantics of an action, and **ground actions**,  which represent instantiations of an action schema for specific objects.
 
 An action schema comprises:
 - A *name* that identifies the action.
@@ -121,10 +121,15 @@ PDDL.get_typetree(::Domain)
 PDDL.get_types(::Domain)
 PDDL.get_subtypes(::Domain, ::Symbol)
 PDDL.get_predicates(::Domain)
+PDDL.get_predicate(::Domain, ::Symbol)
 PDDL.get_functions(::Domain)
+PDDL.get_function(::Domain, ::Symbol)
 PDDL.get_fluents(::Domain)
+PDDL.get_fluent(::Domain, ::Symbol)
 PDDL.get_axioms(::Domain)
+PDDL.get_axiom(::Domain, ::Symbol)
 PDDL.get_actions(::Domain)
+PDDL.get_action(::Domain, ::Symbol)
 ```
 
 ## Problems

@@ -204,13 +204,21 @@ function write_init(init::Vector{<:Term}, indent::Int=2, maxchars::Int=80)
     return join(strs, "\n" * ' '^indent)
 end
 
-"Save PDDL domain to specified path."
+"""
+    save_domain(path::String, domain::Domain)
+
+Save PDDL domain to specified path.
+"""
 function save_domain(path::String, domain::Domain)
     open(f->write(f, write_domain(domain)), path, "w")
     return path
 end
 
-"Save PDDL problem to specified path."
+"""
+    save_problem(path::String, problem::Problem)
+
+Save PDDL problem to specified path.
+"""
 function save_problem(path::String, problem::Problem)
     open(f->write(f, write_problem(problem)), path, "w")
     return path
