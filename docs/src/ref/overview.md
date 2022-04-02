@@ -4,8 +4,8 @@ PDDL.jl differs from standard automated planning systems in that it is designed 
 
 ```@raw html
 <div style="text-align:center">
-    <img src="../assets/pddl-jl-architecture.svg" alt="A diagram of the architecture and ecosystem of PDDL.jl" width="60%"/>
-    <img src="../assets/standard-architecture.svg" alt="A diagram of the architecture of a standard planning system" width="30%"/>
+    <img src="../../assets/pddl-jl-architecture.svg" alt="A diagram of the architecture and ecosystem of PDDL.jl" width="60%"/>
+    <img src="../../assets/standard-architecture.svg" alt="A diagram of the architecture of a standard planning system" width="30%"/>
 </div>
 ```
 

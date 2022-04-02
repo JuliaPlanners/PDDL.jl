@@ -4,7 +4,7 @@ Symbolic planning is a general term for approaches to automated planning that de
 
 ```@raw html
 <div style="text-align:center">
-    <img src="../assets/concepts-datatypes.svg" alt="A graphical overview of concepts in symbolic planning and their corresponding datatypes." width="80%"/>
+    <img src="../../assets/concepts-datatypes.svg" alt="A graphical overview of concepts in symbolic planning and their corresponding datatypes." width="80%"/>
 </div>
 ```
 
