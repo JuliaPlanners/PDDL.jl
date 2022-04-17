@@ -7,7 +7,6 @@ Attach to a specific `domain` by calling `PDDL.Arrays.attach!(domain)`.
 @pddltheory module Arrays
 
 using ..PDDL
-import ..PDDL: valterm
 
 # Array constructors
 new_array(val, dims...) = fill!(Array{Any}(undef, dims), val)
@@ -37,13 +36,16 @@ pop(v::AbstractVector) = (v = copy(v); pop!(v); v)
 _transpose(v::AbstractVector) = permutedims(v)
 _transpose(m::AbstractMatrix) = permutedims(m)
 
-valterm(v::AbstractVector) = Compound(:vec, Const.(v))
-valterm(v::BitVector) = Compound(Symbol("bit-vec"), Const.(Int.(v)))
-valterm(m::AbstractMatrix) =
-    Compound(:transpose, [Compound(:mat, valterm.(eachrow(m)))])
-valterm(m::BitMatrix) =
-    Compound(:transpose,
-        [Compound(Symbol("bit-mat"), valterm.(BitVector.(eachrow(m))))])
+# Conversions to terms
+vec_to_term(v::AbstractVector) =
+    Compound(:vec, PDDL.val_to_term.(v))
+bitvec_to_term(v::BitVector) =
+    Compound(Symbol("bit-vec"), Const.(Int.(v)))
+mat_to_term(m::AbstractMatrix) =
+    Compound(:transpose, [Compound(:mat, vec_to_term.(eachrow(m)))])
+bitmat_to_term(m::BitMatrix) =
+    Compound(:transpose, [Compound(Symbol("bit-mat"),
+                                   bitvec_to_term.(BitVector.(eachrow(m))))])
 
 const DATATYPES = Dict(
     "array" => (type=Array{Any}, default=Array{Any}(undef, ())),
@@ -52,6 +54,13 @@ const DATATYPES = Dict(
     "bit-array" => (type=BitArray, default=falses()),
     "bit-vector" => (type=BitVector, default=falses(0)),
     "bit-matrix" => (type=BitMatrix, default=falses(0, 0))
+)
+
+const CONVERTERS = Dict(
+    "vector" => vec_to_term,
+    "matrix" => mat_to_term,
+    "bit-vector" => bitvec_to_term,
+    "bit-matrix" => bitmat_to_term
 )
 
 const PREDICATES = Dict()

@@ -1,23 +1,19 @@
 # Theories for data types
 
-"""
-    valterm(val)
-
-Express `val` as a `Term` based on its type. Wraps `val` in `Const` by default.
-"""
-valterm(val) = Const(val)
-
 "Generate expression to register definitions in a theory module."
 function register_theory_expr(theory::Module)
     expr = Expr(:block)
     for (name, ty) in theory.DATATYPES
-        push!(expr.args, _register(:datatype, name, QuoteNode(ty)))
+        push!(expr.args, register_expr(:datatype, name, QuoteNode(ty)))
+    end
+    for (name, ty) in theory.CONVERTERS
+        push!(expr.args, register_expr(:converter, name, QuoteNode(ty)))
     end
     for (name, f) in theory.PREDICATES
-        push!(expr.args, _register(:predicate, name, QuoteNode(f)))
+        push!(expr.args, register_expr(:predicate, name, QuoteNode(f)))
     end
     for (name, f) in theory.FUNCTIONS
-        push!(expr.args, _register(:function, name, QuoteNode(f)))
+        push!(expr.args, register_expr(:function, name, QuoteNode(f)))
     end
     push!(expr.args, nothing)
     return expr
@@ -27,6 +23,9 @@ end
 function register_theory!(theory::Module)
     for (name, ty) in theory.DATATYPES
         PDDL.register!(:datatype, name, ty)
+    end
+    for (name, ty) in theory.CONVERTERS
+        PDDL.register!(:converter, name, ty)
     end
     for (name, f) in theory.PREDICATES
         PDDL.register!(:predicate, name, f)
@@ -41,6 +40,9 @@ end
 function deregister_theory!(theory::Module)
     for (name, ty) in theory.DATATYPES
         PDDL.deregister!(:datatype, name)
+    end
+    for (name, ty) in theory.CONVERTERS
+        PDDL.deregister!(:converter, name)
     end
     for (name, f) in theory.PREDICATES
         PDDL.deregister!(:predicate, name)

@@ -43,6 +43,12 @@ implementations = [
     @test satisfy(domain, state, problem.goal) == true
 end
 
+# Test writing of array-valued fluents
+original_state = initstate(domain, problem)
+problem_str = write_problem(GenericProblem(original_state))
+reparsed_state = initstate(domain, parse_problem(problem_str))
+@test reparsed_state == original_state
+
 # Deregister array theory
 PDDL.Arrays.deregister!()
 end # array fluents

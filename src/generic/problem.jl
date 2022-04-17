@@ -47,7 +47,7 @@ function GenericProblem(
         if val isa Bool && val == true # Handle Boolean predicates
             term = name
         else # Handle non-Boolean fluents
-            val = valterm(val) # Express value as term
+            val = val_to_term(val) # Express value as term
             term = Compound(:(==), Term[name, val]) # Assignment expression
         end
         push!(init, term)

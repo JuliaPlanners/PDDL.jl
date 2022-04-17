@@ -14,12 +14,16 @@ Non-equivalence in concrete and abstract domains. Defaults to `a != b`.
 """
 nequiv(a, b) = a != b
 
-"Helper function that generates dictionary at compile time."
-@generated function _generate_dict(keys::Val{Ks}, values::Val{Vs}) where {Ks, Vs}
-    Vs = Vs isa Tuple ? Vs : Tuple(Vs.parameters) # Handle tuple types
-    dict = Dict(zip(Ks, Vs))
-    return :($dict)
-end
+"""
+    val_to_term(datatype::Symbol, val)
+    val_to_term(val)
+
+Express `val` as a `Term` based on the `datatype`. Wraps in `Const` by default.
+If `datatype` is unspecified, it will be inferred.
+"""
+@valsplit val_to_term(Val(datatype::Symbol), val) = val_to_term(nothing, val)
+val_to_term(datatype::Nothing, val) = Const(val)
+val_to_term(val::T) where {T} = val_to_term(infer_datatype(T), val)
 
 "Mapping from PDDL data types to Julia types and default values."
 @valsplit datatype_def(Val(name::Symbol)) =
@@ -45,6 +49,20 @@ function global_datatypes()
     types = Base.to_tuple_type(getindex.(datatype_def.(names), 1))
     return _generate_dict(Val(names), Val(types))
 end
+
+"Infer PDDL datatype from Julia type."
+function infer_datatype(T::Type)
+    inferred = nothing
+    mintype = Any
+    for (name, type) in global_datatypes()
+        if T <: type <: mintype
+            inferred = name
+            mintype = type
+        end
+    end
+    return inferred
+end
+infer_datatype(val::T) where {T} = infer_datatype(T)
 
 "Mapping from PDDL built-in predicates to Julia functions."
 @valsplit predicate_def(Val(name::Symbol)) =
@@ -110,4 +128,11 @@ function global_modifiers()
     names = global_modifier_names()
     defs = modifier_def.(names)
     return _generate_dict(Val(names), Val(defs))
+end
+
+"Helper function that generates dictionary at compile time."
+@generated function _generate_dict(keys::Val{Ks}, values::Val{Vs}) where {Ks, Vs}
+    Vs = Vs isa Tuple ? Vs : Tuple(Vs.parameters) # Handle tuple types
+    dict = Dict(zip(Ks, Vs))
+    return :($dict)
 end

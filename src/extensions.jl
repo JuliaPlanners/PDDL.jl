@@ -1,14 +1,14 @@
 """
-    @register([:datatype|:predicate|:function|:modifier], name, x)
+    @register([:datatype|:predicate|:function|:modifier|:converter], name, x)
 
-Register `x` as a global datatype, predicate, function or modifier under
-the specified `name`.
+Register `x` as a global datatype, predicate, function, modifier, or term
+converter under the specified `name`.
 """
 macro register(category, name, x)
-    return _register(category, name, x)
+    return register_expr(category, name, x)
 end
 
-function _register(category::Symbol, name::Symbol, x)
+function register_expr(category::Symbol, name::Symbol, x)
     if category == :datatype
         fname = GlobalRef(@__MODULE__, :datatype_def)
     elseif category == :predicate
@@ -17,23 +17,30 @@ function _register(category::Symbol, name::Symbol, x)
         fname = GlobalRef(@__MODULE__, :function_def)
     elseif category == :modifier
         fname = GlobalRef(@__MODULE__, :modifier_def)
+    elseif category == :converter
+        return register_converter_expr(name, x)
     else
-        error("Category must be :datatype, :predicate, :function or :modifier.")
+        error("Unrecognized category: $category.")
     end
     return :($fname(::Val{$(QuoteNode(name))}) = $(esc(x)))
 end
-_register(category::QuoteNode, name, x) =
-    _register(category.value, name, x)
-_register(category::Symbol, name::QuoteNode, x) =
-    _register(category, name.value, x)
-_register(category::Symbol, name::AbstractString, x) =
-    _register(category, Symbol(name), x)
+register_expr(category::QuoteNode, name, x) =
+    register_expr(category.value, name, x)
+register_expr(category::Symbol, name::QuoteNode, x) =
+    register_expr(category, name.value, x)
+register_expr(category::Symbol, name::AbstractString, x) =
+    register_expr(category, Symbol(name), x)
+
+function register_converter_expr(name::Symbol, f)
+    _val_to_term = GlobalRef(@__MODULE__, :val_to_term)
+    return :($_val_to_term(::Val{$(QuoteNode(name))}, val)= $(esc(f))(val))
+end
 
 """
-    register!([:datatype|:predicate|:function|:modifier], name, x)
+    register!([:datatype|:predicate|:function|:modifier|:converter], name, x)
 
-Register `x` as a global datatype, predicate, function or modifier under
-the specified `name`.
+Register `x` as a global datatype, predicate, function or modifier, or term
+converter under the specified `name`.
 
 !!! warning "Top-Level Only"
     Because `register!` defines new methods, it should only be called at the
@@ -54,16 +61,23 @@ function register!(category::Symbol, name::Symbol, x)
         fname = GlobalRef(@__MODULE__, :function_def)
     elseif category == :modifier
         fname = GlobalRef(@__MODULE__, :modifier_def)
+    elseif category == :converter
+        return register_converter!(name, x)
     else
-        error("Category must be :datatype, :predicate, :function or :modifier.")
+        error("Unrecognized category: $category.")
     end
     @eval $fname(::Val{$(QuoteNode(name))}) = $(QuoteNode(x))
 end
 register!(category::Symbol, name::AbstractString, x) =
     register!(category, Symbol(name), x)
 
+function register_converter!(name::Symbol, f)
+    _val_to_term = GlobalRef(@__MODULE__, :val_to_term)
+    @eval $_val_to_term(::Val{$(QuoteNode(name))}, val) = $(QuoteNode(f))(val)
+end
+
 """
-    deregister!([:datatype|:predicate|:function|:modifier], name)
+    deregister!([:datatype|:predicate|:function|:modifier|:converter], name)
 
 Deregister the datatype, predicate, function or modifier specified by `name`.
 
@@ -81,6 +95,8 @@ function deregister!(category::Symbol, name::Symbol)
         f = function_def
     elseif category == :modifier
         f = modifier_def
+    elseif category == :converter
+        return deregister_converter!(name)
     else
         error("Category must be :datatype, :predicate, :function or :modifier.")
     end
@@ -94,6 +110,15 @@ end
 
 deregister!(category::Symbol, name::AbstractString) =
     deregister!(category, Symbol(name))
+
+function deregister_converter!(name::Symbol)
+    if hasmethod(val_to_term, Tuple{Val{name}, Any})
+        m = first(methods(val_to_term, Tuple{Val{name}, Any}))
+        Base.delete_method(m)
+    else
+        @warn "No registered converter for type $name to deregister."
+    end
+end
 
 """
     attach!(domain, :function, name, f)
