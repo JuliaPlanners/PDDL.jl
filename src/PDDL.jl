@@ -23,7 +23,7 @@ export save_domain, save_problem
 # Simulators
 export Simulator, EndStateSimulator, StateRecorder
 # Abstract interpretation
-export abstracted, abstractstate, lub, glb, widen, widen!
+export abstracted, abstractstate
 export AbstractedDomain
 # Domain compilation
 export compiled, compilestate
