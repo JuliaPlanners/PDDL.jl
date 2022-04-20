@@ -14,16 +14,14 @@ function infer_affected_fluents(domain::Domain)
     return unique!(affected)
 end
 
-const AFFECTED_FUNCS = Dict{Symbol, Function}()
-
 "Return the names of all fluents affected by an action."
-function get_affected(action::Action)
-    return get_affected(get_effect(action))
-end
+get_affected(action::Action) = get_affected(get_effect(action))
+get_affected(effect::Term) = get_affected!(effect.name, Symbol[], effect)
 
-function get_affected(effect::Term)
-    affected_fn! = get(AFFECTED_FUNCS, effect.name, builtin_affected!)
-    return affected_fn!(Symbol[], effect)
+# Use valsplit to switch on effect expression head
+@valsplit function get_affected!(Val(name::Symbol),
+                                 affected::Vector{Symbol}, effect::Term)
+    return builtin_affected!(affected, effect)
 end
 
 function builtin_affected!(affected::Vector{Symbol}, effect::Term)

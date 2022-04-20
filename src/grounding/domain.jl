@@ -39,7 +39,8 @@ function ground(domain::GenericDomain, state::State)
     statics = infer_static_fluents(domain)
     ground_domain = GroundDomain(domain.name, domain, Dict())
     for (name, act) in get_actions(domain)
-        ground_domain.actions[name] = ground(domain, state, act, statics)
+        ground_domain.actions[name] = ground(domain, state, act;
+                                             statics=statics)
     end
     return ground_domain
 end

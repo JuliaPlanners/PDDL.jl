@@ -27,3 +27,6 @@ is_redundant(diff::Diff) = error("Not implemented.")
 
 "Return an empty `Diff` of the same type as the input `Diff`."
 Base.empty(diff::Diff) = error("Not implemented.")
+
+"Returns if a Diff is empty."
+Base.isempty(diff::Diff) = error("Not implemented.")

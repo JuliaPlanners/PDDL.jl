@@ -26,6 +26,9 @@ is_redundant(diff::GenericDiff) =
 
 Base.empty(diff::GenericDiff) = GenericDiff()
 
+Base.isempty(diff::GenericDiff) =
+    isempty(diff.add) && isempty(diff.del) && isempty(diff.ops)
+
 "Conditional state difference, represented as paired conditions and sub-diffs."
 struct ConditionalDiff{D <: Diff} <: Diff
     conds::Vector{Vector{Term}}
@@ -65,3 +68,6 @@ end
 is_redundant(diff::ConditionalDiff) = all(is_redundant.(diff.diffs))
 
 Base.empty(diff::ConditionalDiff{D}) where {D} = ConditionalDiff{D}()
+
+Base.isempty(diff::ConditionalDiff) =
+    all(isempty.(diff.conds)) && all(isempty.(diff.diffs))
