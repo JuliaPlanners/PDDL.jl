@@ -62,13 +62,13 @@ function groundactions(domain::Domain, state::State, action::Action;
                        statics=infer_static_fluents(domain))
     ground_acts = GroundAction[]
     # Dequantify and flatten preconditions and effects
-    _precond = dequantify(get_precond(action), domain, state)
-    _effects = flatten_conditions(dequantify(get_effect(action), domain, state))
+    precond = dequantify(get_precond(action), domain, state)
+    effects = flatten_conditions(dequantify(get_effect(action), domain, state))
     # Iterate over possible groundings
     for args in groundargs(domain, state, action; statics=statics)
         # Construct ground action for each set of arguments
         act = ground(domain, state, action, args;
-                     statics=statics, _precond=_precond, _effects=_effects)
+                     statics=statics, precond=precond, effects=effects)
         # Skip actions that are never satisfiable
         if (act === nothing) continue end
         push!(ground_acts, act)
@@ -100,37 +100,31 @@ Return ground action given a lifted `action` and action `args`. If the action
 is never satisfiable given the `domain` and `state`, return `nothing`.
 """
 function ground(domain::Domain, state::State, action::Action, args;
-                statics=infer_static_fluents(domain),
-                _precond=nothing, _effects=nothing)
+    statics=infer_static_fluents(domain),
+    precond=dequantify(get_precond(action), domain, state; statics=statics),
+    effects=flatten_conditions(dequantify(get_effect(action), domain, state))
+)
     act_name = get_name(action)
     act_vars = get_argvars(action)
-    subst = Subst(var => val for (var, val) in zip(act_vars, args))
     term = Compound(act_name, collect(args))
-    # Construct dequantified precondition and effects, etc. if not passed in
-    if _precond === nothing
-        _precond = dequantify(get_precond(action), domain, state)
-    end
-    if _effects === nothing
-        _effect = dequantify(get_effect(action), domain, state)
-        _conds, _effects = flatten_conditions(_effect)
-    else
-        _conds, _effects = _effects
-    end
     # Substitute and simplify precondition
-    precond = substitute(_precond, subst)
+    subst = Subst(var => val for (var, val) in zip(act_vars, args))
+    precond = substitute(precond, subst)
     precond = simplify_statics(precond, domain, state, statics)
      # Return nothing if unsatisfiable
     if (precond.name == false) return nothing end
     preconds = to_cnf_clauses(precond)
+    # Unpack effects into conditions and effects
+    conds, effects = effects
     # Simplify conditions of conditional effects
-    conds = map(_conds) do cs
+    conds = map(conds) do cs
         isempty(cs) && return cs
         cond = substitute(Compound(:and, cs), subst)
         cond = simplify_statics(cond, domain, state, statics)
         return to_cnf_clauses(cond)
     end
     # Construct diffs from conditional effect terms
-    diffs = map(_effects) do es
+    diffs = map(effects) do es
         eff = substitute(Compound(:and, es), subst)
         return effect_diff(domain, state, eff)
     end
