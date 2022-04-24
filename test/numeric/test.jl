@@ -11,7 +11,6 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.metric == pddl"(minimize (+ (* 4 (total-time)) (* 5 (total-fuel-used))))"
 
-problem
 # Test for static functions
 static_fluents = infer_static_fluents(domain)
 @test :capacity in static_fluents
