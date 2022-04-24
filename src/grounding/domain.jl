@@ -7,6 +7,8 @@ end
 
 get_name(domain::GroundDomain) = domain.name
 
+get_source(domain::GroundDomain) = domain.source
+
 get_requirements(domain::GroundDomain) = get_requirements(domain.source)
 
 get_typetree(domain::GroundDomain) = get_typetree(domain.source)

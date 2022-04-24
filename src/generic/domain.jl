@@ -57,6 +57,8 @@ Base.copy(domain::GenericDomain) = deepcopy(domain)
 
 get_name(domain::GenericDomain) = domain.name
 
+get_source(domain::GenericDomain) = domain
+
 get_requirements(domain::GenericDomain) = domain.requirements
 
 get_typetree(domain::GenericDomain) = domain.typetree
