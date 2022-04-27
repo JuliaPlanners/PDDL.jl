@@ -11,15 +11,7 @@ function available(interpreter::Interpreter, domain::Domain, state::State)
         end
         # Include type conditions when necessary for correctness
         typecond = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
-        p = get_precond(act)
-        if (has_func(p, domain) || has_global_func(p) || has_negation(p) ||
-            has_derived(p, domain) || has_quantifier(p))
-            conds = prepend!(flatten_conjs(p), typecond)
-        elseif get_requirements(domain)[:typing]
-            conds = append!(flatten_conjs(p), typecond)
-        else
-            conds = flatten_conjs(p)
-        end
+        conds = [get_precond(act); typecond...]
         # Find all substitutions that satisfy preconditions
         subst = satisfiers(interpreter, domain, state, conds)
         if isempty(subst) continue end

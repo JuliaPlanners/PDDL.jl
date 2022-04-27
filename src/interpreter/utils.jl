@@ -22,6 +22,40 @@ function get_clauses(domain::Domain)
            get_const_clauses(domain); get_type_clauses(domain)]
 end
 
+"Reorder query to ensure correctness while reducing search time."
+function reorder_query(domain::Domain, query::Term)
+    query = flatten_conjs(query)
+    reorder_query!(domain, query)
+    return query
+end
+
+function reorder_query(domain::Domain, query::Vector{<:Term})
+    query = flatten_conjs(query)
+    reorder_query!(domain, query)
+    return query
+end
+
+function reorder_query!(domain::Domain, query::Vector{Term})
+    if isempty(query) return 1 end
+    priorities = Vector{Int}(undef, length(query))
+    for (i, q) in enumerate(query)
+        if q.name == :and || q.name == :or || q.name == :imply
+            priorities[i] = reorder_query!(domain, q.args)
+        elseif is_global_func(q) || is_func(q, domain)
+            priorities[i] = 4
+        elseif is_negation(q) || is_quantifier(q) || is_derived(q, domain)
+            priorities[i] = 3
+        elseif is_type(q, domain)
+            priorities[i] = 2
+        else
+            priorities[i] = 1
+        end
+    end
+    order = sortperm(priorities)
+    permute!(query, order)
+    return maximum(priorities)
+end
+
 """
     find_matches(term, state, domain=nothing)
 

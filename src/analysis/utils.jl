@@ -22,6 +22,10 @@ is_derived(term::Term, domain::Domain) =
 is_fluent(term::Term, domain::Domain) =
     is_pred(term, domain) || is_func(term, domain)
 
+"Check if term is a negation of another term."
+is_negation(term::Term) =
+    term.name == :not
+
 "Check if term is a universal or existential quantifier."
 is_quantifier(term::Term) =
     term.name == :forall || term.name == :exists

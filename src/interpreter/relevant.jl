@@ -8,13 +8,7 @@ function relevant(interpreter::Interpreter, domain::Domain, state::State)
         addcond = [Compound(:or, diff.add)]
         delcond = [@julog(not(:t)) for t in diff.del]
         typecond = [@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types)]
-        # Include type conditions when necessary for correctness
-        if any(has_func(c, domain) ||
-               has_quantifier(c) for c in [addcond; delcond])
-            conds = [typecond; addcond; delcond]
-        else
-            conds = [addcond; typecond; delcond]
-        end
+        conds = [addcond; typecond; delcond]
         # Find all substitutions that satisfy the postconditions
         subst = satisfiers(interpreter, domain, state, conds)
         if isempty(subst) continue end

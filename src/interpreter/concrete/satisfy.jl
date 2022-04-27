@@ -24,7 +24,11 @@ function satisfiers(interpreter::ConcreteInterpreter,
     clauses = Clause[get_clauses(domain); collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
     funcs = merge(global_functions(), state.values, get_funcdefs(domain))
-    return resolve(collect(terms), clauses; funcs=funcs, mode=:all)[2]
+    # Reorder query to reduce search time
+    terms = reorder_query(domain, collect(terms))
+    # Find satisfying substitutions via SLD-resolution
+    _, subst = resolve(terms, clauses; funcs=funcs, mode=:all, search=:dfs)
+    return subst
 end
 
 function satisfiers(interpreter::ConcreteInterpreter,
