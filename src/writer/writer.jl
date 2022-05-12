@@ -55,7 +55,9 @@ end
 "Indent list of typed PDDL constants."
 function indent_typed_list(str::String, indent::Int, maxchars::Int=80)
     if length(str) < maxchars - indent return str end
-    if !occursin(" - ", str) return indent_const_list(strs[1]) end
+    if !occursin(" - ", str)
+        return indent_const_list(str, indent, maxchars)
+    end
     substrs = String[]
     while length(str) > 0
         idxs = findnext(r" - (\S+)", str, 1)

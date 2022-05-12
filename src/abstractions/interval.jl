@@ -18,7 +18,7 @@ IntervalAbs{T}(a::T, b::T) where {T <: Real} =
 
 Base.copy(x::IntervalAbs) = x
 
-Base.convert(I::Type{IntervalAbs}, x::Real) = I(x)
+Base.convert(I::Type{IntervalAbs{T}}, x::Real) where {T <: Real} = I(x)
 Base.convert(I::Type{IntervalAbs{T}}, x::Integer) where {T <: Real} = I(x)
 
 Base.show(io::IO, x::IntervalAbs) = Base.show(io, x.interval)
