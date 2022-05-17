@@ -1,15 +1,15 @@
 @testset "array fluents" begin
 
-# Load domain and problem
+# Register array theory
+PDDL.Arrays.@register()
+
+# Load gridworld domain and problem
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "arrays")
-domain = load_domain(joinpath(path, "domain.pddl"))
-problem = load_problem(joinpath(path, "problem.pddl"))
+domain = load_domain(joinpath(path, "gridworld-domain.pddl"))
+problem = load_problem(joinpath(path, "gridworld-problem.pddl"))
 
 # Make sure function declarations have the right output type
 @test PDDL.get_function(domain, :walls).type == Symbol("bit-matrix")
-
-# Register array theory
-PDDL.Arrays.@register()
 
 state = initstate(domain, problem)
 implementations = [
@@ -18,7 +18,7 @@ implementations = [
     "concrete compiler" => compiled(domain, state),
 ]
 
-@testset "array fluents ($name)" for (name, (domain, _)) in implementations
+@testset "gridworld ($name)" for (name, (domain, _)) in implementations
     # Initialize state, test array dimensios, access and goal
     state = initstate(domain, problem)
     @test domain[state => pddl"(width (walls))"] == 3
@@ -48,6 +48,47 @@ original_state = initstate(domain, problem)
 problem_str = write_problem(GenericProblem(original_state))
 reparsed_state = initstate(domain, parse_problem(problem_str))
 @test reparsed_state == original_state
+
+# Load stairs domain and problem
+path = joinpath(dirname(pathof(PDDL)), "..", "test", "arrays")
+domain = load_domain(joinpath(path, "stairs-domain.pddl"))
+problem = load_problem(joinpath(path, "stairs-problem.pddl"))
+
+# Make sure function declarations have the right output type
+@test PDDL.get_function(domain, :stairs).type == Symbol("num-vector")
+
+state = initstate(domain, problem)
+implementations = [
+    "concrete interpreter" => (domain, state),
+    "ground interpreter" => (ground(domain, state), state),
+    "concrete compiler" => compiled(domain, state),
+]
+
+@testset "stairs ($name)" for (name, (domain, _)) in implementations
+    # Initialize state, test array dimensios, access and goal
+    state = initstate(domain, problem)
+    @test domain[state => pddl"(length (stairs))"] == 5
+    @test domain[state => pddl"(get-index stairs 1)"] == 1.0
+    @test domain[state => pddl"(get-index stairs 2)"] == 3.0
+    @test satisfy(domain, state, problem.goal) == false
+
+    # Check that we can only jump because first stair is too high
+    actions = available(domain, state) |> collect
+    @test length(actions) == 1 && actions[1].name == Symbol("jump-up")
+
+    # Execute plan to reach goal
+    state = execute(domain, state, pddl"(jump-up)")
+    state = execute(domain, state, pddl"(climb-up)")
+    state = execute(domain, state, pddl"(jump-down)")
+    state = execute(domain, state, pddl"(jump-up)")
+    state = execute(domain, state, pddl"(jump-up)")
+    state = execute(domain, state, pddl"(jump-down)")
+    state = execute(domain, state, pddl"(climb-up)")
+    state = execute(domain, state, pddl"(jump-up)")
+
+    # Check that goal is achieved
+    @test satisfy(domain, state, problem.goal) == true
+end
 
 # Deregister array theory
 PDDL.Arrays.deregister!()

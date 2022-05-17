@@ -108,11 +108,12 @@ function _compiler_warmup(domain::CompiledDomain, state::CompiledState)
     for (name, act) in pairs(get_actions(domain))
         args = first(groundargs(domain, state, act))
         term = Compound(name, collect(Term, args))
-        available(domain, state, term)
-        execute!(domain, copy(state), term)
-        execute(domain, state, term)
-        transition!(domain, copy(state), term)
-        transition(domain, state, term)
+        if available(domain, state, term)
+            execute!(domain, copy(state), term)
+            execute(domain, state, term)
+            transition!(domain, copy(state), term)
+            transition(domain, state, term)
+        end
     end
     return nothing
 end
