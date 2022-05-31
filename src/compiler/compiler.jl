@@ -106,7 +106,9 @@ function _compiler_warmup(domain::CompiledDomain, state::CompiledState)
     # Warm up action availability, execution, and state transition
     available(domain, state)
     for (name, act) in pairs(get_actions(domain))
-        args = first(groundargs(domain, state, act))
+        all_args = groundargs(domain, state, act)
+        isempty(all_args) && continue
+        args = first(all_args)
         term = Compound(name, collect(Term, args))
         if available(domain, state, term)
             execute!(domain, copy(state), term)
