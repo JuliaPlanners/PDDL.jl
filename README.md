@@ -107,7 +107,7 @@ More examples can be found in the [`test`](test) directory. Documentation can be
 
 ## Interface
 
-PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](https://juliaplanners.github.io/PDDL.jl/stable/ref/interface.md). A summary is provided below:
+PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](https://juliaplanners.github.io/PDDL.jl/stable/ref/interface/#Interface-Functions). A summary is provided below:
 
 - `satisfy` checks whether a logical formula is satisfied (or satisfiable) in a PDDL state.
 - `satisfiers` returns all satisfying substitutions to free variables in a logical formula.
