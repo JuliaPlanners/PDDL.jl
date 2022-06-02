@@ -88,8 +88,8 @@ when the initial state is an alternating pattern of black and white tiles in a 3
 
 With `PDDL.jl`, we can parse each of these files into Julia constructs:
 ```julia
-domain = load_domain("flip-domain.pddl"))
-problem = load_problem("flip-problem.pddl"))
+domain = load_domain("flip-domain.pddl")
+problem = load_problem("flip-problem.pddl")
 ```
 Actions defined by the domain can be executed to solve the problem:
 ```julia
