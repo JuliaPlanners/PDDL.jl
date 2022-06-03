@@ -88,8 +88,8 @@ when the initial state is an alternating pattern of black and white tiles in a 3
 
 With `PDDL.jl`, we can parse each of these files into Julia constructs:
 ```julia
-domain = load_domain("flip-domain.pddl"))
-problem = load_problem("flip-problem.pddl"))
+domain = load_domain("flip-domain.pddl")
+problem = load_problem("flip-problem.pddl")
 ```
 Actions defined by the domain can be executed to solve the problem:
 ```julia
@@ -107,7 +107,7 @@ More examples can be found in the [`test`](test) directory. Documentation can be
 
 ## Interface
 
-PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](https://juliaplanners.github.io/PDDL.jl/stable/ref/interface.md). A summary is provided below:
+PDDL.jl exposes a high-level interface for interacting with planning domains and problems, which can be used to implement planning algorithms and other downstream applications. Full documentation of interface methods can be found [here](https://juliaplanners.github.io/PDDL.jl/stable/ref/interface/#Interface-Functions). A summary is provided below:
 
 - `satisfy` checks whether a logical formula is satisfied (or satisfiable) in a PDDL state.
 - `satisfiers` returns all satisfying substitutions to free variables in a logical formula.
