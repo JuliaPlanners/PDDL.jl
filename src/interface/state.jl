@@ -23,7 +23,6 @@ type or any of its subtypes.
 get_objects(state::State) = error("Not implemented.")
 get_objects(state::State, type::Symbol) = error("Not implemented.")
 
-
 "Returns a map (dictionary, named tuple, etc.) from state objects to their types."
 get_objtypes(state::State) = error("Not implemented.")
 

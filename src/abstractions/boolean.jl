@@ -46,12 +46,12 @@ equiv(a::Bool, b::Both) = true
 Base.:(!)(::Both) = both
 
 Base.:(&)(a::Both, b::Both) = both
-Base.:(&)(a::Both, b::Missing) = false
+Base.:(&)(a::Both, b::Missing) = missing
 Base.:(&)(a::Both, b::Bool) = b ? both : false
 Base.:(&)(a::BooleanAbs, b::Both) = b & a
 
 Base.:(|)(a::Both, b::Both) = both
-Base.:(|)(a::Both, b::Missing) = true
+Base.:(|)(a::Both, b::Missing) = missing
 Base.:(|)(a::Both, b::Bool) = b ? true : both
 Base.:(|)(a::BooleanAbs, b::Both) = b | a
 

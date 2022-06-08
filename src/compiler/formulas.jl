@@ -46,10 +46,22 @@ function generate_quantified_expr(domain::Domain, state::State, term::Term,
     end
 end
 
+function generate_axiom_expr(domain::Domain, state::State, term::Term,
+                             varmap=Dict{Var,Any}(), state_var=:state)
+    axiom = Julog.freshen(get_axiom(domain, term.name))
+    subst = unify(axiom.head, term)
+    @assert subst !== nothing "Malformed derived predicate: $term"
+    body = length(axiom.body) == 1 ? axiom.body[1] : Compound(:and, axiom.body)
+    body = substitute(body, subst)
+    return generate_check_expr(domain, state, body, varmap, state_var)
+end
+
 function generate_check_expr(domain::Domain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
     if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
+    elseif is_derived(term, domain)
+        return generate_axiom_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
     elseif term.name in (:forall, :exists)
@@ -79,6 +91,8 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
     if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
+    elseif is_derived(term, domain)
+        return generate_axiom_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
     elseif term.name in (:forall, :exists)

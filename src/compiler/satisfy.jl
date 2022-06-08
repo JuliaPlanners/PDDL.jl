@@ -1,8 +1,20 @@
 function generate_satisfy(domain::Domain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     satisfy_def = quote
-        function check(::$domain_type, state::$state_type, term::Const)
-            return getfield(state, term.name)
+        function check(domain::$domain_type, state::$state_type, term::Var)
+            return missing
+        end
+        function check(domain::$domain_type, state::$state_type, term::Const)
+            val = if hasfield($state_type, term.name)
+                getfield(state, term.name)
+            elseif is_global_pred(term)
+                predicate_def(term.name)()
+            elseif is_derived(term, domain)
+                missing
+            else
+                false
+            end
+            return val
         end
         function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
@@ -14,10 +26,10 @@ function generate_satisfy(domain::Domain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
-            elseif is_global_pred(term.name)
+            elseif is_global_pred(term)
                 predicate_def(term.name)(evaluate(domain, state, term.args[1]),
                                          evaluate(domain, state, term.args[2]))
-            elseif !is_ground(term)
+            elseif is_derived(term, domain) || !is_ground(term)
                 missing
             else
                 evaluate(domain, state, term)
@@ -40,8 +52,20 @@ end
 function generate_satisfy(domain::AbstractedDomain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     satisfy_def = quote
-        function check(::$domain_type, state::$state_type, term::Const)
-            return getfield(state, term.name)
+        function check(domain::$domain_type, state::$state_type, term::Var)
+            return missing
+        end
+        function check(domain::$domain_type, state::$state_type, term::Const)
+            val = if hasfield($state_type, term.name)
+                getfield(state, term.name)
+            elseif is_global_pred(term)
+                predicate_def(term.name)()
+            elseif is_derived(term, domain)
+                missing
+            else
+                false
+            end
+            return val
         end
         function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
@@ -53,10 +77,10 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
-            elseif is_global_pred(term.name)
+            elseif is_global_pred(term)
                 predicate_def(term.name)(evaluate(domain, state, term.args[1]),
                                          evaluate(domain, state, term.args[2]))
-            elseif !is_ground(term)
+            elseif is_derived(term, domain) || !is_ground(term)
                 missing
             else
                 evaluate(domain, state, term)

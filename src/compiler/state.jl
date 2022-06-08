@@ -37,12 +37,13 @@ end
 function generate_state_type(domain::Domain, state::State, domain_type::Symbol)
     # Generate type definition
     state_fields = Expr[]
-    for (_, pred) in sortedpairs(get_predicates(domain))
+    for (name, pred) in sortedpairs(get_predicates(domain))
+        name in keys(get_axioms(domain)) && continue # Skip derived predicates
         type = generate_field_type(domain, pred)
         field = Expr(:(::), pred.name, QuoteNode(type))
         push!(state_fields, field)
     end
-    for (_, fn) in sortedpairs(get_functions(domain))
+    for (name, fn) in sortedpairs(get_functions(domain))
         type = generate_field_type(domain, fn)
         field = Expr(:(::), fn.name, QuoteNode(type))
         push!(state_fields, field)
@@ -70,6 +71,7 @@ function generate_state_constructors(domain::Domain, state::State,
     state_inits = []
     state_copies = Expr[]
     for (name, pred) in sortedpairs(get_predicates(domain))
+        name in keys(get_axioms(domain)) && continue # Skip derived predicates
         push!(state_inits, generate_pred_init(domain, state, pred))
         push!(state_copies, :(copy(state.$name)))
     end

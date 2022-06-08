@@ -6,12 +6,12 @@
     autowiden::Bool = true
 end
 
-include("utils.jl")
 include("domain.jl")
 include("interface.jl")
 include("satisfy.jl")
 include("initstate.jl")
 include("update.jl")
+include("utils.jl")
 
 """
     abstracted(domain; options...)

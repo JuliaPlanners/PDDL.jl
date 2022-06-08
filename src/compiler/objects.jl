@@ -11,7 +11,7 @@ function generate_object_defs(domain::Domain, state::State,
     objectindex_def =
         :(objectindex(state::$state_type, o::Symbol) =
             getfield(objectindices(state), o))
-    typed_defs = !get_requirements(domain)[:typing] ? Expr(:block) :
+    typed_defs =
         generate_object_typed_defs(domain, state, domain_type, state_type)
     return Expr(:block, get_objects_def, get_objtypes_def,
                 objectindices_def, objectindex_def, typed_defs)
