@@ -17,6 +17,7 @@ state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => (domain, state),
     "abstract interpreter" => abstracted(domain, state),
+    "ground interpreter" => (ground(domain, state), state),
     "concrete compiler" => compiled(domain, state),
     "abstract compiler" => compiled(abstracted(domain), state)
 ]
@@ -42,7 +43,7 @@ implementations = [
     state = initstate(domain, problem)
     @test Set{Term}(available(domain, state)) ==
         Set{Term}(@pddl("(pickup a)", "(pickup b)", "(pickup c)"))
-        
+
 end
 
 end # axioms

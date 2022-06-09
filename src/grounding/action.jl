@@ -42,10 +42,14 @@ function groundargs(domain::Domain, state::State, action::Action;
         statics = (statics === nothing) ? infer_static_fluents(domain) : statics
         preconds = flatten_conjs(get_precond(action))
         filter!(p -> p.name in statics, preconds)
+        # Add type conditions for correctness
+        act_vars, act_types = get_argvars(action), get_argtypes(action)
+        typeconds = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
+        conds = [preconds; typeconds...]
         # Find all arguments that satisfy static preconditions
         argvars = get_argvars(action)
         iter = ([subst[v] for v in argvars] for
-                subst in satisfiers(domain, state, preconds))
+                subst in satisfiers(domain, state, conds))
         return iter
     else
         iters = (get_objects(domain, state, ty) for ty in get_argtypes(action))

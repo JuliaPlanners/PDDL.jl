@@ -29,12 +29,12 @@ export AbstractedDomain
 export compiled, compilestate
 export CompiledDomain, CompiledAction, CompiledState
 # Domain and action grounding
-export ground, groundargs, groundactions
+export ground, groundargs, groundactions, groundaxioms
 export GroundDomain, GroundAction, GroundActionGroup
 # Extension interfaces
 export attach!, register!, @register, @pddltheory
 # Analysis tools
-export infer_affected_fluents, infer_static_fluents
+export infer_affected_fluents, infer_static_fluents, infer_axiom_hierarchy
 # Utilities
 export find_matches, effect_diff, precond_diff
 

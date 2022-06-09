@@ -93,9 +93,19 @@ has_fluent(term::Term, domain::Domain) =
     has_pred(term, domain) || has_func(term, domain)
 
 "Returns list of constituent fluents."
-constituents(term::Const, domain::Domain) =
-    is_fluent(term, domain) ? [term] : []
-constituents(term::Var, domain::Domain) =
-    false
-constituents(term::Compound, domain) = is_fluent(term, domain) ?
-    Term[term] : reduce(vcat, (constituents(a, domain) for a in term.args))
+constituents(term::Term, domain::Domain) =
+    constituents!(Term[], term, domain)
+constituents!(fluents, term::Const, domain::Domain) =
+    is_fluent(term, domain) ? push!(fluents, term) : fluents
+constituents!(fluents, term::Var, domain::Domain) =
+    fluents
+function constituents!(fluents, term::Compound, domain)
+    if is_fluent(term, domain)
+        push!(fluents, term)
+    else
+        for arg in term.args
+            constituents!(fluents, arg, domain)
+        end
+    end
+    return fluents
+end

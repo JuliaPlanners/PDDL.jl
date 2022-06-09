@@ -7,9 +7,20 @@ end
 
 "Infer fluents that are modified by some action in a domain."
 function infer_affected_fluents(domain::Domain)
+    # Infer fluents directly changed by actions
     affected = Symbol[]
     for action in values(get_actions(domain))
         append!(affected, get_affected(action))
+    end
+    # Infer affected derived predicates
+    _, children = infer_axiom_hierarchy(domain)
+    queue = copy(affected)
+    while !isempty(queue)
+        fluent = pop!(queue)
+        derived = get!(children, fluent, Symbol[])
+        filter!(x -> !(x in affected), derived)
+        append!(queue, derived)
+        append!(affected, derived)
     end
     return unique!(affected)
 end
@@ -98,4 +109,21 @@ function simplify_statics(term::Term, domain::Domain, state::State,
     else
         error("Unrecognized logical operator: $(term.name)")
     end
+end
+
+"Infer dependency structure between axioms."
+function infer_axiom_hierarchy(domain::Domain)
+    parents = Dict{Symbol,Vector{Symbol}}()
+    for (name, ax) in get_axioms(domain)
+        body = length(ax.body) == 1 ? ax.body[1] : Compound(:and, ax.body)
+        parents[name] = unique!([c.name for c in constituents(body, domain)])
+    end
+    children = Dict{Symbol,Vector{Symbol}}()
+    for (name, ps) in parents
+        for p in ps
+            cs = get!(children, p, Symbol[])
+            push!(cs, name)
+        end
+    end
+    return parents, children
 end
