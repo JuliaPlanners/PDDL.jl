@@ -1,14 +1,19 @@
 # Utilities for converting axioms to ground actions
 
 "Converts a domain axiom to an action."
-function GenericAction(domain::Domain, axiom::Clause)
+function GenericAction(domain::Domain, axiom::Clause; negated::Bool=false)
     term = axiom.head
     name = term.name
     args = term.args
     types = collect(get_predicate(domain, name).argtypes)
-    precond = to_nnf(Compound(:and, axiom.body))
+    precond = Compound(:and, axiom.body)
     effect = axiom.head
-    return GenericAction(name, args, types, precond, effect)
+    if negated
+        name = Symbol(:not, :-, name)
+        precond = Compound(:not, Term[precond])
+        effect = Compound(:not, Term[effect])
+    end
+    return GenericAction(name, args, types, to_nnf(precond), effect)
 end
 
 """
@@ -19,7 +24,9 @@ Converts a PDDL axiom to a set of ground actions.
 function groundaxioms(domain::Domain, state::State, axiom::Clause;
                       statics=infer_static_fluents(domain))
     action = GenericAction(domain, axiom)
-    return groundactions(domain, state, action; statics=statics)
+    neg_action = GenericAction(domain, axiom; negated=true)
+    return [groundactions(domain, state, action; statics=statics);
+            groundactions(domain, state, neg_action; statics=statics)]
 end
 
 """

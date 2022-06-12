@@ -114,7 +114,7 @@ end
 "Infer dependency structure between axioms."
 function infer_axiom_hierarchy(domain::Domain)
     parents = Dict{Symbol,Vector{Symbol}}()
-    for (name, ax) in get_axioms(domain)
+    for (name, ax) in pairs(get_axioms(domain))
         body = length(ax.body) == 1 ? ax.body[1] : Compound(:and, ax.body)
         parents[name] = unique!([c.name for c in constituents(body, domain)])
     end

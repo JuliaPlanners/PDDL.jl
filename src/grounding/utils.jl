@@ -92,6 +92,30 @@ function flatten_conditions(action::GroundAction)
     return actions
 end
 
+"Checks if a term or list of terms is in conjunctive normal form."
+is_cnf(term::Term) =
+    term.name == :and && is_cnf(term.args)
+is_cnf(terms::AbstractVector{<:Term}) =
+    all(is_cnf_clause(t) for t in terms)
+
+"Checks if a term or list of terms is a CNF clause."
+is_cnf_clause(term::Term) =
+    (term.name == :or && is_cnf_clause(term.args)) || is_literal(term)
+is_cnf_clause(terms::AbstractVector{<:Term}) =
+    all(is_literal(t) for t in terms)
+
+"Checks if a term or list of terms is in disjunctive normal form."
+is_dnf(term::Term) =
+    term.name == :or && is_dnf(term.args)
+is_dnf(terms::AbstractVector{<:Term}) =
+    all(is_dnf_clause(t) for t in terms)
+
+"Checks if a term or list of terms is a CNF clause."
+is_dnf_clause(term::Term) =
+    (term.name == :and && is_dnf_clause(term.args)) || is_literal(term)
+is_dnf_clause(terms::AbstractVector{<:Term}) =
+    all(is_literal(t) for t in terms)
+
 """
     clauses = to_cnf_clauses(term)
 
@@ -100,8 +124,9 @@ multiple literals have an `or` around them, but single-literal clauses do not.
 """
 function to_cnf_clauses(term::Term)
     term = to_cnf(term)
-    clauses = map!(c -> (length(c.args) == 1) ? c.args[1] : c,
-                   similar(term.args), term.args)
+    clauses = map!(similar(term.args), term.args) do c
+        (length(c.args) == 1) ? c.args[1] : Compound(c.name, unique!(c.args))
+    end
     return clauses
 end
 to_cnf_clauses(terms::AbstractVector{<:Term}) =
@@ -115,8 +140,9 @@ multiple literals have an `and` around them, but single-literal clauses do not.
 """
 function to_dnf_clauses(term::Term)
     term = to_dnf(term)
-    clauses = map!(c -> (length(c.args) == 1) ? c.args[1] : c,
-                   similar(term.args), term.args)
+    clauses = map!(similar(term.args), term.args) do c
+        (length(c.args) == 1) ? c.args[1] : Compound(c.name, unique!(c.args))
+    end
     return clauses
 end
 to_dnf_clauses(terms::AbstractVector{<:Term}) =

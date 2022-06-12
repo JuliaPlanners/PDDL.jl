@@ -113,11 +113,10 @@ function ground(domain::Domain, state::State, action::Action, args;
     term = Compound(act_name, collect(args))
     # Substitute and simplify precondition
     subst = Subst(var => val for (var, val) in zip(act_vars, args))
-    precond = substitute(precond, subst)
+    precond = to_nnf(substitute(precond, subst))
     precond = simplify_statics(precond, domain, state, statics)
      # Return nothing if unsatisfiable
     if (precond.name == false) return nothing end
-    preconds = to_cnf_clauses(precond)
     # Unpack effects into conditions and effects
     conds, effects = effects
     # Simplify conditions of conditional effects
@@ -136,6 +135,18 @@ function ground(domain::Domain, state::State, action::Action, args;
     unsat_idxs = findall(cs -> Const(false) in cs, conds)
     deleteat!(conds, unsat_idxs)
     deleteat!(diffs, unsat_idxs)
+    # Decide whether to simplify precondition to CNF
+    if is_dnf(precond) # Split disjunctive precondition into conditional effects
+        conds = map(precond.args) do clause
+            terms = flatten_conjs(clause)
+            return [[terms; cs] for cs in conds]
+        end
+        conds = reduce(vcat, conds)
+        diffs = repeat(diffs, length(precond.args))
+        preconds = Term[]
+    else # Otherwise convert to CNF
+        preconds = to_cnf_clauses(precond)
+    end
     # Construct conditional diff if necessary
     if length(diffs) > 1
         effect = ConditionalDiff(conds, diffs)

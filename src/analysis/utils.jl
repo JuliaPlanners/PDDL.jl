@@ -42,6 +42,10 @@ is_global_func(term::Term) =
 is_logical_op(term::Term) =
     term.name in (:and, :or, :not, :imply, :exists, :forall)
 
+"Check if term is a literal (an atomic formula or its negation.)"
+is_literal(term::Term) =
+    !is_logical_op(term) || term.name == :not && !is_logical_op(term)
+
 "Check if term is a type predicate."
 is_type(term::Term, domain::Domain) =
     term.name in get_types(domain)
