@@ -16,9 +16,9 @@ implementations = [
 ]
 
 @testset "flip ($name)" for (name, (domain, state)) in implementations
-    state = execute(domain, state, pddl"(flip_column c1)")
-    state = execute(domain, state, pddl"(flip_column c3)")
-    state = execute(domain, state, pddl"(flip_row r2)")
+    state = execute(domain, state, pddl"(flip_column c1)", check=true)
+    state = execute(domain, state, pddl"(flip_column c3)", check=true)
+    state = execute(domain, state, pddl"(flip_row r2)", check=true)
 
     @test satisfy(domain, state, problem.goal) == true
 end
@@ -46,19 +46,19 @@ implementations = [
     # Execute plan to assemble a frob
 
     # Commit charger to assembly of frob
-    state = execute(domain, state, pddl"(commit charger frob)")
+    state = execute(domain, state, pddl"(commit charger frob)", check=true)
     # Once commited, we can't commit again
     @test available(domain, state, pddl"(commit charger frob)") == false
 
     # We can't add a tube to the frob before adding the widget and fastener
     @test available(domain, state, pddl"(assemble tube frob)") == false
-    state = execute(domain, state, pddl"(assemble widget frob)")
+    state = execute(domain, state, pddl"(assemble widget frob)", check=true)
     @test available(domain, state, pddl"(assemble tube frob)") == false
-    state = execute(domain, state, pddl"(assemble fastener frob)")
+    state = execute(domain, state, pddl"(assemble fastener frob)", check=true)
 
     # Having added both widget and fastener, now we can add the tube
     @test available(domain, state, pddl"(assemble tube frob)") == true
-    state = execute(domain, state, pddl"(assemble tube frob)")
+    state = execute(domain, state, pddl"(assemble tube frob)", check=true)
 
     # We've completely assembled a frob!
     @test satisfy(domain, state, problem.goal) == true

@@ -32,14 +32,14 @@ implementations = [
     @test satisfy(domain, state, problem.goal) == false
 
     # Jacob tells stories at Steinau, Wilhem at Hanau
-    state = execute(domain, state, pddl"(entertain jacob steinau)")
-    state = execute(domain, state, pddl"(entertain wilhelm hanau)")
+    state = execute(domain, state, pddl"(entertain jacob steinau)", check=true)
+    state = execute(domain, state, pddl"(entertain wilhelm hanau)", check=true)
     @test domain[state => pddl"(cardinality (heard steinau))"] == 3
     @test domain[state => pddl"(cardinality (heard hanau))"] == 3
 
     # Both tell stories at Marburg
-    state = execute(domain, state, pddl"(entertain jacob marburg)")
-    state = execute(domain, state, pddl"(entertain wilhelm marburg)")
+    state = execute(domain, state, pddl"(entertain jacob marburg)", check=true)
+    state = execute(domain, state, pddl"(entertain wilhelm marburg)", check=true)
     @test domain[state => pddl"(cardinality (heard marburg))"] == 4
 
     # Check that goal is achieved

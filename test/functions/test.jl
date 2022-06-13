@@ -20,10 +20,10 @@ state = initstate(domain, problem)
 
 # Execute plan
 state = initstate(domain, problem)
-state = execute(domain, state, pddl"(pick ball1)")
-state = execute(domain, state, pddl"(throw ball1 85)")
-state = execute(domain, state, pddl"(pick ball2)")
-state = execute(domain, state, pddl"(throw ball2 75)")
+state = execute(domain, state, pddl"(pick ball1)", check=true)
+state = execute(domain, state, pddl"(throw ball1 85)", check=true)
+state = execute(domain, state, pddl"(pick ball2)", check=true)
+state = execute(domain, state, pddl"(throw ball2 75)", check=true)
 
 # Check if goal is satisfied
 @test domain[state => pddl"(< (loc ball1) 10)"]

@@ -32,12 +32,12 @@ implementations = [
     @test length(actions) == 1 && actions[1].name == :down
 
     # Execute plan to reach goal
-    state = execute(domain, state, pddl"(down)")
-    state = execute(domain, state, pddl"(down)")
-    state = execute(domain, state, pddl"(right)")
-    state = execute(domain, state, pddl"(right)")
-    state = execute(domain, state, pddl"(up)")
-    state = execute(domain, state, pddl"(up)")
+    state = execute(domain, state, pddl"(down)", check=true)
+    state = execute(domain, state, pddl"(down)", check=true)
+    state = execute(domain, state, pddl"(right)", check=true)
+    state = execute(domain, state, pddl"(right)", check=true)
+    state = execute(domain, state, pddl"(up)", check=true)
+    state = execute(domain, state, pddl"(up)", check=true)
 
     # Check that goal is achieved
     @test satisfy(domain, state, problem.goal) == true
@@ -77,14 +77,14 @@ implementations = [
     @test length(actions) == 1 && actions[1].name == Symbol("jump-up")
 
     # Execute plan to reach goal
-    state = execute(domain, state, pddl"(jump-up)")
-    state = execute(domain, state, pddl"(climb-up)")
-    state = execute(domain, state, pddl"(jump-down)")
-    state = execute(domain, state, pddl"(jump-up)")
-    state = execute(domain, state, pddl"(jump-up)")
-    state = execute(domain, state, pddl"(jump-down)")
-    state = execute(domain, state, pddl"(climb-up)")
-    state = execute(domain, state, pddl"(jump-up)")
+    state = execute(domain, state, pddl"(jump-up)", check=true)
+    state = execute(domain, state, pddl"(climb-up)", check=true)
+    state = execute(domain, state, pddl"(jump-down)", check=true)
+    state = execute(domain, state, pddl"(jump-up)", check=true)
+    state = execute(domain, state, pddl"(jump-up)", check=true)
+    state = execute(domain, state, pddl"(jump-down)", check=true)
+    state = execute(domain, state, pddl"(climb-up)", check=true)
+    state = execute(domain, state, pddl"(jump-up)", check=true)
 
     # Check that goal is achieved
     @test satisfy(domain, state, problem.goal) == true

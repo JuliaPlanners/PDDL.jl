@@ -27,11 +27,11 @@ implementations = [
 
     # Test forward execution of plans
     state = initstate(domain, problem)
-    state = execute(domain, state, pddl"(pick ball1 rooma left)")
+    state = execute(domain, state, pddl"(pick ball1 rooma left)", check=true)
     @test domain[state => pddl"(carry ball1 left)"] ≃ true
-    state = execute(domain, state, pddl"(move rooma roomb)")
+    state = execute(domain, state, pddl"(move rooma roomb)", check=true)
     @test domain[state => pddl"(robbyat roomb)"] ≃ true
-    state = execute(domain, state, pddl"(drop ball1 roomb left)")
+    state = execute(domain, state, pddl"(drop ball1 roomb left)", check=true)
     @test domain[state => pddl"(at ball1 roomb)"] ≃ true
 
     @test satisfy(domain, state, problem.goal) ≃ true
