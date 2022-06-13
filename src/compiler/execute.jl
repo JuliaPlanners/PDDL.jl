@@ -30,6 +30,9 @@ function generate_execute(domain::Domain, state::State,
     # TODO: Fix mutating execute to ensure parallel composition of effects
     precond = generate_check_expr(domain, state, get_precond(action), varmap,
                                   :prev_state)
+    if domain isa AbstractedDomain
+        precond = :($precond == true || $precond == both)
+    end
     effect = generate_effect_expr(domain, state, get_effect(action), varmap)
     meffect = generate_effect_expr(domain, state, get_effect(action), varmap,
                                    :prev_state, :prev_state)
