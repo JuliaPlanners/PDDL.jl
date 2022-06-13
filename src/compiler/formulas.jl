@@ -23,7 +23,7 @@ function generate_quantified_expr(domain::Domain, state::State, term::Term,
     typeconds, query = flatten_conjs(term.args[1]), term.args[2]
     types, vars = Symbol[], Symbol[]
     for (i, cond) in enumerate(typeconds)
-        v = Symbol("o$i") # Create local variable name
+        v = gensym("o$i") # Create local variable name
         push!(vars, v)
         push!(types, cond.name) # Extract type name
         varmap[cond.args[1]] = :($v.name)
@@ -37,7 +37,7 @@ function generate_quantified_expr(domain::Domain, state::State, term::Term,
         v, ty = pop!(vars), QuoteNode(pop!(types))
         expr = Expr(:flatten, :($expr for $v in get_objects($state_var, $ty)))
     end
-    if Domain isa AbstractedDomain
+    if domain isa AbstractedDomain
         accum = term.name == :forall ? :(&) : :(|)
         return :($accum($expr...))
     else
@@ -52,7 +52,7 @@ function generate_axiom_expr(domain::Domain, state::State, term::Term,
     subst = unify(axiom.head, term)
     @assert subst !== nothing "Malformed derived predicate: $term"
     body = length(axiom.body) == 1 ? axiom.body[1] : Compound(:and, axiom.body)
-    body = substitute(body, subst)
+    body = to_nnf(substitute(body, subst))
     return generate_check_expr(domain, state, body, varmap, state_var)
 end
 

@@ -26,18 +26,16 @@ implementations = [
 
     # Test forward execution of plans
     state = initstate(domain, problem)
-    state = execute(domain, state, pddl"(pickup b)")
+    state = execute(domain, state, pddl"(pickup b)", check=true)
     @test domain[state => pddl"(holding b)"] ≃ true
-    state = execute(domain, state, pddl"(stack b c)")
+    state = execute(domain, state, pddl"(stack b c)", check=true)
     @test domain[state => pddl"(on b c)"] ≃ true
-    state = execute(domain, state, pddl"(pickup a)")
+    state = execute(domain, state, pddl"(pickup a)", check=true)
     @test domain[state => pddl"(holding a)"] ≃ true
-    state = execute(domain, state, pddl"(stack a b)")
+    state = execute(domain, state, pddl"(stack a b)", check=true)
     @test domain[state => pddl"(above a c)"] ≃ true
 
-    satisfy(domain, state, problem.goal)
-
-    satisfiers(domain, state, problem.goal)
+    @test satisfy(domain, state, problem.goal) ≃ true
 
     # Test action availability
     state = initstate(domain, problem)
