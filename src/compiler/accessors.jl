@@ -1,7 +1,11 @@
 
 function generate_get_expr(domain::Domain, state::State, term::Const,
                            varmap=Dict{Var,Any}(), state_var=:state)
-    return :($state_var.$(term.name))
+    if is_derived(term, domain)
+        return :(get_fluent($state_var, $(QuoteNode(term.name))))
+    else
+        return :($state_var.$(term.name))
+    end
 end
 
 function generate_get_expr(domain::Domain, state::State, term::Var,
@@ -11,9 +15,15 @@ end
 
 function generate_get_expr(domain::Domain, state::State, term::Compound,
                            varmap=Dict{Var,Any}(), state_var=:state)
-    indices = generate_fluent_ids(domain, state, term,
-                                  get_fluent(domain, term.name), varmap, state_var)
-    return :($state_var.$(term.name)[$(indices...)])
+    if is_derived(term, domain)
+        args = [varmap[a] for a in term.args]
+        return :(get_fluent($state_var, $(QuoteNode(term.name)), $(args...)))
+    else
+        sig = get_fluent(domain, term.name)
+        indices = generate_fluent_ids(domain, state, term, sig,
+                                      varmap, state_var)
+        return :($state_var.$(term.name)[$(indices...)])
+    end
 end
 
 function generate_set_expr(domain::Domain, state::State, term::Const,

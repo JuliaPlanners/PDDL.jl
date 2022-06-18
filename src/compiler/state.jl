@@ -120,16 +120,37 @@ function generate_state_methods(domain::Domain, state::State,
     # Fluent accessors
     fluent_conds, get_fluent_brs, set_fluent_brs, groundargs_defs =
         Expr[], Expr[], Expr[], Expr[]
+    unpacked_conds, unpacked_get_brs, unpacked_set_brs = Expr[], Expr[], Expr[]
     for (name, sig) in pairs(get_fluents(domain))
         # Ground args
         def = generate_groundargs(domain, state, domain_type, state_type, name)
         push!(groundargs_defs, def)
         # Generate accessor branch conditions
         push!(fluent_conds, :(term.name == $(QuoteNode(name))))
+        push!(unpacked_conds, :(name == $(QuoteNode(name))))
+        # Generate accesor branch defs for derived predicates
+        if name in keys(get_axioms(domain))
+            term = convert(Term, sig)
+            varmap = Dict(a => :(term.args[$i].name)
+                          for (i, a) in enumerate(sig.args))
+            get_expr = generate_axiom_expr(domain, state, term, varmap)
+            set_expr = :(error("Cannot set value of derived predicate: $name"))
+            push!(get_fluent_brs, get_expr)
+            push!(set_fluent_brs, set_expr)
+            varmap = Dict(a => :(args[$i]) for (i, a) in enumerate(sig.args))
+            get_expr = generate_axiom_expr(domain, state, term, varmap)
+            push!(unpacked_get_brs, get_expr)
+            push!(unpacked_set_brs, set_expr)
+            continue
+        end
         # Generate accessor branch defs for 0-arity fluents
         if length(sig.args) == 0
-            push!(get_fluent_brs, :(state.$name))
-            push!(set_fluent_brs, :(state.$name = val))
+            get_expr = :(state.$name)
+            set_expr = :(state.$name = val)
+            push!(get_fluent_brs, get_expr)
+            push!(set_fluent_brs, set_expr)
+            push!(unpacked_get_brs, get_expr)
+            push!(unpacked_set_brs, set_expr)
             continue
         end
         # Generate accessor branch defs multiple-arity fluents
@@ -139,16 +160,29 @@ function generate_state_methods(domain::Domain, state::State,
         idxs = generate_fluent_ids(domain, state, term, sig, varmap)
         push!(get_fluent_brs, :(@inbounds state.$name[$(idxs...)]))
         push!(set_fluent_brs, :(@inbounds state.$name[$(idxs...)] = val))
+        varmap = Dict(a => :(args[$i]) for (i, a) in enumerate(sig.args))
+        idxs = generate_fluent_ids(domain, state, term, sig, varmap)
+        push!(unpacked_get_brs, :(@inbounds state.$name[$(idxs...)]))
+        push!(unpacked_set_brs, :(@inbounds state.$name[$(idxs...)] = val))
     end
     err_br = :(error("Unrecognized fluent: $(term.name)"))
+    unpacked_err_br = :(error("Unrecognized fluent: $name"))
     get_fluent_def = quote
         function get_fluent(state::$state_type, term::Term)
             return $(generate_switch_stmt(fluent_conds, get_fluent_brs, err_br))
+        end
+        function get_fluent(state::$state_type, name::Symbol, args...)
+            return $(generate_switch_stmt(unpacked_conds, unpacked_get_brs,
+                                          unpacked_err_br))
         end
     end
     set_fluent_def = quote
         function set_fluent!(state::$state_type, val, term::Term)
             return $(generate_switch_stmt(fluent_conds, set_fluent_brs, err_br))
+        end
+        function set_fluent!(state::$state_type, val, name::Symbol, args...)
+            return $(generate_switch_stmt(unpacked_conds, unpacked_set_brs,
+                                          unpacked_err_br))
         end
     end
     state_method_defs = Expr(:block, types_def,

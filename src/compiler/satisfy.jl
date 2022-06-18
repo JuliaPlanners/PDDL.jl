@@ -10,7 +10,7 @@ function generate_satisfy(domain::Domain, state::State,
             elseif is_global_pred(term)
                 predicate_def(term.name)()
             elseif is_derived(term, domain)
-                missing
+                get_fluent(state, term)
             else
                 false
             end
@@ -26,11 +26,13 @@ function generate_satisfy(domain::Domain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
+            elseif !is_ground(term)
+                missing
             elseif is_global_pred(term)
                 predicate_def(term.name)(evaluate(domain, state, term.args[1]),
                                          evaluate(domain, state, term.args[2]))
-            elseif is_derived(term, domain) || !is_ground(term)
-                missing
+            elseif is_derived(term, domain)
+                get_fluent(state, term)
             else
                 evaluate(domain, state, term)
             end
@@ -61,7 +63,7 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
             elseif is_global_pred(term)
                 predicate_def(term.name)()
             elseif is_derived(term, domain)
-                missing
+                get_fluent(state, term)
             else
                 false
             end
@@ -69,19 +71,21 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
         end
         function check(domain::$domain_type, state::$state_type, term::Compound)
             val = if term.name == :and
-                (&)((check(domain, state, a) for a in term.args)...)
+                all4(check(domain, state, a) for a in term.args)
             elseif term.name == :or
-                (|)((check(domain, state, a) for a in term.args)...)
+                any4(check(domain, state, a) for a in term.args)
             elseif term.name == :imply
                 !check(domain, state, term.args[1]) |
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
+            elseif !is_ground(term)
+                missing
             elseif is_global_pred(term)
                 predicate_def(term.name)(evaluate(domain, state, term.args[1]),
                                          evaluate(domain, state, term.args[2]))
-            elseif is_derived(term, domain) || !is_ground(term)
-                missing
+            elseif is_derived(term, domain)
+                get_fluent(state, term)
             else
                 evaluate(domain, state, term)
             end
@@ -94,7 +98,7 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
         end
         function satisfy(domain::$domain_type, state::$state_type,
                          terms::AbstractVector{<:Term})
-            val = (&)((check(domain, state, t) for t in terms)...)
+            val = all4(check(domain, state, t) for t in terms)
             return val !== missing ? (val == true || val == both) :
                 !isempty(satisfiers(domain, state, terms))
         end

@@ -15,6 +15,9 @@ const both = Both()
 Base.copy(::Both) = both
 Base.show(io::IO, ::Both) = print(io, "both")
 
+isboth(b::Both) = true
+isboth(b) = false
+
 """
     BooleanAbs
 
@@ -54,6 +57,40 @@ Base.:(|)(a::Both, b::Both) = both
 Base.:(|)(a::Both, b::Missing) = missing
 Base.:(|)(a::Both, b::Bool) = b ? true : both
 Base.:(|)(a::BooleanAbs, b::Both) = b | a
+
+"Four-valued logical version of `Base.any`."
+function any4(itr)
+    anymissing = false
+    anyboth = false
+    for x in itr
+        if ismissing(x)
+            anymissing = true
+        elseif isboth(x)
+            anyboth = true
+        elseif x
+            return true
+        end
+    end
+    return anymissing ? missing : anyboth ? both : false
+end
+
+"Four-valued logical version of `Base.all`."
+function all4(itr)
+    anymissing = false
+    anyboth = false
+    for x in itr
+        if ismissing(x)
+            anymissing = true
+        elseif isboth(x)
+            anyboth = true
+        elseif x
+            continue
+        else
+            return false
+        end
+    end
+    return anymissing ? missing : anyboth ? both : true
+end
 
 # Teach GenericState the way of true contradictions
 function set_fluent!(state::GenericState, val::Both, term::Const)

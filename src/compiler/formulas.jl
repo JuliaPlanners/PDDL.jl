@@ -38,8 +38,8 @@ function generate_quantified_expr(domain::Domain, state::State, term::Term,
         expr = Expr(:flatten, :($expr for $v in get_objects($state_var, $ty)))
     end
     if domain isa AbstractedDomain
-        accum = term.name == :forall ? :(&) : :(|)
-        return :($accum($expr...))
+        accum = term.name == :forall ? :all4 : :any4
+        return :($accum($expr))
     else
         accum = term.name == :forall ? :all : :any
         return :($accum($expr))
@@ -60,8 +60,6 @@ function generate_check_expr(domain::Domain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
     if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
-    elseif is_derived(term, domain)
-        return generate_axiom_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
     elseif term.name in (:forall, :exists)
@@ -91,8 +89,6 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
                              varmap=Dict{Var,Any}(), state_var=:state)
     if (is_global_func(term) || term.name in keys(get_funcdefs(domain)))
         return generate_eval_expr(domain, state, term, varmap, state_var)
-    elseif is_derived(term, domain)
-        return generate_axiom_expr(domain, state, term, varmap, state_var)
     elseif (term.name in keys(get_fluents(domain)) || term isa Var)
         return generate_get_expr(domain, state, term, varmap, state_var)
     elseif term.name in (:forall, :exists)
@@ -103,9 +99,9 @@ function generate_check_expr(domain::AbstractedDomain, state::State, term::Term,
     subexprs = [generate_check_expr(domain, state, a, varmap, state_var)
                 for a in term.args]
     expr = if term.name == :and
-        foldr((a, b) -> Expr(:call, :&, a, b), subexprs)
+        generate_abstract_and_stmt(subexprs)
     elseif term.name == :or
-        foldr((a, b) -> Expr(:call, :|, a, b), subexprs)
+        generate_abstract_or_stmt(subexprs)
     elseif term.name == :imply
         @assert length(term.args) == 2 "imply takes two arguments"
         :(!$(subexprs[1]) | $(subexprs[2]))

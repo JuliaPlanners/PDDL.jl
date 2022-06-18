@@ -20,3 +20,37 @@ function generate_switch_stmt(cond_exprs, branch_exprs, default_expr=:nothing)
     end
     return expr
 end
+
+"Generate short-circuiting and statement which handles `both` values."
+function generate_abstract_and_stmt(subexprs)
+    foldr(subexprs) do a, b
+        quote
+            let u = $a
+                if isboth(u)
+                    $b === false ? false : both
+                elseif u
+                    $b
+                else
+                    false
+                end
+            end
+        end
+    end |> Base.remove_linenums!
+end
+
+"Generate short-circuiting or statement which handles `both` values."
+function generate_abstract_or_stmt(subexprs)
+    foldr(subexprs) do a, b
+        quote
+            let u = $a
+                if isboth(u)
+                    $b === true ? true : both
+                elseif u
+                    true
+                else
+                    $b
+                end
+            end
+        end
+    end |> Base.remove_linenums!
+end

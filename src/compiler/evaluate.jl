@@ -9,7 +9,7 @@ function generate_evaluate(domain::Domain, state::State,
             elseif is_global_func(term)
                 function_def(term.name)()
             elseif is_derived(term, domain)
-                satisfy(domain, state, term)
+                get_fluent(state, term)
             else
                 term.name
             end
@@ -20,8 +20,6 @@ function generate_evaluate(domain::Domain, state::State,
             val = if func !== nothing
                 argvals = (evaluate(domain, state, arg) for arg in term.args)
                 func(argvals...)
-            elseif is_derived(term, domain)
-                satisfy(domain, state, term)
             else
                 get_fluent(state, term)
             end

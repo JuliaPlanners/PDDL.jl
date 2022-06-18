@@ -113,3 +113,20 @@ function constituents!(fluents, term::Compound, domain)
     end
     return fluents
 end
+
+"Substitute derived predicates in a term with their axiom bodies."
+function substitute_axioms(term::Term, domain::Domain)
+    if is_derived(term, domain)
+        axiom = Julog.freshen(get_axiom(domain, term.name))
+        subst = unify(axiom.head, term)
+        body = length(axiom.body) == 1 ?
+            axiom.body[1] : Compound(:and, axiom.body)
+        body = substitute(body, subst)
+        return body
+    elseif term isa Compound
+        args = Term[substitute_axioms(a, domain) for a in term.args]
+        return Compound(term.name, args)
+    else
+        return term
+    end
+end

@@ -4,7 +4,8 @@ function generate_available(domain::Domain, state::State,
     action = get_actions(domain)[action_name]
     varmap = Dict{Var,Any}(a => :(args[$i].name) for (i, a) in
                            enumerate(get_argvars(action)))
-    precond = generate_check_expr(domain, state, get_precond(action), varmap)
+    precond = to_nnf(get_precond(action))
+    precond = generate_check_expr(domain, state, precond, varmap)
     if domain isa AbstractedDomain
         available_def = quote
             function available(domain::$domain_type, state::$state_type,

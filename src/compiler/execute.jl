@@ -28,8 +28,8 @@ function generate_execute(domain::Domain, state::State,
     varmap = Dict{Var,Any}(a => :(args[$i].name) for (i, a) in
                            enumerate(get_argvars(action)))
     # TODO: Fix mutating execute to ensure parallel composition of effects
-    precond = generate_check_expr(domain, state, get_precond(action), varmap,
-                                  :prev_state)
+    precond = to_nnf(get_precond(action))
+    precond = generate_check_expr(domain, state, precond, varmap, :prev_state)
     if domain isa AbstractedDomain
         precond = :($precond == true || $precond == both)
     end
