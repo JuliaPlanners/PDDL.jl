@@ -36,7 +36,7 @@ export attach!, register!, @register, @pddltheory
 # Analysis tools
 export infer_affected_fluents, infer_static_fluents, infer_axiom_hierarchy
 # Utilities
-export find_matches, effect_diff, precond_diff
+export effect_diff, precond_diff
 
 # PDDL requirement definitions and dependencies
 include("requirements.jl")
