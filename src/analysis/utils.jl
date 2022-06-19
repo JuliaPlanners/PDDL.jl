@@ -2,7 +2,7 @@
 is_pred(term::Term, domain::Domain) =
     term.name in keys(get_predicates(domain))
 
-"Check if term is a non-boolean fluent (i.e. function)."
+"Check if term is a non-Boolean fluent (i.e. function)."
 is_func(term::Term, domain::Domain) =
     term.name in keys(get_functions(domain))
 
@@ -60,23 +60,27 @@ has_name(term::Var, names) = false
 has_name(term::Compound, names) =
     term.name in names || any(has_name(f, names) for f in term.args)
 
-"Check if term contains a predicate name."
+"Check if term contains a predicate."
 has_pred(term::Term, domain::Domain) =
     has_name(term, keys(get_predicates(domain)))
 
-"Check if term contains the name of global predicate."
+"Check if term contains a global predicate."
 has_global_pred(term::Term) =
     has_name(term, global_predicate_names())
 
-"Check if term contains the name of numeric fluent (i.e. function)."
+"Check if term contains a non-Boolean fluent (i.e. function)."
 has_func(term::Term, domain::Domain) =
     has_name(term, keys(get_functions(domain)))
 
-"Check if term contains the name of a global function."
+"Check if term contains an external function attached to a domain."
+has_attached_func(term::Term, domain::Domain) =
+    has_name(term, keys(get_funcdefs(domain)))
+
+"Check if term contains a global function."
 has_global_func(term::Term) =
     has_name(term, global_function_names())
 
-"Check if contains a logical operator."
+"Check if term contains a logical operator."
 has_logical_op(term::Term) =
     has_name(term, (:and, :or, :not, :imply, :exists, :forall))
 
@@ -95,6 +99,10 @@ has_negation(term::Term) =
 "Check if term contains a fluent name."
 has_fluent(term::Term, domain::Domain) =
     has_pred(term, domain) || has_func(term, domain)
+
+"Check if term contains a type predicate."
+has_type(term::Term, domain::Domain) =
+    has_type(term, keys(get_types(domain)))
 
 "Returns list of constituent fluents."
 constituents(term::Term, domain::Domain) =
