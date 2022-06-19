@@ -5,10 +5,12 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'README.md'
+      - 'CITATION.cff'
   pull_request:
     paths-ignore:
       - 'docs/**'
       - 'README.md'
+      - 'CITATION.cff'
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
