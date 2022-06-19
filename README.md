@@ -10,6 +10,10 @@ A Julia parser, interpreter, and compiler interface for the Planning Domain Defi
 
 Planners not included, but see [`SymbolicPlanners.jl`](https://github.com/JuliaPlanners/SymbolicPlanners.jl).
 
+If you use this software, please cite:
+
+> T. Zhi-Xuan, [“PDDL.jl: An Extensible Interpreter and Compiler Interface for Fast and Flexible AI Planning”](https://dspace.mit.edu/handle/1721.1/143179), MS Thesis, Massachusetts Institute of Technology, 2022.
+
 ## Installation
 
 Press `]` at the Julia REPL to enter the package manager, then run:
