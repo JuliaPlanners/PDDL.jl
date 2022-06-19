@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: PDDL.jl
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Tan
+    family-names: Zhi-Xuan
+    orcid: 'https://orcid.org/0000-0002-1549-8492'
+url: "https://github.com/JuliaPlanners/PDDL.jl"
+preferred-citation:
+  type: mastersthesis
+  authors:
+    - given-names: Tan
+      family-names: Zhi-Xuan
+      orcid: 'https://orcid.org/0000-0002-1549-8492'
+  url: https://hdl.handle.net/1721.1/143179
+  year: 2022
+  department: Department of Electrical Engineering and Computer Science
+  institution:
+    - name: Massachusetts Institute of Technology
+    - city: Cambridge, MA
+    - country: USA
+  database: DSpace@MIT
