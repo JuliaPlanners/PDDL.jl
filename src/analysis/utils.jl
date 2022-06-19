@@ -18,9 +18,9 @@ is_external_func(term::Term, domain::Domain) =
 is_derived(term::Term, domain::Domain) =
     term.name in keys(get_axioms(domain))
 
-"Check if term is a domain fluent."
+"Check if term is a (non-external) domain fluent."
 is_fluent(term::Term, domain::Domain) =
-    is_pred(term, domain) || is_func(term, domain)
+    is_pred(term, domain) || is_func(term, domain) && !is_attached_func(term, domain)
 
 "Check if term is a negation of another term."
 is_negation(term::Term) =
