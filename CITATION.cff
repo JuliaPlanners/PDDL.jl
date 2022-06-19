@@ -9,6 +9,7 @@ authors:
 url: "https://github.com/JuliaPlanners/PDDL.jl"
 preferred-citation:
   type: mastersthesis
+  title: "PDDL.jl: An Extensible Interpreter and Compiler Interface for Fast and Flexible AI Planning"
   authors:
   - given-names: Tan
     family-names: Zhi-Xuan
