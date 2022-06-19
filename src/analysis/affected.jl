@@ -1,16 +1,8 @@
 "Check if term is affected by some action or composed of affected subterms."
 function is_affected(term::Term, domain::Domain,
                      affected=infer_affected_fluents(domain))
-    if is_external_func(term, domain)
-        return all(is_affected(a, domain, statics) for a in term.args)
-    else
-        return term.name in affected
-    end
-end
-
-function is_affected(term::Const, domain::Domain,
-                     affected=infer_affected_fluents(domain))
-    !is_fluent(term, domain) || term.name in affected
+    fluents = constituents(term, domain)
+    return any(term.name in affected)
 end
 
 "Infer fluents that are modified by some action in a domain."

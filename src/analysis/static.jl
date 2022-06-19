@@ -1,16 +1,8 @@
 "Check if term is static or composed of static subterms."
 function is_static(term::Term, domain::Domain,
                    statics=infer_static_fluents(domain))
-    if is_external_func(term, domain)
-        return all(is_static(a, domain, statics) for a in term.args)
-    else
-        return term.name in statics
-    end
-end
-
-function is_static(term::Const, domain::Domain,
-                   statics=infer_static_fluents(domain))
-    !is_fluent(term, domain) || term.name in statics
+    fluents = constituents(term, domain)
+    return any(term.name in statics)
 end
 
 "Infer fluents that are never modified by some action in a domain."
