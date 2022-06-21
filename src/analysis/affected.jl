@@ -27,29 +27,28 @@ end
 
 "Return the names of all fluents affected by an action."
 get_affected(action::Action) = get_affected(get_effect(action))
-get_affected(effect::Term) = get_affected!(effect.name, Symbol[], effect)
+get_affected(effect::Term) = unique!(get_affected!(Symbol[], effect))
+
+"Accumulate affected fluent names given an effect formula."
+get_affected!(fluents::Vector{Symbol}, effect::Term) =
+    get_affected!(effect.name, fluents, effect)
 
 # Use valsplit to switch on effect expression head
-@valsplit function get_affected!(Val(name::Symbol),
-                                 affected::Vector{Symbol}, effect::Term)
-    return builtin_affected!(affected, effect)
+@valsplit function get_affected!(Val(name::Symbol), fluents, effect)
+    if is_global_modifier(effect.name)
+        push!(fluents, effect.args[1].name)
+    else
+        push!(fluents, effect.name)
+    end
 end
 
-function builtin_affected!(affected::Vector{Symbol}, effect::Term)
-    if effect.name == :and
-        for eff in effect.args append!(affected, get_affected(eff)) end
-    elseif effect.name == :when
-        append!(affected, get_affected(effect.args[2]))
-    elseif effect.name == :forall
-        append!(affected, get_affected(effect.args[2]))
-    elseif effect.name == :assign
-        push!(affected, effect.args[1].name)
-    elseif is_global_modifier(effect.name)
-        push!(affected, effect.args[1].name)
-    elseif effect.name == :not
-        push!(affected, effect.args[1].name)
-    else
-        push!(affected, effect.name)
-    end
-    return affected
-end
+get_affected!(::Val{:and}, fluents, effect) =
+    (for e in effect.args get_affected!(fluents, e) end; fluents)
+get_affected!(::Val{:when}, fluents, effect) =
+    get_affected!(fluents, effect.args[2])
+get_affected!(::Val{:forall}, fluents, effect) =
+    get_affected!(fluents, effect.args[2])
+get_affected!(::Val{:assign}, fluents, effect) =
+    push!(fluents, effect.args[1].name)
+get_affected!(::Val{:not}, fluents, effect) =
+    push!(fluents, effect.args[1].name)

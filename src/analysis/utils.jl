@@ -111,7 +111,7 @@ constituents!(fluents, term::Const, domain::Domain) =
     is_fluent(term, domain) ? push!(fluents, term) : fluents
 constituents!(fluents, term::Var, domain::Domain) =
     fluents
-function constituents!(fluents, term::Compound, domain)
+function constituents!(fluents, term::Compound, domain::Domain)
     if is_fluent(term, domain)
         push!(fluents, term)
     else

@@ -34,7 +34,8 @@ export GroundDomain, GroundAction, GroundActionGroup
 # Extension interfaces
 export attach!, register!, @register, @pddltheory
 # Analysis tools
-export infer_affected_fluents, infer_static_fluents, infer_axiom_hierarchy
+export infer_affected_fluents, infer_static_fluents, infer_relevant_fluents
+export infer_axiom_hierarchy
 # Utilities
 export effect_diff, precond_diff
 
