@@ -16,13 +16,16 @@ function generate_evaluate(domain::Domain, state::State,
             return val
         end
         function evaluate(domain::$domain_type, state::$state_type, term::Compound)
-            func = is_global_func(term.name) ? function_def(term.name) : nothing
-            val = if func !== nothing
+            val = if is_global_func(term.name)
+                func = function_def(term.name)
                 argvals = (evaluate(domain, state, arg) for arg in term.args)
                 func(argvals...)
+            elseif is_logical_op(term)
+                satisfy(domain, state, term)
             else
                 get_fluent(state, term)
             end
+            return val
         end
     end
     return evaluate_def

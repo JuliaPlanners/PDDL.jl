@@ -2,7 +2,7 @@
 function is_static(term::Term, domain::Domain,
                    statics=infer_static_fluents(domain))
     fluents = constituents(term, domain)
-    return any(term.name in statics)
+    return all(f.name in statics for f in fluents)
 end
 
 "Infer fluents that are never modified by some action in a domain."

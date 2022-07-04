@@ -2,7 +2,7 @@
 function is_affected(term::Term, domain::Domain,
                      affected=infer_affected_fluents(domain))
     fluents = constituents(term, domain)
-    return any(term.name in affected)
+    return any(f.name in affected for f in fluents)
 end
 
 "Infer fluents that are modified by some action in a domain."
