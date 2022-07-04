@@ -25,7 +25,7 @@ function infer_relevant_fluents(domain::Domain, goals::Vector{Symbol},
 end
 
 infer_relevant_fluents(domain, goal::Term) =
-    infer_relevant_fluents(domain, getfield.(constituents(goal, domain), :name))
+    infer_relevant_fluents(domain, [c.name::Symbol for c in constituents(goal, domain)])
 infer_relevant_fluents(domain, goals::AbstractVector{<:Term}) =
     infer_relevant_fluents(domain, Compound(:and, goals))
 
