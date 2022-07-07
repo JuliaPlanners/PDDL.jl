@@ -127,6 +127,11 @@ function to_cnf_clauses(term::Term)
     clauses = map!(similar(term.args), term.args) do c
         (length(c.args) == 1) ? c.args[1] : Compound(c.name, unique!(c.args))
     end
+    filter!(clauses) do c # Filter out clauses with conflicting literals
+        c.name != :or && return true
+        negated = [term.args[1] for term in c.args if term.name == :not]
+        return !any(term in c.args for term in negated)
+    end
     return clauses
 end
 to_cnf_clauses(terms::AbstractVector{<:Term}) =
@@ -142,6 +147,11 @@ function to_dnf_clauses(term::Term)
     term = to_dnf(term)
     clauses = map!(similar(term.args), term.args) do c
         (length(c.args) == 1) ? c.args[1] : Compound(c.name, unique!(c.args))
+    end
+    filter!(clauses) do c # Filter out clauses with conflicting literals
+        c.name != :and && return true
+        negated = [term.args[1] for term in c.args if term.name == :not]
+        return !any(term in c.args for term in negated)
     end
     return clauses
 end
