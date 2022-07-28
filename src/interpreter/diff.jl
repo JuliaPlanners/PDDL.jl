@@ -18,11 +18,6 @@ end
 
 function add_effect!(diff::GenericDiff,
                      domain::Domain, state::State, effect::Term)
-    if effect isa Compound # Evaluated all nested functions
-        args = Term[a isa Compound ? Const(evaluate(domain, state, a)) : a
-                    for a in effect.args]
-        effect = Compound(effect.name, args)
-    end
     push!(diff.add, effect)
     return diff
 end
@@ -30,11 +25,6 @@ end
 function del_effect!(diff::GenericDiff,
                      domain::Domain, state::State, effect::Term)
     effect = effect.args[1]
-    if effect isa Compound # Evaluated all nested functions
-        args = Term[a isa Compound ? Const(evaluate(domain, state, a)) : a
-                    for a in effect.args]
-        effect = Compound(effect.name, args)
-    end
     push!(diff.del, effect)
     return diff
 end

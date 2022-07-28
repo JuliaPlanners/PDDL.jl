@@ -76,7 +76,6 @@ function check(interpreter::AbstractInterpreter,
     elseif is_func(term, domain)
         evaluate(interpreter, domain, state, term)::Bool
     else
-        term = partialeval(domain, state, term)
         term in state.facts
     end
     return sat
