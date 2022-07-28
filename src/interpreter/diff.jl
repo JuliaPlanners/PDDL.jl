@@ -2,7 +2,12 @@
 
 "Convert effect formula to a state difference (additions, deletions, etc.)"
 function effect_diff(domain::Domain, state::State, effect::Term)
-    return effect_diff!(effect.name, GenericDiff(), domain, state, effect)
+    return effect_diff!(GenericDiff(), domain, state, effect)
+end
+
+function effect_diff!(diff::GenericDiff,
+                      domain::Domain, state::State, effect::Term)
+    return effect_diff!(effect.name, diff, domain, state, effect)
 end
 
 @valsplit function effect_diff!(Val(name::Symbol), diff::GenericDiff,
@@ -39,7 +44,7 @@ effect_diff!(::Val{:not}, diff::Diff, d::Domain, s::State, e::Term) =
 function and_effect!(diff::GenericDiff,
                      domain::Domain, state::State, effect::Term)
     for eff in get_args(effect)
-        combine!(diff, effect_diff(domain, state, eff))
+        effect_diff!(diff, domain, state, eff)
     end
     return diff
 end
@@ -50,7 +55,7 @@ function when_effect!(diff::GenericDiff,
                       domain::Domain, state::State, effect::Term)
     cond, eff = effect.args[1], effect.args[2]
     if !satisfy(domain, state, cond) return diff end
-    return combine!(diff, effect_diff(domain, state, eff))
+    return effect_diff!(diff, domain, state, eff)
 end
 effect_diff!(::Val{:when}, diff::Diff, d::Domain, s::State, e::Term) =
     when_effect!(diff, d, s, e)
@@ -59,7 +64,7 @@ function forall_effect!(diff::GenericDiff,
                         domain::Domain, state::State, effect::Term)
     cond, eff = effect.args[1], effect.args[2]
     for s in satisfiers(domain, state, cond)
-        combine!(diff, effect_diff(domain, state, substitute(eff, s)))
+        effect_diff!(diff, domain, state, substitute(eff, s))
     end
     return diff
 end
@@ -94,7 +99,12 @@ const PRECOND_FUNCS = Dict{Symbol,Function}()
 
 "Convert precondition formula to a state difference."
 function precond_diff(domain::Domain, state::State, precond::Term)
-    return precond_diff!(precond.name, GenericDiff(), domain, state, precond)
+    return precond_diff!(GenericDiff(), domain, state, precond)
+end
+
+function precond_diff!(diff::GenericDiff,
+                       domain::Domain, state::State, precond::Term)
+    return precond_diff!(precond.name, diff, domain, state, precond)
 end
 
 @valsplit function precond_diff!(Val(name::Symbol), diff::GenericDiff,
@@ -120,7 +130,7 @@ precond_diff!(::Val{:not}, diff::Diff, d::Domain, s::State, p::Term) =
 function and_precond!(diff::GenericDiff,
                       domain::Domain, state::State, precond::Term)
     for pre in get_args(precond)
-        combine!(diff, precond_diff(domain, state, pre))
+        precond_diff!(diff, domain, state, pre)
     end
     return diff
 end
@@ -131,7 +141,7 @@ function forall_precond!(diff::GenericDiff,
                          domain::Domain, state::State, precond::Term)
     cond, pre = precond.args[1], precond.args[2]
     for s in satisfiers(domain, state, cond)
-        combine!(diff, precond_diff(domain, state, substitute(pre, s)))
+        precond_diff!(diff, domain, state, substitute(pre, s))
     end
     return diff
 end
