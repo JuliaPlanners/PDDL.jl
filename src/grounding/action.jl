@@ -32,16 +32,25 @@ end
 
 get_name(action::GroundActionGroup) = action.name
 
+const MAX_GROUND_BY_TYPE_LIMIT = 250
+const MIN_GROUND_BY_PRECOND_LIMIT = 1
+
 "Returns an iterator over all ground arguments of an `action`."
 function groundargs(domain::Domain, state::State, action::Action;
                     statics=nothing)
     if isempty(get_argtypes(action))
         return ((),)
-    elseif all(get_argtypes(action) .== :object)
-        # Extract static preconditions
-        statics = (statics === nothing) ? infer_static_fluents(domain) : statics
-        preconds = flatten_conjs(get_precond(action))
-        filter!(p -> p.name in statics, preconds)
+    end
+    # Extract static preconditions
+    statics = (statics === nothing) ? infer_static_fluents(domain) : statics
+    preconds = flatten_conjs(get_precond(action))
+    filter!(p -> p.name in statics, preconds)
+    # Decide whether to generate by satisfying static preconditions
+    n_groundings = prod(length(get_objects(domain, state, ty))
+                        for ty in get_argtypes(action))
+    use_preconds = n_groundings > MAX_GROUND_BY_TYPE_LIMIT &&
+                   length(preconds) >= MIN_GROUND_BY_PRECOND_LIMIT
+    if use_preconds # Filter using preconditions
         # Add type conditions for correctness
         act_vars, act_types = get_argvars(action), get_argtypes(action)
         typeconds = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
@@ -51,7 +60,7 @@ function groundargs(domain::Domain, state::State, action::Action;
         iter = ([subst[v] for v in argvars] for
                 subst in satisfiers(domain, state, conds))
         return iter
-    else
+    else # Iterate over domain of each type
         iters = (get_objects(domain, state, ty) for ty in get_argtypes(action))
         return Iterators.product(iters...)
     end
@@ -66,7 +75,7 @@ function groundactions(domain::Domain, state::State, action::Action;
                        statics=infer_static_fluents(domain))
     ground_acts = GroundAction[]
     # Dequantify and flatten preconditions and effects
-    precond = dequantify(get_precond(action), domain, state)
+    precond = to_nnf(dequantify(get_precond(action), domain, state))
     effects = flatten_conditions(dequantify(get_effect(action), domain, state))
     # Iterate over possible groundings
     for args in groundargs(domain, state, action; statics=statics)
@@ -105,7 +114,7 @@ is never satisfiable given the `domain` and `state`, return `nothing`.
 """
 function ground(domain::Domain, state::State, action::Action, args;
     statics=infer_static_fluents(domain),
-    precond=dequantify(get_precond(action), domain, state; statics=statics),
+    precond=to_nnf(dequantify(get_precond(action), domain, state)),
     effects=flatten_conditions(dequantify(get_effect(action), domain, state))
 )
     act_name = get_name(action)
@@ -113,7 +122,7 @@ function ground(domain::Domain, state::State, action::Action, args;
     term = Compound(act_name, collect(args))
     # Substitute and simplify precondition
     subst = Subst(var => val for (var, val) in zip(act_vars, args))
-    precond = to_nnf(substitute(precond, subst))
+    precond = substitute(precond, subst)
     precond = simplify_statics(precond, domain, state, statics)
      # Return nothing if unsatisfiable
     if (precond.name == false) return nothing end
@@ -139,11 +148,13 @@ function ground(domain::Domain, state::State, action::Action, args;
     if is_dnf(precond) # Split disjunctive precondition into conditional effects
         conds = map(precond.args) do clause
             terms = flatten_conjs(clause)
-            return [[terms; cs] for cs in conds]
+            return [Term[terms; cs] for cs in conds]
         end
         conds = reduce(vcat, conds)
         diffs = repeat(diffs, length(precond.args))
         preconds = Term[]
+    elseif is_cnf(precond) # Keep as CNF if possible
+        preconds = precond.args
     else # Otherwise convert to CNF
         preconds = to_cnf_clauses(precond)
     end

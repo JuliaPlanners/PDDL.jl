@@ -22,14 +22,14 @@ function dequantify(term::Term, domain::Domain, state::State)
     if term.name in (:forall, :exists)
         typeconds, query = flatten_conjs(term.args[1]), term.args[2]
         query = dequantify(query, domain, state)
-        ground_terms = [query]
+        ground_terms = Term[query]
         for cond in typeconds
             type, var = cond.name, cond.args[1]
             ground_terms = map(ground_terms) do gt
-                return [substitute(gt, Subst(var => obj))
-                        for obj in get_objects(domain, state, type)]
+                return Term[substitute(gt, Subst(var => obj))
+                            for obj in get_objects(domain, state, type)]
             end
-            ground_terms = reduce(vcat, ground_terms)
+            ground_terms = reduce(vcat, ground_terms; init=Term[])
         end
         op = term.name == :forall ? :and : :or
         return Compound(op, ground_terms)
