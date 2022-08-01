@@ -18,26 +18,95 @@ end
 Replaces universally or existentially quantified expressions with their
 corresponding conjuctions or disjunctions over the object types they quantify.
 """
-function dequantify(term::Term, domain::Domain, state::State)
-    if term.name in (:forall, :exists)
-        typeconds, query = flatten_conjs(term.args[1]), term.args[2]
-        query = dequantify(query, domain, state)
-        ground_terms = Term[query]
-        for cond in typeconds
-            type, var = cond.name, cond.args[1]
-            ground_terms = map(ground_terms) do gt
-                return Term[substitute(gt, Subst(var => obj))
-                            for obj in get_objects(domain, state, type)]
-            end
-            ground_terms = reduce(vcat, ground_terms; init=Term[])
+function dequantify(term::Term, domain::Domain, state::State,
+                    statics=infer_static_fluents(domain))
+    if is_quantifier(term)
+        conds, query = flatten_conjs(term.args[1]), term.args[2]
+        query = dequantify(query, domain, state, statics)
+        # Dequantify by type if no static fluents
+        if statics === nothing || isempty(statics)
+            return dequantify_by_type(term.name, conds, query, domain, state)
+        else # Dequantify by static conditions otherwise
+            return dequantify_by_stat_conds(term.name, conds, query,
+                                            domain, state, statics)
         end
-        op = term.name == :forall ? :and : :or
-        return Compound(op, ground_terms)
     elseif term.name in (:and, :or, :imply, :not, :when)
-        args = Term[dequantify(arg, domain, state) for arg in term.args]
+        args = Term[dequantify(arg, domain, state, statics)
+                    for arg in term.args]
         return Compound(term.name, args)
     else
         return term
+    end
+end
+
+"Dequantifies a quantified expression by the types it is quantified over."
+function dequantify_by_type(
+    name::Symbol, typeconds::Vector{Term}, query::Term,
+    domain::Domain, state::State
+)
+    # Accumulate list of ground terms
+    stack = Term[]
+    subterms = Term[query]
+    for cond in typeconds
+        # Swap array references
+        stack, subterms = subterms, stack
+        # Substitute all objects of each type
+        type, var = cond.name, cond.args[1]
+        objects = get_objects(domain, state, type)
+        while !isempty(stack)
+            term = pop!(stack)
+            for obj in objects
+                push!(subterms, substitute(term, Subst(var => obj)))
+            end
+        end
+    end
+    # Return conjunction / disjunction of ground terms
+    if name == :forall
+        return isempty(subterms) ? Const(true) : Compound(:and, subterms)
+    else # name == :exists
+        return isempty(subterms) ? Const(false) : Compound(:or, subterms)
+    end
+end
+
+"Dequantifies a quantified expression via static satisfaction (where useful)."
+function dequantify_by_stat_conds(
+    name::Symbol, conds::Vector{Term}, query::Term,
+    domain::Domain, state::State, statics::Vector{Symbol}
+)
+    vars = Var[c.args[1] for c in conds]
+    types = Symbol[c.name for c in conds]
+    # Determine conditions that potentially restrict dequantification
+    if name == :forall
+        extra_conds = query.name in (:when, :imply) ? query.args[1] : Term[]
+    else # name == :exists
+        extra_conds = query
+    end
+    # Add static conditions
+    for c in flatten_conjs(extra_conds)
+        c.name in statics || continue
+        push!(conds, c)
+    end
+    # Default to dequantifying by types if no static conditions were added
+    if length(conds) == length(vars)
+        return dequantify_by_type(name, conds, query, domain, state)
+    end
+    # Check if static conditions actually restrict the number of groundings
+    substs = satisfiers(domain, state, conds)
+    if prod(get_object_count(domain, state, ty) for ty in types) < length(substs)
+        conds = resize!(conds, length(vars))
+        return dequantify_by_type(name, conds, query, domain, state)
+    end
+    # Accumulate list of ground terms
+    subterms = Term[]
+    for s in substs
+        length(s) > length(vars) && filter!(p -> first(p) in vars, s)
+        push!(subterms, substitute(query, s))
+    end
+    # Return conjunction / disjunction of ground terms
+    if name == :forall
+        return isempty(subterms) ? Const(true) : Compound(:and, subterms)
+    else # name == :exists
+        return isempty(subterms) ? Const(false) : Compound(:or, subterms)
     end
 end
 

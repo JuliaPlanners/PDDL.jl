@@ -32,8 +32,11 @@ end
 
 get_name(action::GroundActionGroup) = action.name
 
+"Maximum limit for grounding by enumerating over typed objects."
 const MAX_GROUND_BY_TYPE_LIMIT = 250
-const MIN_GROUND_BY_PRECOND_LIMIT = 1
+
+"Minimum number of static conditions for grounding by static satisfaction."
+const MIN_GROUND_BY_STATIC_LIMIT = 1
 
 "Returns an iterator over all ground arguments of an `action`."
 function groundargs(domain::Domain, state::State, action::Action;
@@ -46,10 +49,10 @@ function groundargs(domain::Domain, state::State, action::Action;
     preconds = flatten_conjs(get_precond(action))
     filter!(p -> p.name in statics, preconds)
     # Decide whether to generate by satisfying static preconditions
-    n_groundings = prod(length(get_objects(domain, state, ty))
+    n_groundings = prod(get_object_count(domain, state, ty)
                         for ty in get_argtypes(action))
     use_preconds = n_groundings > MAX_GROUND_BY_TYPE_LIMIT &&
-                   length(preconds) >= MIN_GROUND_BY_PRECOND_LIMIT
+                   length(preconds) >= MIN_GROUND_BY_STATIC_LIMIT
     if use_preconds # Filter using preconditions
         # Add type conditions for correctness
         act_vars, act_types = get_argvars(action), get_argtypes(action)
@@ -75,8 +78,10 @@ function groundactions(domain::Domain, state::State, action::Action;
                        statics=infer_static_fluents(domain))
     ground_acts = GroundAction[]
     # Dequantify and flatten preconditions and effects
-    precond = to_nnf(dequantify(get_precond(action), domain, state))
-    effects = flatten_conditions(dequantify(get_effect(action), domain, state))
+    precond = to_nnf(dequantify(get_precond(action),
+                                domain, state, statics))
+    effects = flatten_conditions(dequantify(get_effect(action),
+                                            domain, state, statics))
     # Iterate over possible groundings
     for args in groundargs(domain, state, action; statics=statics)
         # Construct ground action for each set of arguments
@@ -99,8 +104,8 @@ end
 
 Returns all ground actions for a `domain` and initial `state`.
 """
-function groundactions(domain::Domain, state::State)
-    statics = infer_static_fluents(domain)
+function groundactions(domain::Domain, state::State;
+                       statics=infer_static_fluents(domain))
     iters = (groundactions(domain, state, act; statics=statics)
              for act in values(get_actions(domain)))
     return collect(Iterators.flatten(iters))
@@ -114,8 +119,10 @@ is never satisfiable given the `domain` and `state`, return `nothing`.
 """
 function ground(domain::Domain, state::State, action::Action, args;
     statics=infer_static_fluents(domain),
-    precond=to_nnf(dequantify(get_precond(action), domain, state)),
-    effects=flatten_conditions(dequantify(get_effect(action), domain, state))
+    precond=to_nnf(dequantify(get_precond(action),
+                              domain, state, statics)),
+    effects=flatten_conditions(dequantify(get_effect(action),
+                                          domain, state, statics))
 )
     act_name = get_name(action)
     act_vars = get_argvars(action)

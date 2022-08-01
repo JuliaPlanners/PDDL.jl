@@ -20,3 +20,11 @@ function get_all_subtypes(domain::Domain, type::Symbol)
     return reduce(vcat, [get_all_subtypes(domain, ty) for ty in subtypes],
                   init=subtypes)
 end
+
+"Returns number of objects of particular type."
+get_object_count(domain::Domain, state::State, type::Symbol) =
+    length(get_objects(domain, state, type))
+
+"Returns number of objects of each type as a dictionary."
+get_object_counts(domain::Domain, state::State) =
+    Dict(ty => get_object_count(domain, state, ty) for ty in get_types(domain))
