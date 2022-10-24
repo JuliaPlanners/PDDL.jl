@@ -140,6 +140,9 @@ function flatten_conditions(term::Term)
             popfirst!(effects)
         end
         return conds, effects
+    elseif term.name == true  # Empty effects (due to simplification)
+        cond, effect = Term[], Term[]
+        return [cond], [effect]
     else # Base case
         cond, effect = Term[], Term[term]
         return [cond], [effect]
