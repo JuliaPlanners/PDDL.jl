@@ -1,5 +1,9 @@
 # Getting Started
 
+```@meta
+Description = "A tutorial on getting started with PDDL.jl."
+```
+
 Welcome to using PDDL.jl! This tutorial covers how to install PDDL.jl, how to load your first domain and problem, how to manipulate and inspect states and actions, and how to write and execute a plan that achieves a goal.
 
 ## Installation

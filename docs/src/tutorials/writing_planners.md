@@ -1,5 +1,9 @@
 # Writing Planners
 
+```@meta
+Description = "How to write symbolic planners using PDDL.jl."
+```
+
 Using the [PDDL.jl interface](..\ref\interface.md), it is straightforward to implement planning algorithms which solve problems in PDDL domains. Since all domain and implementation specific details are encapsulated by the interface, the same algorithm can operate across multiple domains, and even multiple representations of the same domain (e.g. [interpreted](../ref/interpreter.md) vs. [compiled](../ref/compiler.md)).
 
 In this tutorial, we present two simple planners as examples: forward breadth-first search, and backward breadth-first search.

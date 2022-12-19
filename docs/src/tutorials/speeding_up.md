@@ -1,5 +1,9 @@
 # Speeding Up PDDL.jl
 
+```@meta
+Description = "How to compile PDDL domains to speed up PDDL.jl."
+```
+
 By default, PDDL.jl uses the [built-in PDDL interpreter](../ref/interpreter.md) to execute actions, determine the set of available actions, and perform other basic planning operations. However, because the interpreter is not optimized for speed, planning algorithms that use the interpreter are considerably slower than state-of-the-art planners.
 
 ```@raw html
