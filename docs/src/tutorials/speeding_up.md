@@ -66,7 +66,7 @@ Factoring out the initial cost of [Julia's just-ahead-of-time compilation](https
 
 One way in which the PDDL.jl compiler reduces runtime is by generating *compiled state representations* that compactly represent the set of facts and fluent values in a state.  These representations take advantage of the fixed number of objects in standard PDDL problems, allowing for the generation of finite-object state representations with a known size in advance.
 
-To illustrate the benefits of state compilation, consider the initial state of a Blocksworld problem with 3 blocks, as shown in the [Getting Started](getting_started.md/Loading-Problems) tutorial. The generic state representation used by the PDDL.jl interpreter stores all Boolean fluents in a `Set` data structure, and non-Boolean fluents in a `Dict`. This consumes a fair amount of memory, and suffers from hashing overhead when looking up the value of a fluent:
+To illustrate the benefits of state compilation, consider the initial state of a Blocksworld problem with 3 blocks, as shown in the [Getting Started](getting_started.md#Loading-Domains-and-Problems) tutorial. The generic state representation used by the PDDL.jl interpreter stores all Boolean fluents in a `Set` data structure, and non-Boolean fluents in a `Dict`. This consumes a fair amount of memory, and suffers from hashing overhead when looking up the value of a fluent:
 
 ```
 GenericState

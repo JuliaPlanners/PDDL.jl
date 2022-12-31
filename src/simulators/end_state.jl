@@ -1,4 +1,8 @@
-"Simulator that returns end state of simulation."
+"""
+	EndStateSimulator(max_steps::Union{Int,Nothing} = nothing)
+
+Simulator that returns the end state of simulation.
+"""
 @kwdef struct EndStateSimulator <: Simulator
     max_steps::Union{Int,Nothing} = nothing
 end

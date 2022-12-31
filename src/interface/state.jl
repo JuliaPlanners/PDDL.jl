@@ -46,19 +46,19 @@ set_fluent!(state::State, val, term::Term) = error("Not implemented.")
 
 """
 Returns a map from fluent names to values (false predicates may be omitted).
-[`Base.pairs`](@ref) is an alias.
+`Base.pairs` is an alias.
 """
 get_fluents(state::State) = error("Not implemented.")
 
 """
 Returns the names of fluents in a state (false predicates may be omitted).
-[`Base.keys`](@ref) is an alias.
+`Base.keys` is an alias.
 """
 get_fluent_names(state::State) = (k for (k, v) in get_fluents(state))
 
 """
 Returns the values of fluents in a state (false predicates may be omitted).
-[`Base.values`](@ref) is an alias.
+`Base.values` is an alias.
 """
 get_fluent_values(state::State) = (v for (k, v) in get_fluents(state))
 

@@ -1,4 +1,9 @@
-"Ground PDDL domain."
+"""
+    GroundDomain(name, source, actions)
+
+Ground PDDL domain, constructed from a lifted `source` domain, with a dictionary
+of ground `actions`.
+"""
 struct GroundDomain <: Domain
     name::Symbol # Domain name
     source::GenericDomain # Lifted source domain
@@ -37,18 +42,18 @@ get_actions(domain::GroundDomain) = domain.actions
 
 Grounds a lifted `domain` with respect to a initial `state` or `problem`.
 """
-function ground(domain::GenericDomain, state::State)
-    statics = infer_static_fluents(domain)
-    ground_domain = GroundDomain(domain.name, domain, Dict())
-    for (name, act) in get_actions(domain)
-        ground_domain.actions[name] = ground(domain, state, act;
-                                             statics=statics)
-    end
-    return ground_domain
-end
-
 ground(domain::Domain, state::State) =
     ground(get_source(domain), GenericState(state))
 
 ground(domain::Domain, problem::Problem) =
     ground(domain, initstate(domain, problem))
+
+function ground(domain::GenericDomain, state::State)
+    statics = infer_static_fluents(domain)
+    ground_domain = GroundDomain(domain.name, domain, Dict())
+    for (name, act) in get_actions(domain)
+        ground_domain.actions[name] = ground(domain, state, act;
+                                                statics=statics)
+    end
+    return ground_domain
+end

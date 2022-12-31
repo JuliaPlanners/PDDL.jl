@@ -1,4 +1,8 @@
-"Simulator that records the state trajectory, including the start state."
+"""
+	StateRecorder(max_steps::Union{Int,Nothing} = nothing)
+
+Simulator that records the state trajectory, including the start state.
+"""
 @kwdef struct StateRecorder <: Simulator
     max_steps::Union{Int,Nothing} = nothing
 end

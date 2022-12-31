@@ -1,4 +1,10 @@
-"Ground action definition."
+"""
+    GroundAction(name, term, preconds, effect)
+
+Ground action definition, represented by the `name` of its corresponding action
+schema, a `term` with grounded arguments, a list of `preconds`, and an `effect`,
+represented as a [`GenericDiff`](@ref) or [`ConditionalDiff`](@ref).
+"""
 struct GroundAction <: Action
     name::Symbol
     term::Compound
