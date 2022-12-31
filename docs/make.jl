@@ -6,6 +6,7 @@ makedocs(
       prettyurls=get(ENV, "CI", nothing) == "true",
       canonical="https://juliaplanners.github.io/PDDL.jl/dev",
       description="Documentation for the PDDL.jl automated planning library.",
+      assets = ["assets/logo.ico"],
       highlights=["lisp"] # Use Lisp highlighting as PDDL substitute
    ),
    pages=[
