@@ -4,7 +4,7 @@ PDDL.jl provides a variety of utilities for working with and manipulating planni
 
 ## Simulation
 
-It is often useful to simulate the results of applying a series of actions to an initial state. PDDL.jl supports this with the [`Simulator`](@ref) datatype, and the associated [`PDDL.simulate`](@ref) method. 
+It is often useful to simulate the results of applying a series of actions to an initial state. PDDL.jl supports this with the [`Simulator`](@ref) data type, and the associated [`PDDL.simulate`](@ref) method. 
 
 ```@docs
 Simulator
@@ -20,7 +20,7 @@ EndStateSimulator
 
 ## Grounding
 
-Many planning algorithms and search heuristics benefit from grounding of actions and axioms with respect to the fixed set of objects in the initial state. PDDL.jl provides the [`GroundAction`](@ref) datatype to represent grounded actions, as well as the [`groundactions`](@ref) and [`groundaxioms`](@ref) functions to convert lifted [`Action`](@ref)s and axiom `Clause`s into lists of grounded actions:
+Many planning algorithms and search heuristics benefit from grounding of actions and axioms with respect to the fixed set of objects in the initial state. PDDL.jl provides the [`GroundAction`](@ref) data type to represent grounded actions, as well as the [`groundactions`](@ref) and [`groundaxioms`](@ref) functions to convert lifted [`Action`](@ref)s and axiom `Clause`s into lists of grounded actions:
 
 ```@docs
 GroundAction

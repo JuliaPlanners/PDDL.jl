@@ -1,4 +1,8 @@
-"Abstract type representing differences between states."
+"""
+    Diff
+
+Abstract type representing differences between states.
+"""
 abstract type Diff end
 
 """

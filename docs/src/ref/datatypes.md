@@ -39,6 +39,15 @@ Compound
       name: Symbol b
 ```
 
+### Fluent Signatures
+
+In the context of a planning [`Domain`](@ref), (lifted) fluents often have specific type signatures. For example, fluent arguments may be restricted to objects of particular types, and their values may be `:boolean` or `:numeric`. This type information is stored in the [`PDDL.Signature`](@ref) data type:
+
+```@docs
+PDDL.Signature
+PDDL.arity
+```
+
 ## States
 
 In symbolic planning, states are symbolic descriptions of the environment and its objects at a particular point in time. Formally, given a finite set of fluents $$\mathcal{F}$$, a **state** $$s$$ is composed of a set of (optionally typed) objects $$\mathcal{O}$$, and valuations of ground fluents $$\mathcal{F}(\mathcal{O})$$ defined over all objects in $$\mathcal{O}$$ of the appropriate types. Each ground fluent thus refers to a state variable. For a ground fluent $$f \in \mathcal{F}(\mathcal{O})$$, we will use the notation $$s[f] = v$$ to denote that $$f$$ has value $$v$$ in state $$s$$.
@@ -99,9 +108,31 @@ PDDL.get_precond(::Action)
 PDDL.get_effect(::Action)
 ```
 
-Note that ground actions are represented with the [`Term`](@ref) data type rather than the [`Action`](@ref) data type, because the `name` property of a [`Term`](@ref) is sufficient to identify an action schema in the context of a planning domain, and the `args` property can be used to represent action parameters.
+In contrast to action schemas, ground actions are represented with the [`Term`](@ref) data type. This is because the `name` property of a [`Term`](@ref) is sufficient to identify an action schema in the context of a planning domain, and the `args` property can be used to represent action parameters.
 
 There also exists a special no-op action schema, denoted `PDDL.no_op` in Julia code. The corresponding ground action can be expressed as `pddl"(--)"`.
+
+```@docs
+PDDL.NoOp
+PDDL.no_op
+```
+
+### State Differences
+
+For some use cases, such as [action grounding](utilities.md#Grounding) or [interpreted execution](interpreter.md), it can be helpful to more explicitly represent the effects of an action as a difference between [`State`](@ref)s. PDDL.jl uses the [`PDDL.Diff`](@ref) abstract data type to represent such differences, including [`PDDL.GenericDiff`](@ref)s and [`PDDL.ConditionalDiff`](@ref)s.
+
+```@docs
+PDDL.Diff
+PDDL.GenericDiff
+PDDL.ConditionalDiff
+```
+
+Multiple [`PDDL.Diff`](@ref)s can be combined using the [`PDDL.combine!`](@ref) and [`PDDL.combine`](@ref) functions:
+
+```@docs
+PDDL.combine!
+PDDL.combine
+```
 
 ## Domains
 

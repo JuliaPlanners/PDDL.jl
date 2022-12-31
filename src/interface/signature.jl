@@ -29,7 +29,7 @@ $(SIGNATURES)
 
 Returns the arity (i.e. number of arguments) of a fluent signature.
 """
-arity(::Signature{N}) where {N} = N
+arity(signature::Signature{N}) where {N} = N
 
 function Base.convert(::Type{Term}, sig::Signature{0})
     return Const(sig.name)

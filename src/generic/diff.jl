@@ -1,8 +1,19 @@
-"Generic state difference represented as additions, deletions, and assignments."
+"""
+    GenericDiff(add, del, ops)
+
+Generic state difference represented as additions, deletions, and assignments.
+
+# Fields
+
+$(FIELDS)
+"""
 struct GenericDiff <: Diff
-    add::Vector{Term} # List of additions
-    del::Vector{Term} # List of deletions
-    ops::Dict{Term,Term} # Dictionary of assignment operations
+    "List of added `Term`s"
+    add::Vector{Term}
+    "List of deleted `Term`s"
+    del::Vector{Term}
+    "Dictionary mapping fluents to their assigned expressions."
+    ops::Dict{Term,Term}
 end
 
 GenericDiff() = GenericDiff(Term[], Term[], Dict{Term,Any}())
@@ -29,9 +40,19 @@ Base.empty(diff::GenericDiff) = GenericDiff()
 Base.isempty(diff::GenericDiff) =
     isempty(diff.add) && isempty(diff.del) && isempty(diff.ops)
 
-"Conditional state difference, represented as paired conditions and sub-diffs."
+"""
+    ConditionalDiff(conds, diffs)
+
+Conditional state difference, represented as paired conditions and sub-diffs.
+
+# Fields
+
+$(FIELDS)
+"""
 struct ConditionalDiff{D <: Diff} <: Diff
+    "List of list of condition `Term`s for each sub-diff."
     conds::Vector{Vector{Term}}
+    "List of sub-diffs."
     diffs::Vector{D}
 end
 

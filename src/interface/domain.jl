@@ -79,7 +79,7 @@ get_constype(domain::Domain, obj) = get_constypes[obj]
 """
 $(SIGNATURES)
 
-Returns a map from predicate names to predicate signatures.
+Returns a map from predicate names to predicate [`Signature`](@ref)s.
 """
 get_predicates(domain::Domain) = error("Not implemented.")
 
@@ -93,7 +93,7 @@ get_predicate(domain::Domain, name::Symbol) = get_predicates(domain)[name]
 """
 $(SIGNATURES)
 
-Returns a map from function names to function signatures.
+Returns a map from function names to function [`Signature`](@ref)s.
 """
 get_functions(domain::Domain) = error("Not implemented.")
 
@@ -121,7 +121,7 @@ get_funcdef(domain::Domain, name::Symbol) = get_funcdefs(domain)[name]
 """
 $(SIGNATURES)
 
-Returns a map from domain fluent names to fluent signatures.
+Returns a map from domain fluent names to fluent [`Signature`](@ref)s.
 """
 get_fluents(domain::Domain) = error("Not implemented.")
 
