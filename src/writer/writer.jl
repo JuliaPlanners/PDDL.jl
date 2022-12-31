@@ -83,6 +83,8 @@ function write_formula(f::Compound)
         name = f.name == :(==) ? "=" : string(f.name)
         args = join([write_formula(a) for a in f.args], " ")
         return "($name $args)"
+    elseif isempty(f.args)
+        return "($(f.name))"
     else
         args = join([write_subformula(a) for a in f.args], " ")
         return "($(f.name) $args)"
