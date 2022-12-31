@@ -1,8 +1,20 @@
-"Type signature for a PDDL fluent (i.e. predicate or function)."
+"""
+    Signature
+
+Type signature for a PDDL fluent (i.e. predicate or function).
+
+# Fields
+
+$(FIELDS)
+"""
 struct Signature{N}
+    "Name of fluent."
     name::Symbol
+    "Output datatype of fluent, represented as a `Symbol`."
     type::Symbol
+    "Argument variables."
     args::NTuple{N, Var}
+    "Argument datatypes, represented as `Symbol`s."
     argtypes::NTuple{N, Symbol}
 end
 
@@ -12,7 +24,11 @@ Signature(name, type, args, argtypes) =
 Signature(term::Term, argtypes, type) =
     Signature(term.name, type, term.args, argtypes)
 
-"Returns the arity (i.e. number of arguments) of a fluent signature."
+"""
+$(SIGNATURES)
+
+Returns the arity (i.e. number of arguments) of a fluent signature.
+"""
 arity(::Signature{N}) where {N} = N
 
 function Base.convert(::Type{Term}, sig::Signature{0})

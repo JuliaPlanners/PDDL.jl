@@ -1,4 +1,8 @@
-"Parse top-level PDDL descriptions (domains, problems, etc.)."
+"""
+$(SIGNATURES)
+
+Parse top-level PDDL descriptions (domains, problems, etc.).
+"""
 function parse_description(desc::Symbol, expr::Vector)
     @assert (expr[1] == :define) "'define' keyword is missing."
     @assert (expr[2][1] == desc) "'$desc' keyword is missing."

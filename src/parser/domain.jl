@@ -1,4 +1,8 @@
-"Parse PDDL domain description."
+"""
+$(SIGNATURES)
+
+Parse PDDL domain description.
+"""
 parse_domain(expr::Vector) =
     parse_domain(expr, GenericDomain)
 parse_domain(str::AbstractString) =
@@ -9,7 +13,11 @@ parse_domain(str::AbstractString, domain_type::Type) =
     parse_domain(parse_string(str), domain_type)
 @add_top_level(:domain, parse_domain)
 
-"Parse domain requirements."
+"""
+$(SIGNATURES)
+
+Parse domain requirements.
+"""
 function parse_requirements(expr::Vector)
     reqs = Dict{Symbol,Bool}(e.name => true for e in expr[2:end])
     reqs = merge(DEFAULT_REQUIREMENTS, reqs)
@@ -26,7 +34,11 @@ end
 # parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
 @add_header_field(:domain, :requirements, parse_requirements)
 
-"Parse type hierarchy."
+"""
+$(SIGNATURES)
+
+Parse type hierarchy.
+"""
 function parse_types(expr::Vector)
     @assert (expr[1].name == :types) ":types keyword is missing."
     types = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
@@ -55,7 +67,11 @@ end
 # parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
 @add_header_field(:domain, :types, parse_types)
 
-"Parse constants in a planning domain."
+"""
+$(SIGNATURES)
+
+Parse constants in a planning domain.
+"""
 function parse_constants(expr::Vector)
     @assert (expr[1].name == :constants) ":constants keyword is missing."
     objs, types = parse_typed_consts(expr[2:end])
@@ -66,7 +82,11 @@ parse_constants(::Nothing) =
     (constants=Const[], constypes=Dict{Const,Symbol}())
 @add_header_field(:domain, :constants, parse_constants)
 
-"Parse predicate list."
+"""
+$(SIGNATURES)
+
+Parse predicate list.
+"""
 function parse_predicates(expr::Vector)
     @assert (expr[1].name == :predicates) ":predicates keyword is missing."
     preds = Dict{Symbol,Signature}()
@@ -80,7 +100,11 @@ end
 parse_predicates(::Nothing) = Dict{Symbol,Signature}()
 @add_header_field(:domain, :predicates, parse_predicates)
 
-"Parse list of function (i.e. fluent) declarations."
+"""
+$(SIGNATURES)
+
+Parse list of function (i.e. fluent) declarations.
+"""
 function parse_functions(expr::Vector)
     @assert (expr[1].name == :functions) ":functions keyword is missing."
     funcs = Dict{Symbol,Signature}()
@@ -93,7 +117,11 @@ end
 parse_functions(::Nothing) = Dict{Symbol,Signature}()
 @add_header_field(:domain, :functions, parse_functions)
 
-"Parse axioms (a.k.a. derived predicates)."
+"""
+$(SIGNATURES)
+
+Parse axioms (a.k.a. derived predicates).
+"""
 function parse_axiom(expr::Vector)
     @assert (expr[1].name in [:axiom, :derived]) ":derived keyword is missing."
     head = parse_formula(expr[2])
@@ -102,11 +130,19 @@ function parse_axiom(expr::Vector)
 end
 @add_body_field(:domain, :axiom, parse_axiom)
 
-"Parse axioms (a.k.a. derived predicates)."
+"""
+$(SIGNATURES)
+
+Parse axioms (a.k.a. derived predicates).
+"""
 parse_derived(expr::Vector) = parse_axiom(expr)
 @add_body_field(:domain, :derived, parse_derived)
 
-"Parse action definition."
+"""
+$(SIGNATURES)
+
+Parse action definition.
+"""
 function parse_action(expr::Vector)
     args = Dict(expr[i].name => expr[i+1] for i in 1:2:length(expr))
     @assert (:action in keys(args)) ":action keyword is missing"

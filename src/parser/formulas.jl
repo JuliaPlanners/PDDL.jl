@@ -1,6 +1,10 @@
 ## Parsers for PDDL formulas ##
 
-"Parse to first-order-logic formula."
+"""
+$(SIGNATURES)
+
+Parse to first-order-logic formula.
+"""
 function parse_formula(expr::Vector)
     if length(expr) == 0
         return Const(:true)
@@ -33,7 +37,11 @@ end
 parse_formula(expr::Symbol) = Const(expr)
 parse_formula(str::AbstractString) = parse_formula(parse_string(str))
 
-"Parse predicates or function declarations with type signatures."
+"""
+$(SIGNATURES)
+
+Parse predicates or function declarations with type signatures.
+"""
 function parse_declaration(expr::Vector)
     if length(expr) == 1 && isa(expr[1], Symbol)
         return Const(expr[1]), Symbol[]
@@ -46,7 +54,11 @@ function parse_declaration(expr::Vector)
     end
 end
 
-"Parse list of typed expressions."
+"""
+$(SIGNATURES)
+
+Parse list of typed expressions.
+"""
 function parse_typed_list(expr::Vector, T::Type, default, parse_fn)
     # TODO : Handle either-types
     terms, types = Vector{T}(), Symbol[]
@@ -68,14 +80,26 @@ function parse_typed_list(expr::Vector, T::Type, default, parse_fn)
     return terms, types
 end
 
-"Parse list of typed variables."
+"""
+$(SIGNATURES)
+
+Parse list of typed variables.
+"""
 parse_typed_vars(expr::Vector, default=:object) =
     parse_typed_list(expr, Var, default, identity)
 
-"Parse list of typed constants."
+"""
+$(SIGNATURES)
+
+Parse list of typed constants.
+"""
 parse_typed_consts(expr::Vector, default=:object) =
     parse_typed_list(expr, Const, default, Const)
 
-"Parse list of typed declarations."
+"""
+$(SIGNATURES)
+
+Parse list of typed declarations.
+"""
 parse_typed_declarations(expr::Vector, default=:boolean) =
     parse_typed_list(expr, Any, default, parse_declaration)

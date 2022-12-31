@@ -8,7 +8,11 @@ with values defined over those objects.
 """
 abstract type State end
 
-"Returns an integer index for specified `state`. Defaults to hashing."
+"""
+$(SIGNATURES)
+
+Returns an integer index for specified `state`. Defaults to hashing.
+"""
 stateindex(domain::Domain, state::State) = hash(state)
 
 """
@@ -23,40 +27,62 @@ type or any of its subtypes.
 get_objects(state::State) = error("Not implemented.")
 get_objects(state::State, type::Symbol) = error("Not implemented.")
 
-"Returns a map (dictionary, named tuple, etc.) from state objects to their types."
+"""
+$(SIGNATURES)
+
+Returns a map (dictionary, named tuple, etc.) from state objects to their types.
+"""
 get_objtypes(state::State) = error("Not implemented.")
 
-"Returns the type of an `object` in a `state`."
+"""
+$(SIGNATURES)
+
+Returns the type of an `object` in a `state`.
+"""
 get_objtype(state::State, object) = get_objtypes(state)[object]
 
-"Returns an iterator over true Boolean predicates in a `state`."
+"""
+$(SIGNATURES)
+
+Returns an iterator over true Boolean predicates in a `state`.
+"""
 get_facts(state::State) = error("Not implemented.")
 
 """
+$(SIGNATURES)
+
 Gets the value of a (non-derived) fluent.Equivalent to using the index
 notation `state[term]`.
 """
 get_fluent(state::State, term::Term) = error("Not implemented.")
 
 """
+$(SIGNATURES)
+
 Sets the value of a (non-derived) fluent. Equivalent to using the index
 notation `state[term] = val`.
 """
 set_fluent!(state::State, val, term::Term) = error("Not implemented.")
 
 """
+$(SIGNATURES)
+
 Returns a map from fluent names to values (false predicates may be omitted).
 `Base.pairs` is an alias.
 """
 get_fluents(state::State) = error("Not implemented.")
 
 """
+$(SIGNATURES)
+
 Returns the names of fluents in a state (false predicates may be omitted).
 `Base.keys` is an alias.
 """
 get_fluent_names(state::State) = (k for (k, v) in get_fluents(state))
 
 """
+$(SIGNATURES)
+
 Returns the values of fluents in a state (false predicates may be omitted).
 `Base.values` is an alias.
 """

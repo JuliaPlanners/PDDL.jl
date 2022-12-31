@@ -19,14 +19,30 @@ Combine state differences, returning a fresh `Diff`.
 combine(diffs::Diff...) =
     combine!(empty(diffs[1]), diffs...)
 
-"Convert a `Diff` to an equivalent `Term`."
+"""
+$(SIGNATURES)
+
+Convert a `Diff` to an equivalent `Term`.
+"""
 as_term(diff::Diff) = error("Not implemented.")
 
-"Return whether a `Diff` is redundant (i.e. does nothing)."
+"""
+$(SIGNATURES)
+
+Return whether a `Diff` is redundant (i.e. does nothing).
+"""
 is_redundant(diff::Diff) = error("Not implemented.")
 
-"Return an empty `Diff` of the same type as the input `Diff`."
+"""
+$(SIGNATURES)
+
+Return an empty `Diff` of the same type as the input `Diff`.
+"""
 Base.empty(diff::Diff) = error("Not implemented.")
 
-"Returns if a Diff is empty."
+"""
+$(SIGNATURES)
+
+Returns if a Diff is empty.
+"""
 Base.isempty(diff::Diff) = error("Not implemented.")

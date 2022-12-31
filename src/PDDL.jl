@@ -4,6 +4,7 @@ using Base: @kwdef
 using AutoHashEquals
 using Julog
 using ValSplit
+using DocStringExtensions
 
 # Logical formulae and terms
 export Term, Compound, Var, Const, Clause

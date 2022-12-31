@@ -1,4 +1,8 @@
-"Infer fluents that are relevant to some action precondition."
+"""
+$(SIGNATURES)
+
+Infer fluents that are relevant to some action precondition.
+"""
 function infer_relevant_fluents(domain::Domain)
     fluents = Symbol[]
     for action in values(get_actions(domain))
@@ -7,7 +11,11 @@ function infer_relevant_fluents(domain::Domain)
     return unique!(fluents)
 end
 
-"Infer fluents that are relevant to achieving a set of goal fluents."
+"""
+$(SIGNATURES)
+
+Infer fluents that are relevant to achieving a set of goal fluents.
+"""
 function infer_relevant_fluents(domain::Domain, goals::Vector{Symbol},
                                 axiom_parents=infer_axiom_hierarchy(domain)[1])
     new_goals = copy(goals)
@@ -31,7 +39,11 @@ infer_relevant_fluents(domain, goal::Term) =
 infer_relevant_fluents(domain, goals::AbstractVector{<:Term}) =
     infer_relevant_fluents(domain, Compound(:and, goals))
 
-"Return the names of all fluents relevant to the preconditions of an action."
+"""
+$(SIGNATURES)
+
+Return the names of all fluents relevant to the preconditions of an action.
+"""
 function get_relevant(action::Action)
     fluents = Symbol[]
     get_relevant_preconds!(fluents, get_precond(action))
@@ -39,7 +51,11 @@ function get_relevant(action::Action)
     return unique!(fluents)
 end
 
-"Accumulate relevant fluent names given a precondition formula."
+"""
+$(SIGNATURES)
+
+Accumulate relevant fluent names given a precondition formula.
+"""
 get_relevant_preconds!(fluents::Vector{Symbol}, precond::Term) =
     get_relevant_preconds!(precond.name, fluents, precond)
 
@@ -60,7 +76,11 @@ get_relevant_preconds!(::Val{:exists}, fluents, precond) =
 get_relevant_preconds!(::Val{:not}, fluents, precond) =
     push!(fluents, precond.args[1].name)
 
-"Accumulate relevant fluent names given an effect formula."
+"""
+$(SIGNATURES)
+
+Accumulate relevant fluent names given an effect formula.
+"""
 get_relevant_effconds!(fluents::Vector{Symbol}, effect::Term) =
     get_relevant_effconds!(effect.name, fluents, effect)
 

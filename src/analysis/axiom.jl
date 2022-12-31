@@ -1,5 +1,9 @@
 
-"Infer dependency structure between axioms."
+"""
+$(SIGNATURES)
+
+Infer dependency structure between axioms.
+"""
 function infer_axiom_hierarchy(domain::Domain)
     parents = Dict{Symbol,Vector{Symbol}}()
     for (name, ax) in pairs(get_axioms(domain))
@@ -16,7 +20,11 @@ function infer_axiom_hierarchy(domain::Domain)
     return parents, children
 end
 
-"Substitute derived predicates in a term with their axiom bodies."
+"""
+$(SIGNATURES)
+
+Substitute derived predicates in a term with their axiom bodies.
+"""
 function substitute_axioms(term::Term, domain::Domain; ignore=[])
     if term.name in ignore
         return term

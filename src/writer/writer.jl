@@ -3,7 +3,7 @@ module Writer
 export write_pddl, write_domain, write_problem
 export save_domain, save_problem
 
-using Julog
+using Julog, DocStringExtensions
 using ..PDDL:
     IMPLIED_REQUIREMENTS, Domain, Problem, Action,
     get_name, get_requirements, get_typetree, get_constants, get_constypes,
@@ -12,7 +12,11 @@ using ..PDDL:
     get_init_terms, get_goal, get_metric, get_constraints,
     get_argvars, get_argtypes, get_precond, get_effect
 
-"Write list of typed formulae in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write list of typed formulae in PDDL syntax.
+"""
 function write_typed_list(formulae::Vector{<:Term}, types::Vector{Symbol})
     if all(x -> x == :object, types)
         return join(write_subformula.(formulae), " ")
@@ -37,7 +41,11 @@ function write_typed_list(formulae::Vector{<:Term}, types::Dict{<:Term,Symbol})
     return write_typed_list(formulae, types)
 end
 
-"Indent list of PDDL constants."
+"""
+$(SIGNATURES)
+
+Indent list of PDDL constants.
+"""
 function indent_const_list(str::String, indent::Int, maxchars::Int=80)
     if length(str) < maxchars - indent return str end
     lines = String[]
@@ -52,7 +60,11 @@ function indent_const_list(str::String, indent::Int, maxchars::Int=80)
     return join(lines, "\n" * ' '^indent)
 end
 
-"Indent list of typed PDDL constants."
+"""
+$(SIGNATURES)
+
+Indent list of typed PDDL constants.
+"""
 function indent_typed_list(str::String, indent::Int, maxchars::Int=80)
     if length(str) < maxchars - indent return str end
     if !occursin(" - ", str)
@@ -69,7 +81,11 @@ function indent_typed_list(str::String, indent::Int, maxchars::Int=80)
     return join(substrs, "\n" * ' '^indent)
 end
 
-"Write formula in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write formula in PDDL syntax.
+"""
 function write_formula(f::Compound)
     if f.name in [:exists, :forall]
         typecond, body = f.args
@@ -98,10 +114,18 @@ write_subformula(f::Compound) = write_formula(f)
 write_subformula(f::Var) = "?" * lowercasefirst(repr(f))
 write_subformula(f::Const) = repr(f)
 
-"Write to string in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write to string in PDDL syntax.
+"""
 write_pddl(f::Term) = write_formula(f)
 
-"Write domain in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write domain in PDDL syntax.
+"""
 function write_domain(domain::Domain, indent::Int=2)
     strs = Dict{Symbol,String}()
     fields = [:requirements, :types, :constants, :predicates, :functions]
@@ -120,7 +144,11 @@ function write_domain(domain::Domain, indent::Int=2)
 end
 write_pddl(domain::Domain) = write_domain(domain)
 
-"Write domain requirements."
+"""
+$(SIGNATURES)
+
+Write domain requirements.
+"""
 function write_requirements(requirements::Dict{Symbol,Bool})
     reqs = Set(k for (k, v) in requirements if v)
     for (k, implied) in IMPLIED_REQUIREMENTS
@@ -131,7 +159,11 @@ function write_requirements(requirements::Dict{Symbol,Bool})
     return join([":$r" for r in reqs], " ")
 end
 
-"Write domain typetree."
+"""
+$(SIGNATURES)
+
+Write domain typetree.
+"""
 function write_typetree(typetree)
     strs = Dict{Symbol,String}()
     for (type, subtypes) in pairs(typetree)
@@ -144,7 +176,11 @@ function write_typetree(typetree)
     return strip(join(values(strs), " "))
 end
 
-"Write domain predicates or functions."
+"""
+$(SIGNATURES)
+
+Write domain predicates or functions.
+"""
 function write_signatures(signatures)
     strs = String[]
     for (name, sig) in pairs(signatures)
@@ -160,7 +196,11 @@ function write_signatures(signatures)
     return join(strs, " ")
 end
 
-"Write PDDL axiom / derived predicate."
+"""
+$(SIGNATURES)
+
+Write PDDL axiom / derived predicate.
+"""
 function write_axiom(c::Clause; key=":derived")
     head_str = write_formula(c.head)
     body_str = length(c.body) == 1 ? write_formula(c.body[1]) :
@@ -168,7 +208,11 @@ function write_axiom(c::Clause; key=":derived")
     return "($key $head_str $body_str)"
 end
 
-"Write action in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write action in PDDL syntax.
+"""
 function write_action(action::Action; indent::Int=1)
     strs = Dict{Symbol,String}()
     fields = [:action, :parameters, :precondition, :effect]
@@ -182,7 +226,11 @@ function write_action(action::Action; indent::Int=1)
 end
 write_pddl(action::Action) = write_action(action)
 
-"Write problem in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write problem in PDDL syntax.
+"""
 function write_problem(problem::Problem, indent::Int=2)
     strs = Dict{Symbol,String}()
     fields = [:domain, :objects, :init, :goal, :metric, :constraints]
@@ -200,7 +248,11 @@ function write_problem(problem::Problem, indent::Int=2)
 end
 write_pddl(problem::Problem) = write_problem(problem)
 
-"Write initial problem formulae in PDDL syntax."
+"""
+$(SIGNATURES)
+
+Write initial problem formulae in PDDL syntax.
+"""
 function write_init(init::Vector{<:Term}, indent::Int=2, maxchars::Int=80)
     strs = write_formula.(init)
     if sum(length.(strs)) + length("(:init )") < maxchars

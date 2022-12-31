@@ -143,12 +143,20 @@ end
 attach!(domain::GenericDomain, category::Symbol, name::AbstractString, f) =
     attach!(domain, category, Symbol(name), f)
 
-"Attach datatype to domain."
+"""
+$(SIGNATURES)
+
+Attach datatype to domain.
+"""
 function attach_datatype!(domain::GenericDomain, name::Symbol, ty)
     domain.datatypes[name] = ty
 end
 
-"Attach function to domain."
+"""
+$(SIGNATURES)
+
+Attach function to domain.
+"""
 function attach_function!(domain::GenericDomain, name::Symbol, f)
     if name in keys(get_functions(domain))
         domain.funcdefs[name] = f

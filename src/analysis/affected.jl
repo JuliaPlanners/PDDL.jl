@@ -1,4 +1,8 @@
-"Check if term is affected by some action or composed of affected subterms."
+"""
+$(SIGNATURES)
+
+Check if term is affected by some action or composed of affected subterms.
+"""
 function is_affected(term::Term, domain::Domain,
                      affected=infer_affected_fluents(domain))
     if term.name in affected return true end
@@ -6,7 +10,11 @@ function is_affected(term::Term, domain::Domain,
     return any(f.name in affected for f in fluents)
 end
 
-"Infer fluents that are modified by some action in a domain."
+"""
+$(SIGNATURES)
+
+Infer fluents that are modified by some action in a domain.
+"""
 function infer_affected_fluents(domain::Domain)
     # Infer fluents directly changed by actions
     affected = Symbol[]
@@ -26,11 +34,19 @@ function infer_affected_fluents(domain::Domain)
     return unique!(affected)
 end
 
-"Return the names of all fluents affected by an action."
+"""
+$(SIGNATURES)
+
+Return the names of all fluents affected by an action.
+"""
 get_affected(action::Action) = get_affected(get_effect(action))
 get_affected(effect::Term) = unique!(get_affected!(Symbol[], effect))
 
-"Accumulate affected fluent names given an effect formula."
+"""
+$(SIGNATURES)
+
+Accumulate affected fluent names given an effect formula.
+"""
 get_affected!(fluents::Vector{Symbol}, effect::Term) =
     get_affected!(effect.name, fluents, effect)
 

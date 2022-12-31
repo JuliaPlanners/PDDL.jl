@@ -1,4 +1,8 @@
-"Check if term is static or composed of static subterms."
+"""
+$(SIGNATURES)
+
+Check if term is static or composed of static subterms.
+"""
 function is_static(term::Term, domain::Domain,
                    statics=infer_static_fluents(domain))
     if term.name in statics return true end
@@ -6,7 +10,11 @@ function is_static(term::Term, domain::Domain,
     return all(f.name in statics for f in fluents)
 end
 
-"Infer fluents that are never modified by some action in a domain."
+"""
+$(SIGNATURES)
+
+Infer fluents that are never modified by some action in a domain.
+"""
 function infer_static_fluents(domain::Domain)
     affected = infer_affected_fluents(domain)
     static = setdiff(keys(get_fluents(domain)), affected)

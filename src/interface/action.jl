@@ -6,13 +6,25 @@ an action parameterized by a set of arguments.
 """
 abstract type Action end
 
-"Returns the name of an action schema."
+"""
+$(SIGNATURES)
+
+Returns the name of an action schema.
+"""
 get_name(action::Action) = error("Not implemented.")
 
-"Returns the argument variables for an action schema."
+"""
+$(SIGNATURES)
+
+Returns the argument variables for an action schema.
+"""
 get_argvars(action::Action) = error("Not implemented.")
 
-"Returns the argument types for an action schema."
+"""
+$(SIGNATURES)
+
+Returns the argument types for an action schema.
+"""
 get_argtypes(action::Action) = error("Not implemented.")
 
 """
@@ -56,9 +68,19 @@ Base.convert(::Type{Compound}, action::Action) =
 Base.convert(::Type{Const}, action::Action) = isempty(get_argvars(action)) ?
     Const(get_name(action)) : error("Action has arguments.")
 
-"No-op action."
+"""
+    NoOp()
+
+Constructs a `no_op` action, which has no preconditions or effects.
+"""
 struct NoOp <: Action end
 
+"""
+    no_op
+
+A no-op action which has no preconditions or effects. Referred to as
+`(--)` in PDDL syntax.
+"""
 const no_op = NoOp()
 
 get_name(action::NoOp) = Symbol("--")
