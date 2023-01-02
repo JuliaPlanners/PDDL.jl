@@ -16,14 +16,16 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "abstract interpreter" => abstracted(domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
-    "abstract compiler" => compiled(abstracted(domain), state)
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "abstracted interpreter" => abstracted(domain),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "abstract compiler" => first(compiled(abstracted(domain), state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "typing ($name)" for (name, (domain, _)) in implementations
+@testset "typing ($name)" for (name, domain) in implementations
 
     # Test forward execution of plans
     state = initstate(domain, problem)
@@ -35,6 +37,9 @@ implementations = [
     @test domain[state => pddl"(at ball1 roomb)"] ≃ true
 
     @test satisfy(domain, state, problem.goal) ≃ true
+
+    # Test consistency between caals
+    @test available(domain, state) == available(domain, state)
 
     # Test action availability
     state = initstate(domain, problem)
@@ -61,5 +66,6 @@ state = goalstate(domain, problem)
 @test Set{Term}(relevant(domain, state)) == Set{Term}(@pddl(
     "(drop ball1 roomb left)", "(drop ball1 roomb right)"
 ))
+@test relevant(domain, state) == relevant(CachedDomain(domain), state)
 
 end # typing

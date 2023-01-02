@@ -5,3 +5,6 @@ include("problem.jl")
 include("state.jl")
 include("action.jl")
 include("diff.jl")
+
+domaintype(::Type{GenericState}) = GenericDomain
+statetype(::Type{GenericDomain}) = GenericState

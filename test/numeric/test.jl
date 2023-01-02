@@ -18,14 +18,16 @@ static_fluents = infer_static_fluents(domain)
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "abstract interpreter" => abstracted(domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
-    "abstract compiler" => compiled(abstracted(domain), state)
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "abstracted interpreter" => abstracted(domain),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "abstract compiler" => first(compiled(abstracted(domain), state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "numeric fluents ($name)" for (name, (domain, _)) in implementations
+@testset "numeric fluents ($name)" for (name, domain) in implementations
 
     # Execute plan to goal
     state = initstate(domain, problem)

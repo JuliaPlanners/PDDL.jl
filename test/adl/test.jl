@@ -10,12 +10,16 @@ problem = load_problem(joinpath(path, "flip-problem.pddl"))
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "flip ($name)" for (name, (domain, state)) in implementations
+@testset "flip ($name)" for (name, domain) in implementations
+    state = initstate(domain, problem)
+
     state = execute(domain, state, pddl"(flip_column c1)", check=true)
     state = execute(domain, state, pddl"(flip_column c3)", check=true)
     state = execute(domain, state, pddl"(flip_row r2)", check=true)
@@ -29,21 +33,25 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
 domain = load_domain(joinpath(path, "assembly-domain.pddl"))
 problem = load_problem(joinpath(path, "assembly-problem.pddl"))
 
-# Test for static fluents
-static_fluents = infer_static_fluents(domain)
-@test :requires in static_fluents
-@test length(static_fluents) == 6
-
 state = initstate(domain, problem)
-
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "assembly ($name)" for (name, (domain, state)) in implementations
+@testset "assembly ($name)" for (name, domain) in implementations
+    # Test for static fluents
+    if name != "ground interpreter"
+        static_fluents = infer_static_fluents(domain)
+        @test :requires in static_fluents
+        @test length(static_fluents) == 6
+    end
+
     # Execute plan to assemble a frob
+    state = initstate(domain, problem)
 
     # Commit charger to assembly of frob
     state = execute(domain, state, pddl"(commit charger frob)", check=true)

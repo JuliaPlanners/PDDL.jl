@@ -15,14 +15,16 @@ problem = load_problem(joinpath(path, "problem.pddl"))
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "abstract interpreter" => abstracted(domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
-    "abstract compiler" => compiled(abstracted(domain), state)
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "abstracted interpreter" => abstracted(domain),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "abstract compiler" => first(compiled(abstracted(domain), state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "axioms ($name)" for (name, (domain, _)) in implementations
+@testset "axioms ($name)" for (name, domain) in implementations
 
     # Test forward execution of plans
     state = initstate(domain, problem)

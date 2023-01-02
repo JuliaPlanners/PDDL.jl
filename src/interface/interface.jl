@@ -75,9 +75,9 @@ goalstate(domain::Domain, objtypes::AbstractDict, terms) =
 Returns the successor to `state` in the given `domain` after applying a single
 `action` or a set of `actions` in parallel.
 """
-transition(domain::Domain, state::State, action::Term) =
+transition(domain::Domain, state::State, action::Term; options...) =
     error("Not implemented.")
-transition(domain::Domain, state::State, actions) =
+transition(domain::Domain, state::State, actions; options...) =
     error("Not implemented.")
 
 """
@@ -99,9 +99,9 @@ Check if an `action` parameterized by `args` can be executed in the given
 `state` and `domain`. Action parameters can also be specified as the arguments
 of a compound `Term`.
 """
-available(domain::Domain, state::State, action::Action, args) =
+available(domain::Domain, state::State, action::Action, args)::Bool =
     error("Not implemented.")
-available(domain::Domain, state::State, action::Term) =
+available(domain::Domain, state::State, action::Term)::Bool =
     available(domain, state, get_actions(domain)[action.name], action.args)
 
 """
@@ -154,9 +154,9 @@ Check if an `action` parameterized by `args` is relevant (can lead to) a `state`
 in the given `domain`. Action parameters can also be specified as the arguments
 of a compound `Term`.
 """
-relevant(domain::Domain, state::State, action::Action, args) =
+relevant(domain::Domain, state::State, action::Action, args)::Bool =
     error("Not implemented.")
-relevant(domain::Domain, state::State, action::Term) =
+relevant(domain::Domain, state::State, action::Term)::Bool =
     relevant(domain, state, get_actions(domain)[action.name], action.args)
 
 """
@@ -216,3 +216,21 @@ Updates a PDDL `state` in-place with a state difference.
 """
 update!(domain::Domain, state::State, diff::Diff) =
     error("Not implemented.")
+
+"""
+    domaintype(state::State)
+    domaintype(S::Type{<:State})
+
+Return the type of domain associated with the state.
+"""
+domaintype(state::S) where {S <: State} = domaintype(S)
+domaintype(::Type{<:State}) = Domain
+
+"""
+    statetype(domain::Domain)
+    statetype(D::Type{<:Domain})
+
+Return the type of state associated with the domain.
+"""
+statetype(domain::D) where {D <: Domain} = statetype(D)
+statetype(::Type{<:Domain}) = State

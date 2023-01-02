@@ -1,0 +1,13 @@
+(define (problem assembly-problem)
+   (:domain assembly)
+   (:objects frob fastener widget tube - assembly
+             charger voltmeter - resource)
+   (:init (available fastener)
+          (available widget)
+          (available tube)
+          (part-of fastener frob)
+          (part-of widget frob)
+          (part-of tube frob)
+          (assemble-order fastener tube frob)
+          (assemble-order widget tube frob))
+   (:goal (complete frob)))

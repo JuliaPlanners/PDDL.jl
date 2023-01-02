@@ -32,6 +32,8 @@ export CompiledDomain, CompiledAction, CompiledState
 # Domain and action grounding
 export ground, groundargs, groundactions, groundaxioms
 export GroundDomain, GroundAction, GroundActionGroup
+# Domain and method caching
+export CachedDomain
 # Extension interfaces
 export attach!, register!, @register, @pddltheory
 # Analysis tools
@@ -66,6 +68,8 @@ include("interpreter/interpreter.jl")
 include("compiler/compiler.jl")
 # Domain and action grounding
 include("grounding/grounding.jl")
+# Caching for interface methods
+include("caching/caching.jl")
 # Tools for analyzing domains
 include("analysis/analysis.jl")
 

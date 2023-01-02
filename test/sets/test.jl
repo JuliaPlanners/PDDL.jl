@@ -17,12 +17,14 @@ PDDL.Sets.@register()
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "set fluents ($name)" for (name, (domain, _)) in implementations
+@testset "set fluents ($name)" for (name, domain) in implementations
     # Initialize state, test set membership and goal
     state = initstate(domain, problem)
     @test domain[state => pddl"(member (heard hanau) rumpelstiltskin)"] == 1

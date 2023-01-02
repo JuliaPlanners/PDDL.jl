@@ -13,12 +13,14 @@ problem = load_problem(joinpath(path, "gridworld-problem.pddl"))
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "gridworld ($name)" for (name, (domain, _)) in implementations
+@testset "gridworld ($name)" for (name, domain) in implementations
     # Initialize state, test array dimensios, access and goal
     state = initstate(domain, problem)
     @test domain[state => pddl"(width (walls))"] == 3
@@ -59,12 +61,14 @@ problem = load_problem(joinpath(path, "stairs-problem.pddl"))
 
 state = initstate(domain, problem)
 implementations = [
-    "concrete interpreter" => (domain, state),
-    "ground interpreter" => (ground(domain, state), state),
-    "concrete compiler" => compiled(domain, state),
+    "concrete interpreter" => domain,
+    "ground interpreter" => ground(domain, state),
+    "cached interpreter" => CachedDomain(domain),
+    "concrete compiler" => first(compiled(domain, state)),
+    "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
-@testset "stairs ($name)" for (name, (domain, _)) in implementations
+@testset "stairs ($name)" for (name, domain) in implementations
     # Initialize state, test array dimensios, access and goal
     state = initstate(domain, problem)
     @test domain[state => pddl"(length (stairs))"] == 5
