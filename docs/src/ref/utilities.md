@@ -1,6 +1,6 @@
 # Utilities
 
-PDDL.jl provides a variety of utilities for working with and manipulating planning domains, including plan simulation, domain grounding, and tools for domain and formula analysis.
+PDDL.jl provides a variety of utilities for working with and manipulating planning domains, including plan simulation, domain grounding, domain caching, and tools for domain and formula analysis.
 
 ## Simulation
 
@@ -40,6 +40,15 @@ The [`ground`](@ref) function can also be used to ground an entire domain with r
 ```@docs
 ground(::Domain, ::State)
 GroundDomain
+```
+
+## Caching
+
+Some applications of the PDDL.jl interface may result in repeated calls to costly interface functions with the same set of input arguments (e.g. repeatedly determining the set of [`available`](@ref) actions in value iteration). In such cases, it is useful to be able to memoize the outputs of these functions. PDDL.jl supports this via [`CachedDomain`](@ref)s:
+
+```@docs
+CachedDomain
+CachedDomain(::Domain, ::Any)
 ```
 
 ## Analysis
