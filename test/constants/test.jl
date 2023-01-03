@@ -7,6 +7,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 @test domain.name == Symbol("taxi")
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("taxi-problem")
+Base.show(IOBuffer(), "text/plain", problem)
 
 # Check that constants are loaded correctly
 @test domain.constants == @pddl("red", "green", "yellow", "blue", "intaxi")
@@ -33,5 +34,13 @@ plan = @pddl(
 sim = EndStateSimulator()
 state = sim(domain, state, plan)
 @test satisfy(domain, state, problem.goal) == true
+
+# Ensure that Base.show does not error
+buffer = IOBuffer()
+action = first(PDDL.get_actions(domain))
+Base.show(buffer, "text/plain", domain)
+Base.show(buffer, "text/plain", problem)
+Base.show(buffer, "text/plain", action)
+close(buffer)
 
 end # domain constants

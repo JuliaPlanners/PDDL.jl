@@ -8,6 +8,9 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "arrays")
 domain = load_domain(joinpath(path, "gridworld-domain.pddl"))
 problem = load_problem(joinpath(path, "gridworld-problem.pddl"))
 
+# Ensure that Base.show does not error
+Base.show(IOBuffer(), "text/plain", problem)
+
 # Make sure function declarations have the right output type
 @test PDDL.get_function(domain, :walls).type == Symbol("bit-matrix")
 
@@ -43,6 +46,13 @@ implementations = [
 
     # Check that goal is achieved
     @test satisfy(domain, state, problem.goal) == true
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 end
 
 # Test writing of array-valued fluents
@@ -92,6 +102,13 @@ implementations = [
 
     # Check that goal is achieved
     @test satisfy(domain, state, problem.goal) == true
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 end
 
 # Deregister array theory

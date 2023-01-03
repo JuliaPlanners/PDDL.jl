@@ -10,6 +10,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("gripper-problem")
 @test problem.objects == @pddl("rooma", "roomb", "ball1", "ball2", "left", "right")
+Base.show(IOBuffer(), "text/plain", problem)
 
 state = initstate(domain, problem)
 implementations = [
@@ -45,6 +46,13 @@ implementations = [
         "(pick ball2 rooma right)", "(pick ball2 rooma left)",
         "(move rooma roomb)", "(move rooma rooma)"
     ))
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 
 end
 

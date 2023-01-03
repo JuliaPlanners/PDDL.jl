@@ -12,6 +12,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.name == Symbol("blocksworld-problem")
 @test problem.objects == @pddl("a", "b", "c")
+Base.show(IOBuffer(), "text/plain", problem)
 
 state = initstate(domain, problem)
 implementations = [
@@ -43,6 +44,13 @@ implementations = [
     state = initstate(domain, problem)
     @test Set{Term}(available(domain, state)) ==
         Set{Term}(@pddl("(pickup a)", "(pickup b)", "(pickup c)"))
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 
 end
 

@@ -4,6 +4,7 @@
 path = joinpath(dirname(pathof(PDDL)), "..", "test", "sets")
 domain = load_domain(joinpath(path, "domain.pddl"))
 problem = load_problem(joinpath(path, "problem.pddl"))
+Base.show(IOBuffer(), "text/plain", problem)
 
 # Make sure function declarations have the right output type
 @test PDDL.get_function(domain, :heard).type == :set
@@ -46,6 +47,13 @@ implementations = [
 
     # Check that goal is achieved
     @test satisfy(domain, state, problem.goal) == true
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 end
 
 # Test writing of set-valued fluents

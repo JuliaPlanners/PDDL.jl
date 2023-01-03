@@ -10,6 +10,7 @@ domain = load_domain(joinpath(path, "domain.pddl"))
 
 problem = load_problem(joinpath(path, "problem.pddl"))
 @test problem.metric == pddl"(minimize (+ (* 4 (total-time)) (* 5 (total-fuel-used))))"
+Base.show(IOBuffer(), "text/plain", problem)
 
 # Test for static functions
 static_fluents = infer_static_fluents(domain)
@@ -90,6 +91,13 @@ implementations = [
     sim = EndStateSimulator()
     state = sim(domain, state, plan)
     @test satisfy(domain, state, problem.goal) == true
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 
 end
 

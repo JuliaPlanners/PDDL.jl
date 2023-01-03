@@ -7,6 +7,7 @@ domain = load_domain(joinpath(path, "flip-domain.pddl"))
 @test domain.name == Symbol("flip")
 problem = load_problem(joinpath(path, "flip-problem.pddl"))
 @test problem.name == Symbol("flip-problem")
+Base.show(IOBuffer(), "text/plain", problem)
 
 state = initstate(domain, problem)
 implementations = [
@@ -25,6 +26,13 @@ implementations = [
     state = execute(domain, state, pddl"(flip_row r2)", check=true)
 
     @test satisfy(domain, state, problem.goal) == true
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 end
 
 # Test all ADL features in assembly domain
@@ -32,6 +40,7 @@ path = joinpath(dirname(pathof(PDDL)), "..", "test", "adl")
 
 domain = load_domain(joinpath(path, "assembly-domain.pddl"))
 problem = load_problem(joinpath(path, "assembly-problem.pddl"))
+Base.show(IOBuffer(), "text/plain", problem)
 
 state = initstate(domain, problem)
 implementations = [
@@ -70,6 +79,13 @@ implementations = [
 
     # We've completely assembled a frob!
     @test satisfy(domain, state, problem.goal) == true
+
+    # Ensure that Base.show does not error
+    buffer = IOBuffer()
+    action = first(PDDL.get_actions(domain))
+    Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", action)
+    close(buffer)
 end
 
 end # action description language (adl)
