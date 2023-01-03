@@ -5,6 +5,7 @@ include("state.jl")
 include("action.jl")
 include("diff.jl")
 include("utils.jl")
+include("show.jl")
 
 """
     satisfy(domain::Domain, state::State, term::Term)

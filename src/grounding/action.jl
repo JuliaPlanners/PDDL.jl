@@ -28,15 +28,22 @@ Base.convert(::Type{Const}, action::GroundAction) =
 "Group of ground actions with a shared schema."
 struct GroundActionGroup <: Action
     name::Symbol
+    args::Vector{Var}
+    types::Vector{Symbol}
     actions::Dict{Compound,GroundAction}
 end
 
-function GroundActionGroup(name::Symbol, actions::AbstractVector{GroundAction})
+function GroundActionGroup(name::Symbol, args, types,
+                           actions::AbstractVector{GroundAction})
     actions = Dict(act.term => act for act in actions)
-    return GroundActionGroup(name, actions)
+    return GroundActionGroup(name, args, types, actions)
 end
 
 get_name(action::GroundActionGroup) = action.name
+
+get_argvars(action::GroundActionGroup) = action.args
+
+get_argtypes(action::GroundActionGroup) = action.types
 
 "Maximum limit for grounding by enumerating over typed objects."
 const MAX_GROUND_BY_TYPE_LIMIT = 250
@@ -191,8 +198,9 @@ end
 Grounds a lifted `action` in a `domain` and initial `state`, returning a
 group of grounded actions.
 """
-function ground(domain::Domain, state::State, action::GenericAction;
+function ground(domain::Domain, state::State, action::Action;
                 statics=infer_static_fluents(domain))
     ground_acts = groundactions(domain, state, action; statics=statics)
-    return GroundActionGroup(action.name, ground_acts)
+    vars, types = get_argvars(action), get_argtypes(action)
+    return GroundActionGroup(get_name(action), vars, types, ground_acts)
 end

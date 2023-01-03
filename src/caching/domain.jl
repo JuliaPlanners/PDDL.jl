@@ -38,7 +38,7 @@ function CachedDomain(source::CachedDomain, method_keys=DEFAULT_CACHED_METHODS)
     return CachedDomain(source.source, method_keys)
 end
 
-get_name(domain::CachedDomain) = domain.name
+get_name(domain::CachedDomain) = get_name(domain.source)
 
 get_source(domain::CachedDomain) = domain.source
 

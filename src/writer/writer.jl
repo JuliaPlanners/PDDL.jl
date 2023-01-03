@@ -229,6 +229,22 @@ write_pddl(action::Action) = write_action(action)
 """
 $(SIGNATURES)
 
+Write action signature in PDDL syntax.
+"""
+function write_action_sig(action::Action)
+    name = get_name(action)
+    vars = get_argvars(action)
+    types = get_argtypes(action)
+    if isempty(vars)
+        return "($name)"
+    else
+        return "($name " * write_typed_list(vars, types) * ")"
+    end
+end
+
+"""
+$(SIGNATURES)
+
 Write problem in PDDL syntax.
 """
 function write_problem(problem::Problem, indent::Int=2)
