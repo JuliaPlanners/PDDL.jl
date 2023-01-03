@@ -37,7 +37,6 @@ end
 
 function _show_objects(io::IO, objects, category, indent, limit::Int)
     isempty(objects) && return
-    max_chars = last(displaysize(io))
     objects, objtypes = collect(keys(objects)), collect(values(objects))
     print(io, "\n", indent, "$category: ", summary(objects))
     if all(objtypes .== :object)
@@ -52,7 +51,7 @@ function _show_objects(io::IO, objects, category, indent, limit::Int)
         max_chars = maximum(length.(objects))
         lines = ["$(rpad(obj, max_chars))  -  $type"
                  for (obj, type) in zip(objects, objtypes)]
-        _show_list(io, lines, limit, indent * "  ")
+        _show_list(io, lines, limit-1, indent * "  ")
     end
 end
 
@@ -162,7 +161,6 @@ function Base.show(io::IO, ::MIME"text/plain", problem::Problem)
     max_object_lines = _line_limit(length(objects), remaining)
     remaining -= max_object_lines
     max_init_lines = _line_limit(length(init), remaining)
-    remaining -= max_init_lines
 
     # Display fields
     if !isnothing(domain)
@@ -186,6 +184,60 @@ function _show_init(io::IO, init, indent, limit::Int)
     print(io, "\n", indent, "init: ", summary(init))
     init = sort!(write_pddl.(init))
     _show_list(io, init, limit-1, "  " * indent)
+end
+
+# States #
+
+function Base.show(io::IO, ::MIME"text/plain", state::State)
+    print(io, typeof(state))
+
+    # Extract fields
+    objects = @_maybe(get_objtypes(state), Dict())
+    fluents = @_maybe(Dict(get_fluents(state)), Dict())
+
+    # Compute line quotas based on display size
+    remaining = get(io, :limit, false) ? first(displaysize(io)) - 5 : 80
+    max_fluent_lines = _line_limit(length(fluents), remaining)
+    remaining -= max_fluent_lines
+    max_object_lines = _line_limit(length(objects), remaining)
+
+    # Display fields
+    _show_state_objects(io, objects, "  ", max_object_lines)
+    _show_state_fluents(io, fluents, "  ", max_fluent_lines)
+end
+
+function _show_state_objects(io::IO, objects, indent, limit::Int)
+    isempty(objects) && return
+    objects, objtypes = collect(keys(objects)), collect(values(objects))
+    if all(objtypes .== :object)
+        print(io, "\n", indent, "objects: ", length(objects), " (untyped)")
+        objects = sort!(string.(objects))
+        _show_list(io, objects, limit, indent * "  ")
+    else
+        print(io, "\n", indent, "objects: ", length(objects), " (typed)")
+        objects = string.(objects)
+        objtypes = string.(objtypes)
+        order = sortperm(collect(zip(objtypes, objects)))
+        objects = objects[order]
+        objtypes = objtypes[order]
+        max_chars = maximum(length.(objects))
+        lines = ["$(rpad(obj, max_chars))  -  $type"
+                 for (obj, type) in zip(objects, objtypes)]
+        _show_list(io, lines, limit - 1, indent * "  ")
+    end
+end
+
+function _show_state_fluents(io::IO, fluents, indent, limit::Int)
+    isempty(fluents) && return
+    fluents, vals = collect(keys(fluents)), collect(values(fluents))
+    ftype = infer_datatype(eltype(vals))
+    type_desc = isnothing(ftype) ? " (mixed)" : " ($ftype)"
+    print(io, "\n", indent, "fluents: ", length(fluents), type_desc)
+    fluents = write_pddl.(fluents)
+    max_chars = maximum(length.(fluents))
+    lines = ["$(rpad(f, max_chars)) => $v" for (f, v) in zip(fluents, vals)]
+    sort!(lines)
+    _show_list(io, lines, limit, indent * "  ")
 end
 
 # Actions #

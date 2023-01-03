@@ -107,6 +107,7 @@ implementations = [
     buffer = IOBuffer()
     action = first(PDDL.get_actions(domain))
     Base.show(buffer, "text/plain", domain)
+    Base.show(buffer, "text/plain", state)
     Base.show(buffer, "text/plain", action)
     close(buffer)
 end
