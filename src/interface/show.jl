@@ -1,6 +1,6 @@
 # Utilities #
 
-macro _safe_call(call_expr, default_expr)
+macro _maybe(call_expr, default_expr)
     @assert call_expr.head == :call "Must be a call expression."
     return quote
         try
@@ -9,6 +9,13 @@ macro _safe_call(call_expr, default_expr)
             $(esc(default_expr))
         end
     end
+end
+
+function _line_limit(n_items::Int, remaining::Int)
+    n_items == 0 && return 0
+    n_items + 1 <= remaining && return n_items + 1
+    n_displayed = min(remaining-1, n_items)
+    return n_displayed <= 3 ? 1 : n_displayed + 1
 end
 
 function _show_list(io::IO, list, limit::Int, indent)
@@ -30,13 +37,23 @@ end
 
 function _show_objects(io::IO, objects, category, indent, limit::Int)
     isempty(objects) && return
-    print(io, "\n", "  $category: ")
     max_chars = last(displaysize(io))
     objects, objtypes = collect(keys(objects)), collect(values(objects))
-    objects = Writer.write_typed_list(objects, objtypes)
-    objects = Writer.indent_typed_list(objects, 0, max_chars)
-    lines = split(objects, "\n")
-    _show_list(io, lines, limit, indent * "  ")
+    print(io, "\n", indent, "$category: ", summary(objects))
+    if all(objtypes .== :object)
+        objects = sort!(string.(objects))
+        _show_list(io, objects, limit, indent * "  ")
+    else
+        objects = string.(objects)
+        objtypes = string.(objtypes)
+        order = sortperm(collect(zip(objtypes, objects)))
+        objects = objects[order]
+        objtypes = objtypes[order]
+        max_chars = maximum(length.(objects))
+        lines = ["$(rpad(obj, max_chars))  -  $type"
+                 for (obj, type) in zip(objects, objtypes)]
+        _show_list(io, lines, limit, indent * "  ")
+    end
 end
 
 # Domains #
@@ -46,12 +63,12 @@ function Base.show(io::IO, ::MIME"text/plain", domain::Domain)
     print(io, "\n", "  name: ", get_name(domain))
 
     # Extract fields
-    typetree = @_safe_call(get_typetree(domain), Dict())
-    predicates = @_safe_call(get_predicates(domain), Dict())
-    functions = @_safe_call(get_functions(domain), Dict())
-    constants = @_safe_call(get_constypes(domain), Dict())
-    axioms = @_safe_call(get_axioms(domain), Dict())
-    actions = @_safe_call(get_actions(domain), Dict())
+    typetree = @_maybe(get_typetree(domain), Dict())
+    predicates = @_maybe(get_predicates(domain), Dict())
+    functions = @_maybe(get_functions(domain), Dict())
+    constants = @_maybe(get_constypes(domain), Dict())
+    axioms = @_maybe(get_axioms(domain), Dict())
+    actions = @_maybe(get_actions(domain), Dict())
     typing = !isempty(typetree) && collect(keys(typetree)) != [:object]
 
     # Compute line quotas based on display size
@@ -77,16 +94,9 @@ function Base.show(io::IO, ::MIME"text/plain", domain::Domain)
     _show_actions(io, actions, "  ", max_action_lines)
 end
 
-function _line_limit(n_items::Int, remaining::Int)
-    n_items == 0 && return 0
-    n_items + 1 <= remaining && return n_items + 1
-    n_displayed = min(remaining-1, n_items)
-    return n_displayed <= 3 ? 1 : n_displayed + 1
-end
-
 function _show_typetree(io::IO, typetree, indent, limit::Int)
     isempty(typetree) && return
-    print(io, "\n", "  typetree: ", summary(typetree))
+    print(io, "\n", indent, "typetree: ", summary(typetree))
     max_chars = maximum(length.(repr.(keys(typetree))))
     types = get_sorted_types(typetree)
     subtypes = [typetree[ty] for ty in types]
@@ -98,7 +108,7 @@ end
 function _show_fluents(io::IO, fluents, category, indent,
                        typing::Bool, limit::Int)
     isempty(fluents) && return
-    print(io, "\n", "  $category: ", summary(fluents))
+    print(io, "\n", indent, "$category: ", summary(fluents))
     max_chars = maximum(length.(repr.(keys(fluents))))
     names = [rpad(repr(name), max_chars) for name in keys(fluents)]
     sigs = [typing ? repr(sig) : write_pddl(convert(Term, sig))
@@ -115,7 +125,7 @@ _show_functions(io::IO, functions, indent, typing::Bool, limit::Int) =
 
 function _show_axioms(io::IO, axioms, indent, limit::Int)
     isempty(axioms) && return
-    print(io, "\n", "  axioms: ", summary(axioms))
+    print(io, "\n", indent, "axioms: ", summary(axioms))
     max_chars = maximum(length.(repr.(keys(axioms))))
     axioms = ["$(rpad(repr(name), max_chars)) => " *
                Writer.write_axiom(ax) for (name, ax) in pairs(axioms)]
@@ -125,10 +135,80 @@ end
 
 function _show_actions(io::IO, actions, indent, limit::Int)
     isempty(actions) && return
-    print(io, "\n", "  actions: ")
+    print(io, "\n", indent, "actions: ")
     max_chars = maximum(length.(repr.(keys(actions))))
     actions = ["$(rpad(repr(name), max_chars)) => " *
                Writer.write_action_sig(act) for (name, act) in pairs(actions)]
     sort!(actions)
     _show_list(io, actions, limit-1, "  " * indent)
+end
+
+# Problems #
+
+function Base.show(io::IO, ::MIME"text/plain", problem::Problem)
+    print(io, typeof(problem))
+    print(io, "\n", "  name: ", get_name(problem))
+
+    # Extract fields
+    domain = @_maybe(get_domain_name(domain), nothing)
+    objects = @_maybe(get_objtypes(problem), Dict())
+    init = @_maybe(get_init_terms(problem), Term[])
+    goal = @_maybe(get_goal(problem), nothing)
+    metric = @_maybe(get_metric(problem), nothing)
+    constraints = @_maybe(get_constraints(problem), nothing)
+
+    # Compute line quotas based on display size
+    remaining = get(io, :limit, false) ? first(displaysize(io)) - 10 : 80
+    max_object_lines = _line_limit(length(objects), remaining)
+    remaining -= max_object_lines
+    max_init_lines = _line_limit(length(init), remaining)
+    remaining -= max_init_lines
+
+    # Display fields
+    if !isnothing(domain)
+        print(io, "\n", "  domain: ", domain)
+    end
+    _show_objects(io, objects, "objects", "  ", max_object_lines)
+    _show_init(io, init, "  ", max_init_lines)
+    if !isnothing(goal)
+        print(io, "\n", "  goal: ", write_pddl(goal))
+    end
+    if !isnothing(metric)
+        print(io, "\n", "  metric: ", write_pddl(metric))
+    end
+    if !isnothing(constraints)
+        print(io, "\n", "  constraints: ", write_pddl(constraints))
+    end
+end
+
+function _show_init(io::IO, init, indent, limit::Int)
+    isempty(init) && return
+    print(io, "\n", indent, "init: ", summary(init))
+    init = sort!(write_pddl.(init))
+    _show_list(io, init, limit-1, "  " * indent)
+end
+
+# Actions #
+
+function Base.show(io::IO, ::MIME"text/plain", action::Action)
+    print(io, typeof(action))
+    print(io, "\n", "  name: ", get_name(action))
+
+    # Extract fields
+    vars = @_maybe(get_argvars(action), Var[])
+    types = @_maybe(get_argtypes(action), Symbol[])
+    precond = @_maybe(get_precond(action), nothing)
+    effect = @_maybe(get_effect(action), nothing)
+
+    # Display fields
+    if !isempty(vars)
+        parameters = "(" * Writer.write_typed_list(vars, types) * ")"
+        print(io, "\n", "  parameters: ", parameters)
+    end
+    if !isnothing(precond) && precond != Const(true)
+        print(io, "\n", "  precond: ", write_pddl(precond))
+    end
+    if !isnothing(effect)
+        print(io, "\n", "  effect: ", write_pddl(effect))
+    end
 end
