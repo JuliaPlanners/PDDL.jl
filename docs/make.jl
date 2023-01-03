@@ -4,7 +4,7 @@ makedocs(
    sitename="PDDL.jl",
    format=Documenter.HTML(
       prettyurls=get(ENV, "CI", nothing) == "true",
-      canonical="https://juliaplanners.github.io/PDDL.jl/dev",
+      canonical="https://juliaplanners.github.io/PDDL.jl/stable",
       description="Documentation for the PDDL.jl automated planning library.",
       assets = ["assets/logo.ico"],
       highlights=["lisp"] # Use Lisp highlighting as PDDL substitute
