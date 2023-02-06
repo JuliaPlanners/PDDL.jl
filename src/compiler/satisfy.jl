@@ -5,7 +5,9 @@ function generate_satisfy(domain::Domain, state::State,
             return missing
         end
         function check(domain::$domain_type, state::$state_type, term::Const)
-            val = if hasfield($state_type, term.name)
+            val = if term.name isa Bool
+                return term.name
+            elseif hasfield($state_type, term.name)
                 getfield(state, term.name)
             elseif is_global_pred(term)
                 predicate_def(term.name)()
@@ -58,7 +60,9 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
             return missing
         end
         function check(domain::$domain_type, state::$state_type, term::Const)
-            val = if hasfield($state_type, term.name)
+            val = if term.name isa Bool
+                return term.name
+            elseif hasfield($state_type, term.name)
                 getfield(state, term.name)
             elseif is_global_pred(term)
                 predicate_def(term.name)()
