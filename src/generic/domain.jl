@@ -80,3 +80,23 @@ get_fluents(domain::GenericDomain) = merge(domain.predicates, domain.functions)
 get_axioms(domain::GenericDomain) = domain.axioms
 
 get_actions(domain::GenericDomain) = domain.actions
+
+"""
+    include_no_op!(domain::GenericDomain)
+
+Adds the [`NoOp`](@ref) action to the set of available actions.
+"""
+function include_no_op!(domain::GenericDomain)
+    domain.actions[get_name(PDDL.NoOp())] = PDDL.NoOp()
+    return domain
+end
+
+"""
+    include_no_op(domain::GenericDomain)
+
+Returns a copy of the domain with the [`NoOp`](@ref) action added to the set
+of available actions.
+"""
+function include_no_op(domain::GenericDomain)
+    return include_no_op!(deepcopy(domain))
+end
