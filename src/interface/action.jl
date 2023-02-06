@@ -71,17 +71,9 @@ Base.convert(::Type{Const}, action::Action) = isempty(get_argvars(action)) ?
 """
     NoOp()
 
-Constructs a `no_op` action, which has no preconditions or effects.
+Constructs a no-op action which has no preconditions or effects.
 """
 struct NoOp <: Action end
-
-"""
-    no_op
-
-A no-op action which has no preconditions or effects. Referred to as
-`(--)` in PDDL syntax.
-"""
-const no_op = NoOp()
 
 get_name(action::NoOp) = Symbol("--")
 
@@ -109,8 +101,16 @@ regress(::Domain, state::State, ::NoOp, args; options...) = state
 
 regress!(::Domain, state::State, ::NoOp, args; options...) = state
 
-Base.convert(::Type{Term}, ::NoOp) = convert(Compound, no_op)
+Base.convert(::Type{Term}, ::NoOp) = convert(Compound, NoOp())
 
-Base.convert(::Type{Compound}, ::NoOp) = Compound(Symbol("--"), Term[])
+Base.convert(::Type{Compound}, act::NoOp) = Compound(get_name(act), Term[])
 
-Base.convert(::Type{Const}, ::NoOp) = Const(Symbol("--"))
+Base.convert(::Type{Const}, act::NoOp) = Const(get_name(act))
+
+"""
+    PDDL.no_op
+
+An alias for pddl"(--)", the action `Term` for a [`NoOp`](@ref) action which has
+no preconditions or effects.
+"""
+const no_op = Compound(get_name(NoOp()), Term[])

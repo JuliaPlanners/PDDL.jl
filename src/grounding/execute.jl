@@ -1,5 +1,5 @@
 function execute(domain::GroundDomain, state::State, term::Term, options...)
-    if term.name == get_name(no_op) return state end
+    if term.name == PDDL.no_op.name return state end
     return execute!(domain, copy(state), term; options...)
 end
 
@@ -14,7 +14,7 @@ function execute(domain::GroundDomain, state::State,
 end
 
 function execute!(domain::GroundDomain, state::State, term::Term; options...)
-   if term.name == get_name(no_op) return state end
+   if term.name == PDDL.no_op.name return state end
    if (term isa Const) term = Compound(term.name, []) end
    action = domain.actions[term.name].actions[term]
    return execute!(domain, state, action; options...)

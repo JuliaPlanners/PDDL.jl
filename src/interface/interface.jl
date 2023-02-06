@@ -124,8 +124,8 @@ of a compound `Term`.
 execute(domain::Domain, state::State, action::Action, args; options...) =
     error("Not implemented.")
 execute(domain::Domain, state::State, action::Term; options...) =
-    if action.name == get_name(no_op)
-        execute(domain, state, no_op, (); options...)
+    if action.name == PDDL.no_op.name
+        execute(domain, state, PDDL.NoOp(), (); options...)
     else
         execute(domain, state, get_actions(domain)[action.name],
                 action.args; options...)
@@ -140,8 +140,8 @@ Variant of [`execute`](@ref) that modifies `state` in-place.
 execute!(domain::Domain, state::State, action::Action, args; options...) =
     error("Not implemented.")
 execute!(domain::Domain, state::State, action::Term; options...) =
-    if action.name == get_name(no_op)
-        execute!(domain, state, no_op, (); options...)
+    if action.name == PDDL.no_op.name
+        execute!(domain, state, PDDL.NoOp(), (); options...)
     else
         execute!(domain, state, get_actions(domain)[action.name],
                  action.args; options...)
@@ -179,8 +179,8 @@ compound `Term`.
 regress(domain::Domain, state::State, action::Action, args; options...)=
     error("Not implemented.")
 regress(domain::Domain, state::State, action::Term; options...) =
-    if action.name == get_name(no_op)
-        regress(domain, state, no_op, (); options...)
+    if action.name == PDDL.no_op.name
+        regress(domain, state, PDDL.NoOp(), (); options...)
     else
         regress(domain, state, get_actions(domain)[action.name],
                 action.args; options...)
@@ -195,8 +195,8 @@ Variant of [`regress`](@ref) that modifies `state` in-place.
 regress!(domain::Domain, state::State, action::Action, args; options...)=
     error("Not implemented.")
 regress!(domain::Domain, state::State, action::Term; options...) =
-    if action.name == get_name(no_op)
-        regress!(domain, state, no_op, (); options...)
+    if action.name == PDDL.no_op.name
+        regress!(domain, state, PDDL.NoOp(), (); options...)
     else
         regress!(domain, state, get_actions(domain)[action.name],
                  action.args; options...)

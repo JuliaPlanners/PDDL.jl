@@ -110,7 +110,7 @@ PDDL.get_effect(::Action)
 
 In contrast to action schemas, ground actions are represented with the [`Term`](@ref) data type. This is because the `name` property of a [`Term`](@ref) is sufficient to identify an action schema in the context of a planning domain, and the `args` property can be used to represent action parameters.
 
-There also exists a special no-op action schema, denoted `PDDL.no_op` in Julia code. The corresponding ground action can be expressed as `pddl"(--)"`.
+There also exists a special no-op action schema, denoted [`PDDL.NoOp()`](@ref) in Julia code. The corresponding ground action can be expressed as [`PDDL.no_op`](@ref) or `pddl"(--)"`.
 
 ```@docs
 PDDL.NoOp

@@ -11,7 +11,7 @@ function available(domain::GroundDomain, state::State,
 end
 
 function available(domain::GroundDomain, state::State, term::Term)
-    if term.name == get_name(no_op) return true end
+    if term.name == PDDL.no_op.name return true end
     if (term isa Const) term = Compound(term.name, []) end
     action = domain.actions[term.name].actions[term]
     return available(domain, state, action)

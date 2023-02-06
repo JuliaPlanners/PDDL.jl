@@ -3,8 +3,8 @@ function generate_transition(domain::Domain, state::State,
     transition_def = quote
         function transition(domain::$domain_type, state::$state_type,
                             term::Term; check::Bool=false)
-            if term.name == get_name(PDDL.no_op) && isempty(term.args)
-                execute(domain, state, PDDL.no_op, term.args; check=check)
+            if term.name == PDDL.no_op.name && isempty(term.args)
+                execute(domain, state, PDDL.NoOp(), term.args; check=check)
             else
                 execute(domain, state, get_action(domain, term.name), term.args;
                         check=check)
@@ -12,8 +12,8 @@ function generate_transition(domain::Domain, state::State,
         end
         function transition!(domain::$domain_type, state::$state_type,
                              term::Term; check::Bool=false)
-            if term.name == get_name(PDDL.no_op) && isempty(term.args)
-                execute(domain, state, PDDL.no_op, term.args; check=check)
+            if term.name == PDDL.no_op.name && isempty(term.args)
+                execute(domain, state, PDDL.NoOp(), term.args; check=check)
             else
                 execute(domain, state, get_action(domain, term.name), term.args;
                         check=check)

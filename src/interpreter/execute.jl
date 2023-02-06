@@ -11,7 +11,7 @@ end
 
 function execute(interpreter::Interpreter,
                  domain::Domain, state::State, action::Term; options...)
-    if action.name == get_name(no_op) return state end
+    if action.name == PDDL.no_op.name return state end
     return execute(interpreter, domain, state, get_action(domain, action.name),
                    action.args; options...)
 end
@@ -34,7 +34,7 @@ end
 
 function execute!(interpreter::Interpreter,
                   domain::Domain, state::State, action::Term; options...)
-    if action.name == get_name(no_op) return state end
+    if action.name == PDDL.no_op.name return state end
     return execute!(interpreter, domain, state, get_action(domain, action.name),
                     action.args; options...)
 end
