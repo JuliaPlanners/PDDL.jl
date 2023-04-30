@@ -1,14 +1,26 @@
 # Define cached interface methods
 
+function maybe_collect(xs::AbstractVector{<:Term})
+    if all(isa.(xs, Compound))
+        return collect(Compound, xs)
+    else
+        return xs
+    end
+end
+maybe_collect(xs::AbstractVector) = xs
+maybe_collect(xs::AbstractVector{Compound}) = collect(Compound, xs)
+maybe_collect(xs::Vector{Compound}) = xs
+maybe_collect(xs) = maybe_collect(collect(xs))
+
 @_cached :satisfy satisfy(domain::Domain, state::State, terms::AbstractVector{<:Term})
 
-@_cached :satisfiers satisfiers(domain::Domain, state::State, terms::AbstractVector{<:Term})
+@_cached :satisfiers satisfiers(domain::Domain, state::State, terms::AbstractVector{<:Term}) maybe_collect
 
 @_cached :evaluate evaluate(domain::Domain, state::State, term::Term)
 
-@_cached :available available(domain::Domain, state::State)
+@_cached :available available(domain::Domain, state::State) maybe_collect
 
-@_cached :relevant relevant(domain::Domain, state::State)
+@_cached :relevant relevant(domain::Domain, state::State) maybe_collect
 
 @_cached :is_available available(domain::Domain, state::State, term::Term)
 

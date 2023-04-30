@@ -1,5 +1,5 @@
 "Helper macro for defining cached method implementations."
-macro _cached(key, signature)
+macro _cached(key, signature, postcall=nothing)
     @assert signature.head == :call "Signature must be a typed function call."
 
     # Extract function name and arguments
@@ -26,6 +26,10 @@ macro _cached(key, signature)
     else
         :($fname($kwargs, $domain.source, $(argnames...)))
     end
+    orig_call_expr = call_expr
+    if !isnothing(postcall)
+        call_expr = :($postcall($call_expr))
+    end
     body = :(
         if haskey($domain.caches, $key)
             cache = domain.caches[$key]
@@ -33,7 +37,7 @@ macro _cached(key, signature)
                 $call_expr
             end
         else
-            $call_expr
+            $orig_call_expr
         end
     )
     signature.args[1] = GlobalRef(PDDL, fname)
@@ -66,7 +70,11 @@ function _infer_cache_type(D::Type{<:Domain}, key::Symbol)
     end
     K = Tuple{argtypes[2:end]...}
     rtypes = Base.return_types(f, argtypes)
-    V = length(rtypes) > 1 ? Union{rtypes...} : rtypes[1]
+    if f in (available, relevant)
+        V = Vector{Compound}
+    else
+        V = length(rtypes) > 1 ? Union{rtypes...} : rtypes[1]
+    end
     return Dict{K, V}
 end
 
