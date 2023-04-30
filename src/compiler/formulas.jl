@@ -122,7 +122,7 @@ function generate_forall_effect_expr(domain::Domain, state::State, term::Term,
     typeconds, effect = flatten_conjs(term.args[1]), term.args[2]
     types, vars = Symbol[], Symbol[]
     for (i, cond) in enumerate(typeconds)
-        v = Symbol("o$i") # Create local variable name
+        v = gensym("o$i") # Create local variable name
         push!(vars, v)
         push!(types, cond.name) # Extract type name
         varmap[cond.args[1]] = :($v.name)
@@ -133,9 +133,10 @@ function generate_forall_effect_expr(domain::Domain, state::State, term::Term,
     # Special case if only one object variable is enumerated over
     if length(vars) == 1
         v, ty = vars[1], QuoteNode(types[1])
-        return quote for $v in get_objects($state_var, $ty)
+        expr = quote for $v in get_objects($state_var, $ty)
             $expr
         end end
+        return expr
     end
     # Construct iterator over (typed) objects
     obj_exprs = (:(get_objects($state_var, $(QuoteNode(ty)))) for ty in types)
