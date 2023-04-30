@@ -39,6 +39,11 @@ implementations = [
     # Test consistency between calls
     @test available(domain, state) == available(domain, state)
 
+    # Test that available returns a vector of compound terms
+    if domain isa CachedDomain
+        @test available(domain, state) isa Vector{Compound}
+    end
+
     # Test action availability
     state = initstate(domain, problem)
     @test Set{Term}(available(domain, state)) == Set{Term}(@pddl(
