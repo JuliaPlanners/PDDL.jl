@@ -39,7 +39,7 @@ implementations = [
 
     @test satisfy(domain, state, problem.goal) ≃ true
 
-    # Test consistency between caals
+    # Test consistency between calls
     @test available(domain, state) == available(domain, state)
 
     # Test action availability
