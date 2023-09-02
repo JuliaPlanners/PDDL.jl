@@ -14,7 +14,7 @@ IntervalAbs{T}(x::Integer) where {T <: Integer} =
 IntervalAbs{T}(x::Union{AbstractFloat,Integer}) where {T <:AbstractFloat} =
     IntervalAbs{T}(T(x), T(x))
 IntervalAbs{T}(a::T, b::T) where {T <: Real} =
-    IntervalAbs{T}(IntervalArithmetic.Interval{T}(a, b))
+    IntervalAbs{T}(IntervalArithmetic.interval(a, b))
 
 Base.copy(x::IntervalAbs) = x
 
