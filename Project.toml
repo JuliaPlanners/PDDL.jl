@@ -12,7 +12,7 @@ ParserCombinator = "fae87a5f-d1ad-5cf0-8f61-c941e1580b46"
 ValSplit = "0625e100-946b-11ec-09cd-6328dd093154"
 
 [compat]
-AutoHashEquals = "0.2, 1.0"
+AutoHashEquals = "0.2, 1.0, 2"
 DocStringExtensions = "0.8, 0.9"
 IntervalArithmetic = "0.17, 0.18, 0.19, 0.20"
 Julog = "0.1.15"
