@@ -28,6 +28,8 @@ function generate_satisfy(domain::Domain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
+            elseif is_type(term, domain)
+                term.args[1].name in keys(objectindices(state, term.name))
             elseif !is_ground(term)
                 missing
             elseif is_global_pred(term)
@@ -83,6 +85,8 @@ function generate_satisfy(domain::AbstractedDomain, state::State,
                 check(domain, state, term.args[2])
             elseif term.name == :not
                 !check(domain, state, term.args[1])
+            elseif is_type(term, domain)
+                term.args[1].name in keys(objectindices(state, term.name))
             elseif !is_ground(term)
                 missing
             elseif is_global_pred(term)
