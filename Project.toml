@@ -16,7 +16,7 @@ AutoHashEquals = "0.2, 1.0, 2"
 DocStringExtensions = "0.8, 0.9"
 IntervalArithmetic = "0.17, 0.18, 0.19, 0.20, 0.21"
 Julog = "0.1.15"
-ParserCombinator = "2.0.0"
+ParserCombinator = "2"
 ValSplit = "0.1.1"
 julia = "1.3"
 
