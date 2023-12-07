@@ -3,7 +3,7 @@
 "Parser combinator for Lisp syntax."
 lisp         = Delayed()
 
-white_space  = p"(([\s\n\r]*(?<!\\);[^\n\r$]+[\n\r\s$]*)+|[\s\n\r]+)"
+white_space  = p"(([\s\n\r]*(?<!\\);[^\n\r]+[\n\r\s]*)+|[\s\n\r]+)"
 opt_ws       = white_space | e""
 
 doubley      = p"[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?" > (x -> parse(Float64, x))
