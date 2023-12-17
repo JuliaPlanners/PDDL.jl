@@ -31,7 +31,6 @@ function parse_requirements(expr::Vector)
     end
     return reqs
 end
-# parse_requirements(expr::Nothing) = copy(DEFAULT_REQUIREMENTS)
 @add_header_field(:domain, :requirements, parse_requirements)
 
 """
@@ -64,7 +63,6 @@ function parse_types(expr::Vector)
     append!(types[:object], collect(maxtypes))
     return (typetree=types,)
 end
-# parse_types(expr::Nothing) = Dict{Symbol,Vector{Symbol}}(:object => Symbol[])
 @add_header_field(:domain, :types, parse_types)
 
 """
