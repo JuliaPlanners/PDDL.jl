@@ -103,22 +103,20 @@ function Base.union(a::IntervalAbs, b::IntervalAbs)
 end
 
 function Base.intersect(a::IntervalAbs{T}, b::IntervalAbs{U}) where {T, U}
-    if isdisjoint(a, b)
+    if a.lo > b.hi || a.hi < b.lo
         return empty_interval(promote_type{T, U})
     else
         return IntervalAbs(max(a.lo, b.lo), min(a.hi, b.hi))
     end
 end
 
-Base.isdisjoint(a::IntervalAbs, b::IntervalAbs) =
-    a.lo > b.hi || a.hi < b.lo
 Base.issubset(a::IntervalAbs, b::IntervalAbs) =
     a.lo >= b.lo && a.hi <= b.hi
 Base.in(a::Real, b::IntervalAbs) =
     a >= b.lo && a <= b.hi
 
-equiv(a::IntervalAbs, b::IntervalAbs) = !isdisjoint(a.interval, b.interval)
-nequiv(a::IntervalAbs, b::IntervalAbs) = isdisjoint(a.interval, b.interval)
+equiv(a::IntervalAbs, b::IntervalAbs) = !(a.lo > b.hi || a.hi < b.lo)
+nequiv(a::IntervalAbs, b::IntervalAbs) = a.lo > b.hi || a.hi < b.lo
 Base.:<(a::IntervalAbs, b::IntervalAbs) = a.lo < b.hi
 Base.:<=(a::IntervalAbs, b::IntervalAbs) = a.lo <= b.hi
 
