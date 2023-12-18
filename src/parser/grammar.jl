@@ -1,6 +1,7 @@
 ## Parser combinator from strings to Julia expressions
+# Adapted from LispSyntax.jl (https://github.com/swadey/LispSyntax.jl)
 
-"Parser combinator for Lisp syntax."
+"Parser combinator for PDDL Lisp syntax."
 lisp         = Delayed()
 
 white_space  = p"(([\s\n\r]*(?<!\\);[^\n\r]+[\n\r\s]*)+|[\s\n\r]+)"
@@ -12,26 +13,27 @@ floaty_nodot = p"[-+]?[0-9]*[0-9]+([eE][-+]?[0-9]+)?[Ff]" > (x -> parse(Float32,
 floaty       = floaty_dot | floaty_nodot
 inty         = p"[-+]?\d+" > (x -> parse(Int, x))
 
-uchary       = p"\\(u[\da-fA-F]{4})" > (x -> first(unescape_string(x)))
-achary       = p"\\[0-7]{3}" > (x -> unescape_string(x)[1])
-chary        = p"\\." > (x -> x[2])
-
-stringy      = p"(?<!\\)\".*?(?<!\\)\"" > (x -> x[2:end-1]) #_0[2:end-1] } #r"(?<!\\)\".*?(?<!\\)"
 booly        = p"(true|false)" > (x -> x == "true" ? true : false)
-symboly      = p"[^\d():\?{}'`,@~;~\[\]^\s][^\s:\?()'`,@~;^{}~\[\]]*" > Symbol
-macrosymy    = p"@[^\d():\?{}'`,@~;~\[\]^\s][^\s:\?()'`,@~;^{}~\[\]]*" > Symbol
+stringy      = p"(?<!\\)\".*?(?<!\\)\"" > (x -> x[2:end-1])
 
-sexpr        = E"(" + ~opt_ws + Repeat(lisp + ~opt_ws) + E")" |> (x -> x)
-curly        = E"{" + ~opt_ws + Repeat(lisp + ~opt_ws) + E"}" |> (x -> Dict(x[i] => x[i+1] for i = 1:2:length(x)))
-bracket      = E"[" + ~opt_ws + Repeat(lisp + ~opt_ws) + E"]" |> (x -> x)
+keywordy     = E":" + p"[\w_][\w_\-]*" > (x -> Keyword(Symbol(x)))
+vary         = E"?" + p"[\w_][\w_\-]*" > (x -> Var(Symbol(uppercasefirst(x))))
+symboly      = p"[\w_][\w_\-]*" > Symbol
+opsymy       = p"[^\d():\?{}'`,;~\[\]\s\w]+" > Symbol
 
-# Additional combinators to handle PDDL-specific syntax
-vary         = p"\?[^\d():\?{}'`,@~;~\[\]^\s][^\s():\?'`,@~;^{}~\[\]]*" > (x -> Var(Symbol(uppercasefirst(x[2:end]))))
-keywordy     = p":[^\d():\?{}'`,@~;~\[\]^\s][^\s():\?'`,@~;^{}~\[\]]*" > (x -> Keyword(Symbol(x[2:end])))
+openy        = Seq!(E"(", ~opt_ws)
+closey       = Alt!(E")", Error("invalid expression"))
+sexpr        = Seq!(~openy, Repeat(lisp + ~opt_ws; backtrack=false), ~closey) |> (x -> x)
 
-lisp.matcher = doubley | floaty | inty | uchary | achary | chary | stringy | booly |
-               vary | keywordy | symboly | macrosymy | sexpr | curly | bracket
+lisp.matcher = Alt!(floaty, doubley, inty, booly, stringy,
+                    keywordy, vary, symboly, opsymy, sexpr)
 
-const top_level = Repeat(~opt_ws + lisp) + ~opt_ws + Eos()
+const top_level = Repeat(~opt_ws + lisp; backtrack=false) + ~opt_ws + Eos()
 
-parse_string(str::AbstractString) = parse_one(lowercase(str), top_level)[1]
+function parse_string(str::AbstractString)
+    try
+        return parse_one(lowercase(str), top_level)[1]
+    catch e
+        error(e.msg)
+    end
+end

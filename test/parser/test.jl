@@ -6,11 +6,17 @@
 
 @test parse_pddl("(ball)") == Const(:ball)
 @test parse_pddl("(1)") == Const(1)
+@test parse_pddl("(1.0)") == Const(1.0)
+@test parse_pddl("(1.0f)") == Const(1.0f0)
+@test parse_pddl("(1f)") == Const(1.0f0)
 @test parse_pddl("(?x)") == Var(:X)
 @test parse_pddl("(on a b)") == Compound(:on, [Const(:a), Const(:b)])
 @test parse_pddl("(on ?x ?y)") == Compound(:on, [Var(:X), Var(:Y)])
 @test parse_pddl("(+ cost 1)") == Compound(:+, [Const(:cost), Const(1)])
 @test parse_pddl("(= cost 0)") == Compound(:(==), [Const(:cost), Const(0)])
+@test parse_pddl("(= cost 0.0)") == Compound(:(==), [Const(:cost), Const(0.0)])
+@test parse_pddl("(>= cost 0)") == Compound(:(>=), [Const(:cost), Const(0)])
+@test parse_pddl("(!= cost 0)") == Compound(:(!=), [Const(:cost), Const(0)])
 
 @test parse_pddl("(and (on a b) (on b c))") ==
     Compound(:and, [pddl"(on a b)", pddl"(on b c)"])
