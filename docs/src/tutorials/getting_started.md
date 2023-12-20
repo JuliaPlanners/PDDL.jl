@@ -174,7 +174,7 @@ julia> satisfy(domain, state, pddl"(on a b)")
 false
 ```
 
-Here, we used the `pddl` string macro to construct a first-order [`Term`](@ref). This allows us to write `pddl"(on a b)"` as syntactic sugar for the expression `Compound(:on, Term[Const(:a), Const(:b)])`.
+Here, we used the `pddl"..."` string macro to construct a first-order [`Term`](@ref). This allows us to write `pddl"(on a b)"` as syntactic sugar for the expression `Compound(:on, Term[Const(:a), Const(:b)])`. (It is also [possible to *interpolate* values](../ref/parser_writer.md#Interpolation) when using the `pddl"..."` macro.)
 
 Besides querying whether particular terms are true or false, we can also ask PDDL.jl to return all satisfying assignments to a logical formula with free variables using the [`satisfiers`](@ref) function:
 

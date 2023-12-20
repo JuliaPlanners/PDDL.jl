@@ -22,13 +22,45 @@ julia> parse_pddl("(:derived (handempty) (forall (?x) (not (holding ?x))))")
 handempty <<= forall(object(X), not(holding(X)))
 ```
 
-In addition, there exists a string macro `pddl"..."`, which is ideal for parsing
-single string literals:
+In addition, there exists a string macro `pddl"..."`, which is useful for parsing single string literals:
 
 ```julia-repl
 julia> pddl"(on a b)"
 on(a, b)
 ```
+
+```@docs
+@pddl_str
+```
+
+## Interpolation
+
+The string macro `pddl"...` (as well as the [`@pddl`](@ref) macro) supports the interpolation of Julia variables using the `$` operator when parsing PDDL formulae. This makes it easier to construct predicates or expressions with a fixed structure but variable contents:
+
+```julia
+obj = Const(:a)
+sym = :b
+pddl"(on $obj $sym)"
+# Parses to the same value as pddl"(on a b)"
+
+fname = :on
+pddl"($fname a b)"
+# Also parses to pddl"(on a b)"
+
+var = pddl"(?x)"
+type = :block
+pddl"(forall ($var - $type) (on-table $var))"
+# Parses to pddl"(forall (?x - block) (on-table ?x))"
+```
+
+It is also possible to interpolate entire Julia expressions by surrounding the expression in curly braces (note that the expression itself must not contain any curly braces):
+
+```julia
+pddl"(= cost ${1 + 2})"     # Parses to pddl"(= cost 3)"
+pddl"(= cost ${zero(Int)})" # Parses to pddl"(= cost 0)"
+```
+
+Interpolation is **not** supported when parsing larger PDDL constructs, such as actions, domains, and problems.
 
 ## Parsing Domains and Problems
 

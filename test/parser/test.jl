@@ -80,7 +80,7 @@ obj1, obj2 = Const(:a), Const(:b)
 sym1, sym2 = :a , :b
 @test pddl"(on $obj1 $obj2)" == Compound(:on, Term[obj1, obj2])
 @test pddl"(on $sym1 $sym2)" == Compound(:on, Term[obj1, obj2])
-@test_throws Exception parse_pddl("(on \$obj1 \$obj2)")
+@test_throws ErrorException parse_pddl("(on \$obj1 \$obj2)")
 
 cval = Const(1)
 val = 1
@@ -118,6 +118,12 @@ term1, term2 = pddl"(on a b)", pddl"(on b c)"
 @test pddl"""(on ${pddl"a"} ${pddl"b"})""" == Compound(:on, Term[obj1, obj2])
 @test pddl"(= cost ${1 + 2})" == Compound(:(==), Term[Const(:cost), Const(3)])
 @test pddl"(= cost ${zero(Int)})" == Compound(:(==), Term[Const(:cost), Const(0)])
+
+@test_throws ErrorException parse_pddl("""
+(:derived (above \$var1 \$var2)
+          (or (on \$var1 \$var2)
+              (exists (?z) (and (on \$var1 ?z) (above ?z \$var2)))))
+""")
 
 end
 
