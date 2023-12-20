@@ -106,13 +106,24 @@ function write_formula(f::Compound)
         return "($(f.name) $args)"
     end
 end
+
+function write_formula(f::Const)
+    if f.name isa Symbol
+        return "(" * repr(f) * ")"
+    elseif f.name isa AbstractString
+        return "\"" * repr(f) * "\""
+    else
+        return repr(f)
+    end
+end
+
 write_formula(f::Var) = "?" * lowercasefirst(repr(f))
-write_formula(f::Const) = f.name isa Symbol ? "(" * repr(f) * ")" : repr(f)
 write_formula(::Nothing) = ""
 
 write_subformula(f::Compound) = write_formula(f)
 write_subformula(f::Var) = "?" * lowercasefirst(repr(f))
-write_subformula(f::Const) = repr(f)
+write_subformula(f::Const) =
+    f.name isa AbstractString ? "\"" * repr(f) * "\"" : repr(f)
 
 """
 $(SIGNATURES)

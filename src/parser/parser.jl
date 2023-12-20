@@ -11,6 +11,7 @@ using ..PDDL: DEFAULT_REQUIREMENTS, IMPLIED_REQUIREMENTS
 struct Keyword
     name::Symbol
 end
+Keyword(name::AbstractString) = Keyword(Symbol(name))
 Base.show(io::IO, kw::Keyword) = print(io, "KW:", kw.name)
 
 """
@@ -127,11 +128,11 @@ include("domain.jl")
 include("problem.jl")
 
 """
-$(SIGNATURES)
+    parse_pddl(str)
 
 Parse to PDDL structure based on initial keyword.
 """
-function parse_pddl(expr::Vector)
+function parse_pddl(expr::Vector; interpolate::Bool = false)
     if isa(expr[1], Keyword)
         kw = expr[1].name
         if is_header_field(nothing, kw)
@@ -144,12 +145,15 @@ function parse_pddl(expr::Vector)
         kw = expr[2][1]
         return parse_top_level(kw, expr)
     else
-        return parse_formula(expr)
+        return parse_formula(expr; interpolate = interpolate)
     end
 end
-parse_pddl(sym::Symbol) = parse_formula(sym)
-parse_pddl(str::AbstractString) = parse_pddl(parse_string(str))
-parse_pddl(strs::AbstractString...) = [parse_pddl(parse_string(s)) for s in strs]
+parse_pddl(sym::Union{Symbol,Number,Var}; interpolate::Bool = false) =
+    parse_formula(sym; interpolate = interpolate)
+parse_pddl(str::AbstractString; interpolate::Bool = false) =
+    parse_pddl(parse_string(str); interpolate = interpolate)
+parse_pddl(strs::AbstractString...; interpolate::Bool = false) =
+    [parse_pddl(parse_string(s); interpolate = interpolate) for s in strs]
 
 """
 $(SIGNATURES)
@@ -157,11 +161,16 @@ $(SIGNATURES)
 Parse string(s) to PDDL construct.
 """
 macro pddl(str::AbstractString)
-    return parse_pddl(str)
+    return parse_pddl(str; interpolate = true)
 end
 
 macro pddl(strs::AbstractString...)
-    return collect(parse_pddl.(strs))
+    results = parse_pddl.(strs; interpolate = true)
+    if any(r isa Expr for r in results)
+        return Expr(:vect, results...)
+    else
+        return collect(results)
+    end
 end
 
 """
@@ -170,7 +179,7 @@ $(SIGNATURES)
 Parse string to PDDL construct.
 """
 macro pddl_str(str::AbstractString)
-    return parse_pddl(str)
+    return parse_pddl(str; interpolate = true)
 end
 
 """
