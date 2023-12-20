@@ -6,12 +6,12 @@ end
 
 "Get domain constant type declarations as a list of clauses."
 function get_const_clauses(domain::Domain)
-   return [@julog($ty(:o) <<= true) for (o, ty) in get_constypes(domain)]
+   return [Clause(pddl"($ty $o)", Term[]) for (o, ty) in get_constypes(domain)]
 end
 
 "Get domain type hierarchy as a list of clauses."
 function get_type_clauses(domain::Domain)
-    clauses = [[Clause(@julog($ty(X)), Term[@julog($s(X))]) for s in subtys]
+    clauses = [[Clause(pddl"($ty ?x)", Term[pddl"($s ?x)"]) for s in subtys]
                for (ty, subtys) in get_typetree(domain) if length(subtys) > 0]
     return length(clauses) > 0 ? reduce(vcat, clauses) : Clause[]
 end

@@ -10,7 +10,7 @@ function available(interpreter::Interpreter, domain::Domain, state::State)
             continue
         end
         # Include type conditions when necessary for correctness
-        typecond = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
+        typecond = (pddl"($ty $v)" for (v, ty) in zip(act_vars, act_types))
         conds = [get_precond(act); typecond...]
         # Find all substitutions that satisfy preconditions
         subst = satisfiers(interpreter, domain, state, conds)
@@ -33,7 +33,7 @@ function available(interpreter::Interpreter,
     subst = Subst(var => val for (var, val) in zip(act_vars, args))
     # Construct type conditions of the form "type(val)"
     typecond = (all(ty == :object for ty in action.types) ? Term[] :
-               [@julog($ty(:v)) for (v, ty) in zip(args, act_types)])
+               [pddl"($ty $v)" for (v, ty) in zip(args, act_types)])
     # Check whether preconditions hold
     precond = substitute(get_precond(action), subst)
     conds = has_func(precond, domain) || has_quantifier(precond) ?

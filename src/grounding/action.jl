@@ -69,7 +69,7 @@ function groundargs(domain::Domain, state::State, action::Action;
     if use_preconds # Filter using preconditions
         # Add type conditions for correctness
         act_vars, act_types = get_argvars(action), get_argtypes(action)
-        typeconds = (@julog($ty(:v)) for (v, ty) in zip(act_vars, act_types))
+        typeconds = (pddl"($ty $v)" for (v, ty) in zip(act_vars, act_types))
         conds = [preconds; typeconds...]
         # Find all arguments that satisfy static preconditions
         argvars = get_argvars(action)

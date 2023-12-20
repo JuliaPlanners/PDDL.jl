@@ -48,10 +48,13 @@ include("requirements.jl")
 include("interface/interface.jl")
 # Generic concrete representations of PDDL types
 include("generic/generic.jl")
-# Parser for PDDL files
+# Parser for PDDL files and formulae
 include("parser/parser.jl")
-# Writer for PDDL files
+# Writer for PDDL files and formulae
 include("writer/writer.jl")
+
+using .Parser, .Writer
+
 # Simulators for executing action sequences and recording outputs
 include("simulators/simulators.jl")
 # Built-in functions and operators recognized by interpreters / compilers
@@ -72,7 +75,5 @@ include("grounding/grounding.jl")
 include("caching/caching.jl")
 # Tools for analyzing domains
 include("analysis/analysis.jl")
-
-using .Parser, .Writer
 
 end # module
