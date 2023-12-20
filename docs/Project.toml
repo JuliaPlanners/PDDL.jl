@@ -3,4 +3,4 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 PDDL = "2c8894f9-daa1-498a-9e3a-26edd9623db8"
 
 [compat]
-Documenter = "0.27, 0.28"
+Documenter = "1.2.1"
