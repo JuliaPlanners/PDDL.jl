@@ -4,19 +4,43 @@
 
 @testset "formula parsing" begin
 
-@test parse_pddl("(ball)") == Const(:ball)
-@test parse_pddl("(1)") == Const(1)
-@test parse_pddl("(1.0)") == Const(1.0)
-@test parse_pddl("(1.0f)") == Const(1.0f0)
-@test parse_pddl("(1f)") == Const(1.0f0)
-@test parse_pddl("(?x)") == Var(:X)
+@test parse_pddl("(ball)") === Const(:ball)
+@test parse_pddl("(bouncy-ball)") === Const(Symbol("bouncy-ball"))
+@test parse_pddl("(bouncy_ball)") === Const(Symbol("bouncy_ball"))
+@test parse_pddl("(1)") === Const(1)
+@test parse_pddl("(1.0)") === Const(1.0) 
+@test parse_pddl("(1.0f)") === Const(1.0f0)
+@test parse_pddl("(1f)") === Const(1.0f0)
+@test parse_pddl("(?x)") === Var(:X)
+@test parse_pddl("(?var-name)") === Var(Symbol("Var-name"))
+@test parse_pddl("(?var_name)") === Var(Symbol("Var_name"))
 @test parse_pddl("(on a b)") == Compound(:on, [Const(:a), Const(:b)])
 @test parse_pddl("(on ?x ?y)") == Compound(:on, [Var(:X), Var(:Y)])
+@test parse_pddl("(on-block a b)") == Compound(Symbol("on-block"), [Const(:a), Const(:b)])
 @test parse_pddl("(+ cost 1)") == Compound(:+, [Const(:cost), Const(1)])
 @test parse_pddl("(= cost 0)") == Compound(:(==), [Const(:cost), Const(0)])
 @test parse_pddl("(= cost 0.0)") == Compound(:(==), [Const(:cost), Const(0.0)])
 @test parse_pddl("(>= cost 0)") == Compound(:(>=), [Const(:cost), Const(0)])
 @test parse_pddl("(!= cost 0)") == Compound(:(!=), [Const(:cost), Const(0)])
+
+@test parse_pddl("(ball)") === @pddl("(ball)") === pddl"(ball)"
+@test parse_pddl("(bouncy-ball)") === @pddl("(bouncy-ball)") === pddl"(bouncy-ball)"
+@test parse_pddl("(bouncy_ball)") === @pddl("(bouncy_ball)") === pddl"(bouncy_ball)"
+@test parse_pddl("(1)") === @pddl("(1)") === pddl"(1)"
+@test parse_pddl("(1.0)") === @pddl("(1.0)") === pddl"(1.0)"
+@test parse_pddl("(1.0f)") === @pddl("(1.0f)") === pddl"(1.0f)"
+@test parse_pddl("(1f)") === @pddl("(1f)") === pddl"(1f)"
+@test parse_pddl("(?x)") === @pddl("(?x)") === pddl"(?x)"
+@test parse_pddl("(?var-name)") === @pddl("(?var-name)") === pddl"(?var-name)"
+@test parse_pddl("(?var_name)") === @pddl("(?var_name)") === pddl"(?var_name)"
+@test parse_pddl("(on a b)") == @pddl("(on a b)") == pddl"(on a b)"
+@test parse_pddl("(on ?x ?y)") == @pddl("(on ?x ?y)") == pddl"(on ?x ?y)"
+@test parse_pddl("(on-block a b)") == @pddl("(on-block a b)") == pddl"(on-block a b)"
+@test parse_pddl("(+ cost 1)") == @pddl("(+ cost 1)") == pddl"(+ cost 1)"
+@test parse_pddl("(= cost 0)") == @pddl("(= cost 0)") == pddl"(= cost 0)"
+@test parse_pddl("(= cost 0.0)") == @pddl("(= cost 0.0)") == pddl"(= cost 0.0)"
+@test parse_pddl("(>= cost 0)") == @pddl("(>= cost 0)") == pddl"(>= cost 0)"
+@test parse_pddl("(!= cost 0)") == @pddl("(!= cost 0)") == pddl"(!= cost 0)"
 
 @test parse_pddl("(and (on a b) (on b c))") ==
     Compound(:and, [pddl"(on a b)", pddl"(on b c)"])
@@ -47,6 +71,53 @@
 @test parse_pddl("(> (+ a b) (* c d))") ==
     Compound(:>, [Compound(:+, [Const(:a), Const(:b)]),
                   Compound(:*, [Const(:c), Const(:d)])])
+
+end
+
+@testset "interpolation" begin
+
+obj1, obj2 = Const(:a), Const(:b)
+sym1, sym2 = :a , :b
+@test pddl"(on $obj1 $obj2)" == Compound(:on, Term[obj1, obj2])
+@test pddl"(on $sym1 $sym2)" == Compound(:on, Term[obj1, obj2])
+@test_throws Exception parse_pddl("(on \$obj1 \$obj2)")
+
+cval = Const(1)
+val = 1
+@test pddl"(= cost $cval)" == Compound(:(==), Term[Const(:cost), cval])
+@test pddl"(= cost $val)" == Compound(:(==), Term[Const(:cost), cval])
+
+fname = :on
+fconst = Const(fname)
+@test pddl"($fname $obj1 $obj2)" == Compound(:on, Term[obj1, obj2])
+@test_throws MethodError pddl"($fconst $obj1 $obj2)"
+
+var1, var2 = Var(:X), Var(:Y)
+ty1, ty2 = :block, :cube
+@test pddl"(forall ($var1 $var2 - block) (on $var1 $var2))" ==
+    pddl"(forall (?x ?y - block) (on ?x ?y))"
+@test pddl"(forall ($var1 $var2 - $ty1) (on $var1 $var2))" ==
+    pddl"(forall (?x ?y - block) (on ?x ?y))"
+@test pddl"(forall ($var1 - $ty1 $var2 - $ty2) (on $var1 $var2))" ==
+    pddl"(forall (?x - block ?y - cube) (on ?x ?y))"
+@test pddl"(exists ($var1 $var2 - block) (on $var1 $var2))" ==
+    pddl"(exists (?x ?y - block) (on ?x ?y))"
+@test pddl"(exists ($var1 $var2 - $ty1) (on $var1 $var2))" ==
+    pddl"(exists (?x ?y - block) (on ?x ?y))"
+@test pddl"(exists ($var1 - $ty1 $var2 - $ty2) (on $var1 $var2))" ==
+    pddl"(exists (?x - block ?y - cube) (on ?x ?y))"
+
+term1, term2 = pddl"(on a b)", pddl"(on b c)"
+@test pddl"(and $term1 $term2)" == pddl"(and (on a b) (on b c))"
+@test pddl"(or $term1 $term2)" == pddl"(or (on a b) (on b c))"
+@test pddl"(not $term1)" == pddl"(not (on a b))"
+@test pddl"(imply $term1 $term2)" == pddl"(imply (on a b) (on b c))"
+
+@test pddl"(on ${obj1.name} ${obj2.name})" == Compound(:on, Term[obj1, obj2])
+@test pddl"(on ${Const(:a)} ${Const(:b)})" == Compound(:on, Term[obj1, obj2])
+@test pddl"""(on ${pddl"a"} ${pddl"b"})""" == Compound(:on, Term[obj1, obj2])
+@test pddl"(= cost ${1 + 2})" == Compound(:(==), Term[Const(:cost), Const(3)])
+@test pddl"(= cost ${zero(Int)})" == Compound(:(==), Term[Const(:cost), Const(0)])
 
 end
 

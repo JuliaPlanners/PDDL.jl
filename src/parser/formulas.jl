@@ -35,9 +35,10 @@ function parse_formula(expr::Vector; interpolate::Bool = false)
             # Convert = to == so that Julog can handle equality checks
             name = (name == :(=)) ? :(==) : name
             if interpolate
+                name = name isa Symbol ? QuoteNode(name) : name
                 args = Any[parse_term(expr[i]; interpolate = true)
                            for i in 2:length(expr)]
-                return :(Compound($(QuoteNode(name)), Term[$(args...)]))
+                return :(Compound($name, Term[$(args...)]))
             else
                 args = Term[parse_term(expr[i]) for i in 2:length(expr)]
                 return Compound(name, args)
