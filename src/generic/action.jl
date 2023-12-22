@@ -22,14 +22,4 @@ get_argtypes(action::GenericAction) = action.types
 
 get_precond(action::GenericAction) = action.precond
 
-function get_precond(action::GenericAction, args)
-    subst = Subst(k => v for (k, v) in zip(action.args, args))
-    return substitute(action.precond, subst)
-end
-
 get_effect(action::GenericAction) = action.effect
-
-function get_effect(action::GenericAction, args)
-    subst = Subst(k => v for (k, v) in zip(action.args, args))
-    return substitute(action.effect, subst)
-end

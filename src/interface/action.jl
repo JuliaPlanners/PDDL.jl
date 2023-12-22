@@ -38,7 +38,11 @@ can be specified as a `Term`.
 """
 get_precond(action::Action) = error("Not implemented.")
 
-get_precond(action::Action, args) = error("Not implemented.")
+function get_precond(action::Action, args)
+    argvars = get_argvars(action)
+    subst = Subst(k => v for (k, v) in zip(argvars, args))
+    return substitute(get_precond(action), subst)
+end
 
 get_precond(domain::Domain, action::Term) =
     get_precond(get_actions(domain)[action.name], action.args)
@@ -54,7 +58,11 @@ can be specified as a `Term`.
 """
 get_effect(action::Action) = error("Not implemented.")
 
-get_effect(action::Action, args) = error("Not implemented.")
+function get_effect(action::Action, args)
+    argvars = get_argvars(action)
+    subst = Subst(k => v for (k, v) in zip(argvars, args))
+    return substitute(get_effect(action), subst)
+end
 
 get_effect(domain::Domain, term::Term) =
     get_effect(get_actions(domain)[term.name], term.args)

@@ -18,7 +18,13 @@ get_argvals(action::GroundAction) = term.args
 
 get_precond(action::GroundAction) = Compound(:and, action.preconds)
 
+get_precond(action::GroundAction, args) =
+    all(args .== action.term.args) ? get_precond(action) : error("Argument mismatch.")
+
 get_effect(action::GroundAction) = as_term(action.effect)
+
+get_effect(action::GroundAction, args) =
+    all(args .== action.term.args) ? get_effect(action) : error("Argument mismatch.")
 
 Base.convert(::Type{Compound}, action::GroundAction) = action.term
 
@@ -44,6 +50,16 @@ get_name(action::GroundActionGroup) = action.name
 get_argvars(action::GroundActionGroup) = action.args
 
 get_argtypes(action::GroundActionGroup) = action.types
+
+function get_precond(action::GroundActionGroup, args)
+    term = Compound(action.name, args)
+    return get_precond(action.actions[term])
+end
+
+function get_effect(action::GroundActionGroup, args)
+    term = Compound(action.name, args)
+    return get_effect(action.actions[term])
+end
 
 "Maximum limit for grounding by enumerating over typed objects."
 const MAX_GROUND_BY_TYPE_LIMIT = 250
