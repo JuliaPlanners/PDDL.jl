@@ -30,7 +30,9 @@ function execute!(domain::GroundDomain, state::State,
                   action::GroundAction; check::Bool=true)
     # Check whether preconditions hold
     if check && !available(domain, state, action)
-        error("Precondition $(get_precond(action)) does not hold.")
+        action_str = write_pddl(action.term)
+        error("Could not execute $action_str:\n" *
+              "Precondition $(get_precond(action)) does not hold.")
     end
     # Update state with diff
     return update!(domain, state, action.effect)

@@ -82,28 +82,30 @@ function indent_typed_list(str::String, indent::Int, maxchars::Int=80)
 end
 
 """
-$(SIGNATURES)
+    write_formula(f::Term)
 
 Write formula in PDDL syntax.
 """
-function write_formula(f::Compound)
-    if f.name in [:exists, :forall]
-        typecond, body = f.args
+function write_formula end 
+
+function write_formula(name::Symbol, args)
+    if name in [:exists, :forall]
+        typecond, body = args
         var_str = write_typed_list(flatten_conjs(typecond))
         body_str = write_formula(body)
-        return "($(f.name) ($var_str) $body_str)"
-    elseif f.name in [:and, :or, :not, :when, :imply,
-                      :(==), :>, :<, :!=, :>=, :<=, :+, :-, :*, :/,
-                      :assign, :increase, :decrease,
-                      Symbol("scale-up"), Symbol("scale-down")]
-        name = f.name == :(==) ? "=" : string(f.name)
-        args = join([write_formula(a) for a in f.args], " ")
+        return "($name ($var_str) $body_str)"
+    elseif name in [:and, :or, :not, :when, :imply,
+                    :(==), :>, :<, :!=, :>=, :<=, :+, :-, :*, :/,
+                    :assign, :increase, :decrease,
+                    Symbol("scale-up"), Symbol("scale-down")]
+        name = name == :(==) ? :(=) : name
+        args = join((write_formula(a) for a in args), " ")
         return "($name $args)"
-    elseif isempty(f.args)
-        return "($(f.name))"
+    elseif isempty(args)
+        return "($name)"
     else
-        args = join([write_subformula(a) for a in f.args], " ")
-        return "($(f.name) $args)"
+        args = join((write_subformula(a) for a in args), " ")
+        return "($name $args)"
     end
 end
 
@@ -117,6 +119,7 @@ function write_formula(f::Const)
     end
 end
 
+write_formula(f::Compound) = write_formula(f.name, f.args)
 write_formula(f::Var) = "?" * lowercasefirst(repr(f))
 write_formula(::Nothing) = ""
 

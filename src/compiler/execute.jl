@@ -40,8 +40,10 @@ function generate_execute(domain::Domain, state::State,
         function execute(domain::$domain_type, prev_state::$state_type,
                          action::$action_type, args; check::Bool=false)
             if check && !(@inbounds $precond)
-                error("Precondition not satisfied")
-            end
+                action_str = Writer.write_formula(get_name(action), args)
+                error("Could not execute $action_str: " *
+                      "Precondition does not hold.")
+              end
             state = copy(prev_state)
             @inbounds $effect
             return state
@@ -49,7 +51,9 @@ function generate_execute(domain::Domain, state::State,
         function execute!(domain::$domain_type, prev_state::$state_type,
                           action::$action_type, args; check::Bool=false)
             if check && !(@inbounds $precond)
-                error("Precondition not satisfied")
+                action_str = Writer.write_formula(get_name(action), args)
+                error("Could not execute $action_str: " *
+                      "Precondition does not hold.")
             end
             @inbounds $meffect
             return prev_state
