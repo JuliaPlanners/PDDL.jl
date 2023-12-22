@@ -27,5 +27,6 @@ include("interval.jl")
 const DEFAULT_ABSTRACTIONS = Dict(
     :boolean => BooleanAbs,
     :integer => IntervalAbs{Int},
+    :number => IntervalAbs{Float64},
     :numeric => IntervalAbs{Float64}
 )

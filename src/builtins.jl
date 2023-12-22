@@ -34,6 +34,7 @@ Mapping from PDDL data types to Julia types and default values.
     error("Unknown datatype: $name")
 datatype_def(::Val{:boolean}) = (type=Bool, default=false)
 datatype_def(::Val{:integer}) = (type=Int, default=0)
+datatype_def(::Val{:number}) = (type=Float64, default=1.0)
 datatype_def(::Val{:numeric}) = (type=Float64, default=1.0)
 
 """
