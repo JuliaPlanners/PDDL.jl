@@ -5,7 +5,7 @@ function execute(interpreter::Interpreter,
     if check && !available(interpreter, domain, state, action, args)
         if fail_mode == :no_op return state end
         action_str = Writer.write_formula(get_name(action), args)
-        error("Could not execute $action_str:" *
+        error("Could not execute $action_str:\n" *
               "Precondition $(write_pddl(get_precond(action))) does not hold.")
     end
     return execute!(interpreter, domain, copy(state), action, args; check=false)
