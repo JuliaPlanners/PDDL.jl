@@ -46,7 +46,7 @@ function check(interpreter::AbstractInterpreter,
     sat = if term.name == :and
         all(check(interpreter, domain, state, a) for a in term.args)
     elseif term.name == :or
-        any(check(inte, domain, state, a) for a in term.args)
+        any(check(interpreter, domain, state, a) for a in term.args)
     elseif term.name == :imply
         !check(interpreter, domain, state, term.args[1]) |
         check(interpreter, domain, state, term.args[2])
