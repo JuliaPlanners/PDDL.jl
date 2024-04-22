@@ -1,16 +1,10 @@
 function generate_execute(domain::Domain, state::State,
                           domain_type::Symbol, state_type::Symbol)
     execute_def = quote
-        function execute(domain::$domain_type, state::$state_type, term::Term)
-            execute(domain, state, get_action(domain, term.name), term.args)
-        end
         function execute(domain::$domain_type, state::$state_type, term::Term;
                          check::Bool=false)
             execute(domain, state, get_action(domain, term.name), term.args;
                     check=check)
-        end
-        function execute!(domain::$domain_type, state::$state_type, term::Term)
-            execute!(domain, state, get_action(domain, term.name), term.args)
         end
         function execute!(domain::$domain_type, state::$state_type, term::Term;
                           check::Bool=false)
