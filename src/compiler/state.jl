@@ -73,11 +73,12 @@ function generate_state_constructors(domain::Domain, state::State,
     for (name, pred) in sortedpairs(get_predicates(domain))
         name in keys(get_axioms(domain)) && continue # Skip derived predicates
         push!(state_inits, generate_pred_init(domain, state, pred))
-        push!(state_copies, :(copy(state.$name)))
+        push!(state_copies, :(state.$name))
     end
     for (name, fn) in sortedpairs(get_functions(domain))
         push!(state_inits, generate_func_init(domain, state, fn))
-        push!(state_copies, :(copy(state.$name)))
+        push!(state_copies,
+              :(isbits(state.$name) ? state.$name : copy(state.$name)))
     end
     state_constructor_defs = quote
         $state_type() = $state_type($(state_inits...))

@@ -13,6 +13,7 @@ Base.show(IOBuffer(), "text/plain", problem)
 
 # Make sure function declarations have the right output type
 @test PDDL.get_function(domain, :walls).type == Symbol("bit-matrix")
+@test PDDL.get_function(domain, :pos).type == Symbol("matrix-index")
 
 state = initstate(domain, problem)
 implementations = [
@@ -23,6 +24,8 @@ implementations = [
     "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
+domain, state = compiled(domain, state)
+
 @testset "gridworld ($name)" for (name, domain) in implementations
     # Initialize state, test array dimensios, access and goal
     state = initstate(domain, problem)
@@ -30,6 +33,8 @@ implementations = [
     @test domain[state => pddl"(height (walls))"] == 3
     @test domain[state => pddl"(get-index walls 2 2)"] == true
     @test domain[state => pddl"(get-index walls 1 2)"] == true
+    @test domain[state => pddl"(get-index walls (index 2 2))"] == true
+    @test domain[state => pddl"(get-index walls (index 1 2))"] == true 
     @test satisfy(domain, state, problem.goal) == false
 
     # Check that we can only move down because of wall
