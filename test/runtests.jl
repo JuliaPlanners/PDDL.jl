@@ -1,7 +1,10 @@
 using PDDL, PDDL.Parser, Test
 
 # Define equivalence shorthand for abstract interpreter testing
-≃(a, b) = PDDL.equiv(a, b)
+function ≃(a, b)
+    val = PDDL.equiv(a, b)
+    return (val == true) || (val == PDDL.both)
+end
 
 include("parser/test.jl")
 include("strips/test.jl")

@@ -61,8 +61,9 @@ end
 
 widen(a::BooleanAbs, b::BooleanAbs) = lub(a, b)
 
-equiv(a::Both, b::Bool) = true
-equiv(a::Bool, b::Both) = true
+equiv(a::Both, b::Both) = both
+equiv(a::Both, b::Bool) = both
+equiv(a::Bool, b::Both) = both
 
 Base.:(!)(::Both) = both
 

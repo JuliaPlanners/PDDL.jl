@@ -133,17 +133,27 @@ Base.issubset(a::IntervalAbs, b::IntervalAbs) =
 Base.in(a::Real, b::IntervalAbs) =
     a >= b.lo && a <= b.hi
 
-equiv(a::IntervalAbs, b::IntervalAbs) = !(a.lo > b.hi || a.hi < b.lo)
-nequiv(a::IntervalAbs, b::IntervalAbs) = a.lo > b.hi || a.hi < b.lo
-Base.:<(a::IntervalAbs, b::IntervalAbs) = a.lo < b.hi
-Base.:<=(a::IntervalAbs, b::IntervalAbs) = a.lo <= b.hi
+equiv(a::IntervalAbs, b::IntervalAbs) = (a.lo > b.hi || a.hi < b.lo) ?
+    false : ((a.lo == a.hi == b.lo == b.hi) ? true : both)
+nequiv(a::IntervalAbs, b::IntervalAbs) = (a.lo > b.hi || a.hi < b.lo) ?
+    true : ((a.lo == a.hi == b.lo == b.hi) ? false : both)
+Base.:<(a::IntervalAbs, b::IntervalAbs) =
+    a.hi < b.lo ? true : ((a.lo < b.hi) ? both : false)
+Base.:<=(a::IntervalAbs, b::IntervalAbs) = 
+    a.hi <= b.lo ? true : ((a.lo <= b.hi) ? both : false)
 
-equiv(a::IntervalAbs, b::Real) = b in a
-nequiv(a::IntervalAbs, b::Real) = !(a.lo == a.hi == b)
-Base.:<(a::IntervalAbs, b::Real) = a.lo < b
-Base.:<=(a::IntervalAbs, b::Real) = a.lo <= b
+equiv(a::IntervalAbs, b::Real) =
+    (b in a) ? ((a.lo == a.hi) ? true : both) : false
+nequiv(a::IntervalAbs, b::Real) =
+    (b in a) ? ((a.lo == a.hi) ? false : both) : true
+Base.:<(a::IntervalAbs, b::Real) =
+    (a.hi < b) ? true : ((a.lo < b) ? both : false)
+Base.:<=(a::IntervalAbs, b::Real) =
+    (a.hi <= b) ? true : ((a.lo <= b) ? both : false)
 
-equiv(a::Real, b::IntervalAbs) = a in b
-nequiv(a::Real, b::IntervalAbs) = !(a == b.lo == b.hi)
-Base.:<(a::Real, b::IntervalAbs) = a < b.hi
-Base.:<=(a::Real, b::IntervalAbs) = a <= b.hi
+equiv(a::Real, b::IntervalAbs) = equiv(b, a)
+nequiv(a::Real, b::IntervalAbs) = nequiv(b, a)
+Base.:<(a::Real, b::IntervalAbs) =
+    (a < b.lo) ? true : ((a < b.hi) ? both : false)
+Base.:<=(a::Real, b::IntervalAbs) =
+    (a <= b.lo) ? true : ((a <= b.hi) ? both : false)

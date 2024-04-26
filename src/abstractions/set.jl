@@ -76,20 +76,33 @@ for f in (:+, :-, :*, :/)
         SetAbs(set=Set(($f(a, y) for y in b.set)))
 end
 
-equiv(a::SetAbs, b::SetAbs) = !isdisjoint(a.set, b.set)
-nequiv(a::SetAbs, b::SetAbs) = isdisjoint(a.set, b.set)
+uniquely_equal(a::SetAbs, b::SetAbs) =
+    (length(a.set) == length(b.set) == 1) && first(a.set) == first(b.set)
+
+equiv(a::SetAbs, b::SetAbs) = 
+    isdisjoint(a.set, b.set) ? false : (uniquely_equal(a, b) ? true : both)
+nequiv(a::SetAbs, b::SetAbs) =
+    isdisjoint(a.set, b.set) ? true : (uniquely_equal(a, b) ? false : both)
 
 Base.:<(a::SetAbs, b::SetAbs) =
-    any(x < y for x in a.set, y in b.set)
+    lub(BooleanAbs, (x < y for x in a.set, y in b.set))
 Base.:<=(a::SetAbs, b::SetAbs) =
-    any(x <= y for x in a.set, y in b.set)
+    lub(BooleanAbs, (x <= y for x in a.set, y in b.set))
 
-equiv(a::SetAbs{T}, b::T) where {T} = b in a.set
-nequiv(a::SetAbs{T}, b::T) where {T} = !(b in a.set)
-Base.:<(a::SetAbs, b::Real) = any(x < b for x in a.set)
-Base.:<=(a::SetAbs, b::Real) = any(x <= b for x in a.set)
+equiv(a::SetAbs{T}, b::T) where {T} =
+    b in a.set ? (length(a.set) == 1 ? true : both) : false
+nequiv(a::SetAbs{T}, b::T) where {T} =
+    b in a.set ? (length(a.set) == 1 ? false : both) : true
+Base.:<(a::SetAbs, b::Real) =
+    lub(BooleanAbs, (x < b for x in a.set))
+Base.:<=(a::SetAbs, b::Real) =
+    lub(BooleanAbs, (x <= b for x in a.set))
 
-equiv(a::T, b::SetAbs{T}) where {T} = a in b.set
-nequiv(a::T, b::SetAbs{T}) where {T} = !(a in b.set)
-Base.:<(a::Real, b::SetAbs) = any(a < x for x in b.set)
-Base.:<=(a::Real, b::SetAbs) = any(a <= b for x in b.set)
+equiv(a::T, b::SetAbs{T}) where {T} =
+    a in b.set ? (length(b.set) == 1 ? true : both) : false
+nequiv(a::T, b::SetAbs{T}) where {T} =
+    a in b.set ? (length(b.set) == 1 ? false : both) : true
+Base.:<(a::Real, b::SetAbs) =
+    lub(BooleanAbs, (a < y for y in b.set))
+Base.:<=(a::Real, b::SetAbs) =
+    lub(BooleanAbs, (a <= y for y in b.set))
