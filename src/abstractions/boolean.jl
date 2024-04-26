@@ -34,12 +34,30 @@ lub(a::Both, b::Missing) = both
 lub(a::Bool, b::Missing) = a
 lub(a::BooleanAbs, b::BooleanAbs) = lub(b, a)
 
+function lub(::Type{BooleanAbs}, iter)
+    val::BooleanAbs = missing
+    for x in iter
+        val = lub(val, x)
+        isboth(val) && return val
+    end
+    return val
+end
+
 glb(a::Both, b::Both) = both
 glb(a::Both, b::Bool) = b
 glb(a::Bool, b::Bool) = a === b ? a : missing
 glb(a::Both, b::Missing) = missing
 glb(a::Bool, b::Missing) = missing
 glb(a::BooleanAbs, b::BooleanAbs) = glb(b, a)
+
+function glb(::Type{BooleanAbs}, iter)
+    val::BooleanAbs = both
+    for x in iter
+        val = glb(val, x)
+        ismissing(val) && return val
+    end
+    return val
+end
 
 widen(a::BooleanAbs, b::BooleanAbs) = lub(a, b)
 

@@ -29,12 +29,30 @@ Base.copy(x::IntervalAbs) = x
 
 Base.convert(I::Type{IntervalAbs{T}}, x::Real) where {T <: Real} = I(x)
 
-Base.show(io::IO, x::IntervalAbs) = print(io, "[$(x.lo), $(x.hi)]")
+Base.show(io::IO, x::IntervalAbs) =
+    print(io, "IntervalAbs($(x.lo), $(x.hi))")
 
 Base.hash(x::IntervalAbs, h::UInt) = hash(x.lo, hash(x.hi, h))
 
 lub(a::IntervalAbs, b::IntervalAbs) = a ∪ b
+
+function lub(I::Type{IntervalAbs{T}}, iter) where {T}
+    val = empty_interval(I)
+    for x in iter
+        val = lub(val, x)
+    end
+    return val
+end
+
 glb(a::IntervalAbs, b::IntervalAbs) = a ∩ b
+
+function glb(I::Type{IntervalAbs{T}}, iter) where {T}
+    val = I(typemin(T), typemax(T))
+    for x in iter
+        val = glb(val, x)
+    end
+    return val
+end
 
 widen(a::IntervalAbs, b::IntervalAbs) = a ∪ b
 

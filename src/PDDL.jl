@@ -61,10 +61,10 @@ include("simulators/simulators.jl")
 include("builtins.jl")
 # Methods for extending built-in functions and operators
 include("extensions.jl")
-# Theories for fluents with non-standard data types (e.g. sets, arrays)
-include("theories/theories.jl")
 # Abstractions for fluents of various types
 include("abstractions/abstractions.jl")
+# Theories for fluents with non-standard data types (e.g. sets, arrays)
+include("theories/theories.jl")
 # Interpreter-based interface implementation
 include("interpreter/interpreter.jl")
 # Compiler-based interface implementations
