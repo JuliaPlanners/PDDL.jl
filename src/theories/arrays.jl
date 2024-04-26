@@ -7,6 +7,7 @@ Attach to a specific `domain` by calling `PDDL.Arrays.attach!(domain)`.
 @pddltheory module Arrays
 
 using ..PDDL
+using ..PDDL: BooleanAbs, IntervalAbs, SetAbs, lub, isboth, empty_interval
 
 # Generic array constructors
 new_array(val, dims...) = fill!(Array{Any}(undef, dims), val)
@@ -51,31 +52,35 @@ set_index(a::AbstractArray{T,N}, val, idxs::Vararg{Int,N}) where {T,N} =
 set_index(a::AbstractArray{T,N}, val, idxs::NTuple{N,Int}) where {T,N} =
     setindex!(copy(a), val, idxs...)
 
-# Index component accessors
-get_index(idx::Tuple, i::Int) = getindex(idx, i)
-get_row(idx::Tuple{Int, Int}) = idx[1]
-get_col(idx::Tuple{Int, Int}) = idx[2]
-set_index(idx::Tuple, val, i::Int) = (idx[1:i-1]..., val, idx[i+1:end]...)
-set_row(idx::Tuple{Int, Int}, val) = (val, idx[2])
-set_col(idx::Tuple{Int, Int}, val) = (idx[1], val)
-
-# Index component modifiers
-increase_index(idx::Tuple, i::Int, val) =
-    (idx[1:i-1]..., idx[i] + val, idx[i+1:end]...)
-increase_row(idx::Tuple{Int, Int}, val) = (idx[1] + val, idx[2])
-increase_col(idx::Tuple{Int, Int}, val) = (idx[1], idx[2] + val)
-decrease_index(idx::Tuple, i::Int, val) =
-    (idx[1:i-1]..., idx[i] - val, idx[i+1:end]...)
-decrease_row(idx::Tuple{Int, Int}, val) = (idx[1] - val, idx[2])
-decrease_col(idx::Tuple{Int, Int}, val) = (idx[1], idx[2] - val)
-
 # Bounds checking
 has_index(a::AbstractArray{T,N}, idxs::Vararg{Int,N}) where {T,N} =
+    checkbounds(Bool, a, idxs...)
+has_index(a::AbstractArray{T,N}, idxs::NTuple{N,Int}) where {T,N} =
     checkbounds(Bool, a, idxs...)
 has_row(m::AbstractMatrix, i::Int) =
     checkbounds(Bool, m, i, :)
 has_col(m::AbstractMatrix, j::Int) =
     checkbounds(Bool, m, :, j)
+
+# Index component accessors
+get_index(idx::NTuple{N, Int}, i::Int) where {N} =
+    getindex(idx, i)
+get_row(idx::Tuple{Int, Int}) = idx[1]
+get_col(idx::Tuple{Int, Int}) = idx[2]
+set_index(idx::NTuple{N, Int}, val::Int, i::Int) where {N} =
+    (idx[1:i-1]..., val, idx[i+1:end]...)
+set_row(idx::Tuple{Int, Int}, val::Int) = (val, idx[2])
+set_col(idx::Tuple{Int, Int}, val::Int) = (idx[1], val)
+
+# Index component modifiers
+increase_index(idx::NTuple{N, Int}, i::Int, val::Int) where {N} =
+    (idx[1:i-1]..., idx[i] + val, idx[i+1:end]...)
+increase_row(idx::Tuple{Int, Int}, val::Int) = (idx[1] + val, idx[2])
+increase_col(idx::Tuple{Int, Int}, val::Int) = (idx[1], idx[2] + val)
+decrease_index(idx::NTuple{N, Int}, i::Int, val::Int) where {N} =
+    (idx[1:i-1]..., idx[i] - val, idx[i+1:end]...)
+decrease_row(idx::Tuple{Int, Int}, val::Int) = (idx[1] - val, idx[2])
+decrease_col(idx::Tuple{Int, Int}, val::Int) = (idx[1], idx[2] - val)
 
 # Array dimensions
 length(a::AbstractArray) = Base.length(a)
@@ -90,6 +95,123 @@ pop(v::AbstractVector) = (v = copy(v); pop!(v); v)
 # Transformations
 _transpose(v::AbstractVector) = permutedims(v)
 _transpose(m::AbstractMatrix) = permutedims(m)
+
+# Accessors with abstract indices
+function get_index(
+    a::AbstractArray{T,N}, idxs::Vararg{SetAbs{Int},N}
+) where {T,N}
+    val = SetAbs{T}()
+    for i in Iterators.product((i.set for i in idxs)...)
+        has_index(a, i) && push!(val.set, get_index(a, i))
+    end
+    return val
+end
+
+function get_index(
+    a::AbstractArray{T,N}, idxs::SetAbs{NTuple{N, Int}}
+) where {T,N}
+    val = SetAbs{T}()
+    for i in idxs.set
+        has_index(a, i) && push!(val.set, get_index(a, i))
+    end
+    return val
+end
+
+function get_index(
+    a::AbstractArray{T,N}, idxs::SetAbs{NTuple{N, Int}}
+) where {T <: BooleanAbs, N}
+    val::BooleanAbs = missing
+    for i in idxs.set
+        has_index(a, i) || continue
+        val = lub(val, get_index(a, i))
+    end
+    return val
+end
+
+function get_index(
+    a::AbstractArray{T,N}, idxs::Vararg{IntervalAbs{Int},N}
+) where {T <: Real,N}
+    val = empty_interval(IntervalAbs{T})
+    for i in Iterators.product((i.lo:i.hi for i in idxs)...)
+        has_index(a, i) || continue
+        val = lub(val, IntervalAbs{T}(get_index(a, i)))
+    end
+    return val
+end
+
+function get_index(
+    a::AbstractArray{T,N}, idxs::Vararg{IntervalAbs{Int},N}
+) where {T <: BooleanAbs,N}
+    val::BooleanAbs = missing
+    for i in Iterators.product((i.lo:i.hi for i in idxs)...)
+        has_index(a, i) || continue
+        val = lub(val, get_index(a, i))
+    end
+    return val
+end
+
+# Bounds checking with abstract indices
+function has_index(
+    a::AbstractArray{T,N}, idxs::Vararg{SetAbs{Int},N}
+) where {T, N}
+    iter = (has_index(a, i) for i in Iterators.product((i.set for i in idxs)...))
+    return lub(BooleanAbs, iter)
+end
+
+function has_index(
+    a::AbstractArray{T,N}, idxs::SetAbs{NTuple{N, Int}}
+) where {T,N}
+    iter = (has_index(a, i) for i in idxs.set)
+    return lub(BooleanAbs, iter)
+end
+
+function has_index(
+    a::AbstractArray{T,N}, idxs::Vararg{IntervalAbs{Int},N}
+) where {T, N}
+    iter = (has_index(a, i) for i in
+            Iterators.product(((i.lo, i.hi) for i in idxs)...))
+    return lub(BooleanAbs, iter)
+end
+
+has_row(m::AbstractMatrix, idxs::SetAbs{Int}) =
+    lub(BooleanAbs, (has_row(m, i) for i in idxs.set))
+has_row(m::AbstractMatrix, i::IntervalAbs{Int}) =
+    lub(has_row(m, i.lo), has_row(m, i.hi))
+
+has_col(m::AbstractMatrix, idxs::SetAbs{Int}) = 
+    lub(BooleanAbs, (has_col(m, j) for j in idxs.set))
+has_col(m::AbstractMatrix, j::IntervalAbs{Int}) =
+    lub(has_col(m, j.lo), has_col(m, j.hi))
+
+# Abstract index component accessors
+get_index(idxs::SetAbs{T}, i::Int) where {T <: Tuple} =
+    SetAbs{Int}(;iter=(idx[i] for idx in idxs.set))
+get_row(idxs::SetAbs{T}) where {T <: Tuple} =
+    SetAbs{Int}(;iter=(idx[1] for idx in idxs.set))
+get_col(idxs::SetAbs{T}) where {T <: Tuple} =
+    SetAbs{Int}(;iter=(idx[2] for idx in idxs.set))
+
+set_index(idxs::SetAbs{T}, i::Int, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(set_index(idx, i, val) for idx in idxs.set))
+set_row(idxs::SetAbs{T}, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(set_row(idx, val) for idx in idxs.set))
+set_col(idxs::SetAbs{T}, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(set_col(idx, val) for idx in idxs.set))
+
+# Abstract index component modifiers
+increase_index(idxs::SetAbs{T}, i::Int, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(increase_index(idx, i, val) for idx in idxs.set))
+increase_row(idxs::SetAbs{T}, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(increase_row(idx, val) for idx in idxs.set))
+increase_col(idxs::SetAbs{T}, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(increase_col(idx, val) for idx in idxs.set))
+
+decrease_index(idxs::SetAbs{T}, i::Int, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(decrease_index(idx, i, val) for idx in idxs.set))
+decrease_row(idxs::SetAbs{T}, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(decrease_row(idx, val) for idx in idxs.set))
+decrease_col(idxs::SetAbs{T}, val::Int) where {T <: Tuple} =
+    SetAbs{T}(;iter=(decrease_col(idx, val) for idx in idxs.set))
 
 # Conversions to terms
 vec_to_term(v::AbstractVector) =

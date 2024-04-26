@@ -40,5 +40,7 @@ const DEFAULT_ABSTRACTIONS = Dict(
     :integer => IntervalAbs{Int},
     :number => IntervalAbs{Float64},
     :numeric => IntervalAbs{Float64},
-    :index => SetAbs
+    :index => SetAbs,
+    Symbol("vector-index") => SetAbs{Int},    
+    Symbol("matrix-index") => SetAbs{Tuple{Int, Int}}
 )

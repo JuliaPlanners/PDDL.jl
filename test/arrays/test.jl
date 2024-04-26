@@ -19,12 +19,12 @@ state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => domain,
     "ground interpreter" => ground(domain, state),
+    "abstracted interpreter" => abstracted(domain),
     "cached interpreter" => CachedDomain(domain),
     "concrete compiler" => first(compiled(domain, state)),
+    "abstract compiler" => first(compiled(abstracted(domain), state)),
     "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
-
-domain, state = compiled(domain, state)
 
 @testset "gridworld ($name)" for (name, domain) in implementations
     # Initialize state, test array dimensios, access and goal
@@ -78,8 +78,10 @@ state = initstate(domain, problem)
 implementations = [
     "concrete interpreter" => domain,
     "ground interpreter" => ground(domain, state),
+    "abstracted interpreter" => abstracted(domain),
     "cached interpreter" => CachedDomain(domain),
     "concrete compiler" => first(compiled(domain, state)),
+    "abstract compiler" => first(compiled(abstracted(domain), state)),
     "cached compiler" => CachedDomain(first(compiled(domain, state))),
 ]
 
