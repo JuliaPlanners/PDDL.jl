@@ -15,6 +15,8 @@ get_requirements(domain::AbstractedDomain) = get_requirements(domain.domain)
 
 get_typetree(domain::AbstractedDomain) = get_typetree(domain.domain)
 
+get_datatypes(domain::AbstractedDomain) = get_datatypes(domain.domain)
+
 get_constants(domain::AbstractedDomain) = get_constants(domain.domain)
 
 get_constypes(domain::AbstractedDomain) = get_constypes(domain.domain)

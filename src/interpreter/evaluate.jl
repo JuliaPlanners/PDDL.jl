@@ -13,3 +13,9 @@ function evaluate(interpreter::Interpreter,
         error("Unrecognized term $term.")
     end
 end
+
+"Evaluate formula as fully as possible."
+function partialeval(domain::Domain, state::GenericState, term::Term)
+    funcs = get_eval_funcs(domain, state)
+    return eval_term(term, Subst(), funcs)
+end

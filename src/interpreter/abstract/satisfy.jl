@@ -2,8 +2,8 @@ function satisfy(interpreter::AbstractInterpreter,
                  domain::Domain, state::GenericState,
                  terms::AbstractVector{<:Term})
      # Quick check that avoids SLD resolution unless necessary
-     sat = all(check(interpreter, domain, state, to_nnf(t)) for t in terms)
-     if sat !== missing return sat end
+     sat = all4(check(interpreter, domain, state, to_nnf(t)) for t in terms)
+     if sat !== missing return (sat == true || sat == both) end
      # Call SLD resolution only if there are free variables or axioms
      return !isempty(satisfiers(interpreter, domain, state, terms))
 end
@@ -14,7 +14,7 @@ function satisfy(interpreter::AbstractInterpreter,
     term = to_nnf(term)
     # Quick check that avoids SLD resolution unless necessary
     sat = check(interpreter, domain, state, term)
-    if sat !== missing return sat end
+    if sat !== missing return (sat == true || sat == both) end
     # Call SLD resolution only if there are free variables or axioms
     return !isempty(satisfiers(interpreter, domain, state, term))
 end
@@ -28,7 +28,7 @@ function satisfiers(interpreter::AbstractInterpreter,
     clauses = Clause[get_clauses(domain); # get_negation_clauses(domain);
                      collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(global_functions(), state.values, get_funcdefs(domain))
+    funcs = get_eval_funcs(domain, state, include_both=true)
     # Reorder query to reduce search time
     terms = reorder_query(domain, collect(terms))
     # Find satisfying substitutions via SLD-resolution
@@ -44,9 +44,9 @@ end
 function check(interpreter::AbstractInterpreter,
                domain::Domain, state::GenericState, term::Compound)
     sat = if term.name == :and
-        all(check(interpreter, domain, state, a) for a in term.args)
+        all4(check(interpreter, domain, state, a) for a in term.args)
     elseif term.name == :or
-        any(check(interpreter, domain, state, a) for a in term.args)
+        any4(check(interpreter, domain, state, a) for a in term.args)
     elseif term.name == :imply
         !check(interpreter, domain, state, term.args[1]) |
         check(interpreter, domain, state, term.args[2])
@@ -72,9 +72,9 @@ function check(interpreter::AbstractInterpreter,
             false
         end
     elseif is_global_pred(term)
-        evaluate(interpreter, domain, state, term)::Bool
+        evaluate(interpreter, domain, state, term)::BooleanAbs
     elseif is_func(term, domain)
-        evaluate(interpreter, domain, state, term)::Bool
+        evaluate(interpreter, domain, state, term)::BooleanAbs
     else
         term in state.facts
     end

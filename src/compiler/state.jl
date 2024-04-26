@@ -6,7 +6,9 @@ function generate_field_type(domain::Domain, sig::Signature{N}) where {N}
 end
 
 function generate_field_type(domain::AbstractedDomain, sig::Signature{N}) where {N}
-    dtype = domain.interpreter.abstractions[sig.type]
+    dtype = get(domain.interpreter.abstractions, sig.type) do
+        get(get_datatypes(domain), sig.type, datatype_def(sig.type).type)
+    end
     return N == 0 ? dtype : Array{dtype,N}
 end
 
@@ -27,8 +29,12 @@ end
 
 function generate_func_init(domain::AbstractedDomain, state::State,
                             sig::Signature{N}) where {N}
-    abstype = domain.interpreter.abstractions[sig.type]
-    default = QuoteNode(abstype(datatype_def(sig.type).default))
+    abstype = get(domain.interpreter.abstractions, sig.type, nothing)
+    if isnothing(abstype)
+        default = QuoteNode(datatype_def(sig.type).default)
+    else
+        default = QuoteNode(abstype(datatype_def(sig.type).default))
+    end
     if N == 0 return default end
     dims = generate_fluent_dims(domain, state, sig)
     return :(fill($default, $(dims...)))

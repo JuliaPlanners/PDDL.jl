@@ -23,7 +23,7 @@ function satisfiers(interpreter::ConcreteInterpreter,
     # Initialize Julog knowledge base
     clauses = Clause[get_clauses(domain); collect(state.types); collect(state.facts)]
     # Pass in fluents and function definitions as a dictionary of functions
-    funcs = merge(global_functions(), state.values, get_funcdefs(domain))
+    funcs = get_eval_funcs(domain, state)
     # Reorder query to reduce search time
     terms = reorder_query(domain, collect(terms))
     # Find satisfying substitutions via SLD-resolution

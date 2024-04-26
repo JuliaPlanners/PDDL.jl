@@ -1,7 +1,15 @@
-"Evaluate formula as fully as possible."
-function partialeval(domain::Domain, state::GenericState, term::Term)
-    funcs = merge(global_functions(), state.values, get_funcdefs(domain))
-    return eval_term(term, Subst(), funcs)
+"Get all functions needed for formula evaluation in a domain and state."
+function get_eval_funcs(domain::Domain, state::GenericState;
+                        include_both::Bool = false)
+    if include_both
+        funcs = merge!(Dict{Any, Any}(both => true), global_functions(),
+                       state.values, get_funcdefs(domain))
+    elseif isempty(state.values) && isempty(get_funcdefs(domain))
+        funcs = global_functions()
+    else
+        funcs = merge(global_functions(), state.values, get_funcdefs(domain))
+    end
+    return funcs    
 end
 
 "Get domain constant type declarations as a list of clauses."
