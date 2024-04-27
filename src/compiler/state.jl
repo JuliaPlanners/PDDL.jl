@@ -6,8 +6,12 @@ function generate_field_type(domain::Domain, sig::Signature{N}) where {N}
 end
 
 function generate_field_type(domain::AbstractedDomain, sig::Signature{N}) where {N}
-    dtype = get(domain.interpreter.abstractions, sig.type) do
-        get(get_datatypes(domain), sig.type, datatype_def(sig.type).type)
+    dtype = get(domain.interpreter.fluent_abstractions, sig.name) do
+        get(domain.interpreter.type_abstractions, sig.type) do
+            get(get_datatypes(domain), sig.type) do
+                datatype_def(sig.type).type
+            end
+        end
     end
     return N == 0 ? dtype : Array{dtype,N}
 end
@@ -29,7 +33,9 @@ end
 
 function generate_func_init(domain::AbstractedDomain, state::State,
                             sig::Signature{N}) where {N}
-    abstype = get(domain.interpreter.abstractions, sig.type, nothing)
+    abstype = get(domain.interpreter.fluent_abstractions, sig.name) do
+        get(domain.interpreter.type_abstractions, sig.type, nothing)
+    end
     if isnothing(abstype)
         default = QuoteNode(datatype_def(sig.type).default)
     else

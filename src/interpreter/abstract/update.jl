@@ -20,11 +20,27 @@ end
 function widen!(interpreter::AbstractInterpreter,
                 domain::Domain, state::GenericState, diff::GenericDiff)
     union!(state.facts, negate.(diff.del))
+    if !haskey(interpreter.type_abstractions, :boolean)
+        for term in diff.del
+            is_abstracted(term, domain) && continue
+            delete!(state.facts, term)
+        end
+    end
     union!(state.facts, diff.add)
+    if !haskey(interpreter.type_abstractions, :boolean)
+        for term in diff.add
+            is_abstracted(term, domain) && continue
+            delete!(state.facts, negate(term))
+        end
+    end
     vals = [evaluate(domain, state, v) for v in values(diff.ops)]
     for (term, val) in zip(keys(diff.ops), vals)
-        widened = widen(get_fluent(state, term), val)
-        set_fluent!(state, widened, term)
+        if is_abstracted(term, domain)
+            widened = widen(get_fluent(state, term), val)
+            set_fluent!(state, widened, term)
+        else
+            set_fluent!(state, val, term)
+        end
     end
     return state
 end
