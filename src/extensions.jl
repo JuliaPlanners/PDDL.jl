@@ -11,6 +11,8 @@ end
 function register_expr(category::Symbol, name::Symbol, x)
     if category == :datatype
         fname = GlobalRef(@__MODULE__, :datatype_def)
+    elseif category == :abstraction
+        fname = GlobalRef(@__MODULE__, :default_abstype)
     elseif category == :predicate
         fname = GlobalRef(@__MODULE__, :predicate_def)
     elseif category == :function
@@ -55,6 +57,8 @@ converter under the specified `name`.
 function register!(category::Symbol, name::Symbol, x)
     if category == :datatype
         fname = GlobalRef(@__MODULE__, :datatype_def)
+    elseif category == :abstraction
+        fname = GlobalRef(@__MODULE__, :default_abstype)
     elseif category == :predicate
         fname = GlobalRef(@__MODULE__, :predicate_def)
     elseif category == :function
@@ -89,6 +93,8 @@ Deregister the datatype, predicate, function or modifier specified by `name`.
 function deregister!(category::Symbol, name::Symbol)
     if category == :datatype
         f = datatype_def
+    elseif category == :abstraction
+        f = default_abstype
     elseif category == :predicate
         f = predicate_def
     elseif category == :function

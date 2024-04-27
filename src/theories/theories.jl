@@ -6,6 +6,9 @@ function register_theory_expr(theory::Module)
     for (name, ty) in theory.DATATYPES
         push!(expr.args, register_expr(:datatype, name, QuoteNode(ty)))
     end
+    for (name, ty) in theory.ABSTRACTIONS
+        push!(expr.args, register_expr(:abstraction, name, QuoteNode(ty)))
+    end
     for (name, ty) in theory.CONVERTERS
         push!(expr.args, register_expr(:converter, name, QuoteNode(ty)))
     end
@@ -24,6 +27,9 @@ function register_theory!(theory::Module)
     for (name, ty) in theory.DATATYPES
         PDDL.register!(:datatype, name, ty)
     end
+    for (name, ty) in theory.ABSTRACTIONS
+        PDDL.register!(:abstraction, name, ty)
+    end
     for (name, ty) in theory.CONVERTERS
         PDDL.register!(:converter, name, ty)
     end
@@ -40,6 +46,9 @@ end
 function deregister_theory!(theory::Module)
     for (name, ty) in theory.DATATYPES
         PDDL.deregister!(:datatype, name)
+    end
+    for (name, ty) in theory.ABSTRACTIONS
+        PDDL.deregister!(:abstraction, name)
     end
     for (name, ty) in theory.CONVERTERS
         PDDL.deregister!(:converter, name)

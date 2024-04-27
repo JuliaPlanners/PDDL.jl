@@ -2,7 +2,7 @@
 
 "Abstract (Cartesian) PDDL interpreter."
 @kwdef struct AbstractInterpreter <: Interpreter
-    abstractions::Dict{Symbol,Any} = DEFAULT_ABSTRACTIONS
+    abstractions::Dict{Symbol,Any} = default_abstypes()
     autowiden::Bool = true
 end
 

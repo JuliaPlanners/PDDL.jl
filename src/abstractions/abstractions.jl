@@ -35,12 +35,34 @@ include("boolean.jl")
 include("interval.jl")
 include("set.jl")
 
-const DEFAULT_ABSTRACTIONS = Dict(
-    :boolean => BooleanAbs,
-    :integer => IntervalAbs{Int},
-    :number => IntervalAbs{Float64},
-    :numeric => IntervalAbs{Float64},
-    :index => SetAbs,
-    Symbol("vector-index") => SetAbs{Int},    
-    Symbol("matrix-index") => SetAbs{Tuple{Int, Int}}
-)
+"""
+$(SIGNATURES)
+
+Mapping from PDDL types to default abstraction types.
+"""
+@valsplit default_abstype(Val(name::Symbol)) =
+    error("Unknown datatype: $name")
+
+default_abstype(::Val{:boolean}) = BooleanAbs
+default_abstype(::Val{:integer}) = IntervalAbs{Int}
+default_abstype(::Val{:number}) = IntervalAbs{Float64}
+default_abstype(::Val{:numeric}) = IntervalAbs{Float64}
+
+"""
+$(SIGNATURES)
+
+Return list of datatypes with default abstractions defined for them.
+"""
+default_abstype_names() =
+    valarg_params(default_abstype, Tuple{Val}, Val(1), Symbol)
+
+"""
+$(SIGNATURES)
+
+Return dictionary mapping datatype names to default abstraction types.
+"""
+function default_abstypes()
+    names = default_abstype_names()
+    types = Base.to_tuple_type(default_abstype.(names))
+    return _generate_dict(Val(names), Val(types))
+end

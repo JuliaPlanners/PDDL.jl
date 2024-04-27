@@ -8,6 +8,7 @@ by calling `PDDL.Sets.attach!(domain)`.
 @pddltheory module Sets
 
 using ..PDDL
+using ..PDDL: SetAbs
 
 construct_set(xs::Symbol...) = Set{Symbol}(xs)
 empty_set() = Set{Symbol}()
@@ -25,6 +26,10 @@ set_to_term(s::Set) = isempty(s) ? Const(Symbol("(empty-set)")) :
 
 const DATATYPES = Dict(
     "set" => (type=Set{Symbol}, default=Set{Symbol}())
+)
+
+const ABSTRACTIONS = Dict(
+    "set" => SetAbs{Set{Symbol}}
 )
 
 const CONVERTERS = Dict(

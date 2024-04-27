@@ -253,6 +253,12 @@ const DATATYPES = Dict(
     "matrix-index" => (type=Tuple{Int, Int}, default=(1, 1))
 )
 
+const ABSTRACTIONS = Dict(
+    "index" => SetAbs,
+    "vector-index" => SetAbs{Int},    
+    "matrix-index" => SetAbs{Tuple{Int, Int}}
+)
+
 const CONVERTERS = Dict(
     "vector" => vec_to_term,
     "matrix" => mat_to_term,

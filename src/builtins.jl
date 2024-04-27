@@ -43,6 +43,7 @@ $(SIGNATURES)
 Mapping from PDDL datatype to Julia type.
 """
 datatype_typedef(name::Symbol) = datatype_def(name).type
+
 """
 $(SIGNATURES)
 
@@ -57,6 +58,7 @@ Return list of global datatypes.
 """
 global_datatype_names() =
     valarg_params(datatype_def, Tuple{Val}, Val(1), Symbol)
+
 """
 $(SIGNATURES)
 
@@ -64,6 +66,7 @@ Return whether a symbol refers to global datatype.
 """
 is_global_datatype(name::Symbol) =
     valarg_has_param(name, datatype_def, Tuple{Val}, Val(1), Symbol)
+
 """
 $(SIGNATURES)
 
@@ -113,6 +116,7 @@ Return list of all global predicate names.
 """
 global_predicate_names() =
     valarg_params(predicate_def, Tuple{Val}, Val(1), Symbol)
+
 """
 $(SIGNATURES)
 
@@ -120,6 +124,7 @@ Return whether a symbol refers to global predicate.
 """
 is_global_pred(name::Symbol) =
     valarg_has_param(name, predicate_def, Tuple{Val}, Val(1), Symbol)
+
 """
 $(SIGNATURES)
 
@@ -151,6 +156,7 @@ Return list of all global function names.
 global_function_names() =
     (valarg_params(function_def, Tuple{Val}, Val(1), Symbol)...,
      valarg_params(predicate_def, Tuple{Val}, Val(1), Symbol)...)
+
 """
 $(SIGNATURES)
 
@@ -159,6 +165,7 @@ Return whether a symbol refers to global function.
 is_global_func(name::Symbol) =
     valarg_has_param(name, function_def, Tuple{Val}, Val(1), Symbol) ||
     is_global_pred(name)
+
 """
 $(SIGNATURES)
 
