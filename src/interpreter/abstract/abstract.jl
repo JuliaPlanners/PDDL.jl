@@ -2,7 +2,7 @@
 
 """
     AbstractInterpreter(
-        type_abstractions = default_abstypes(),
+        type_abstractions = PDDL.default_abstypes(),
         fluent_abstractions = Dict(),
         autowiden = false
     )

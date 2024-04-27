@@ -21,7 +21,9 @@ isboth(b) = false
 """
     BooleanAbs
 
-Belnap logic abstraction for Boolean values.
+Belnap logic abstraction for Boolean values. In addition to `true`, `false` and
+`missing`, the abstract value `both` can be used to represent when a predicate
+is both false and true.
 """
 const BooleanAbs = Union{Missing,Bool,Both}
 
