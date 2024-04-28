@@ -60,7 +60,7 @@ abstracted(domain::GenericDomain, problem::GenericProblem) =
 """
     abstractstate(domain, state)
 
-Construct a state in an abstract `domain` from a concrete `state.
+Construct a state in an abstract `domain` from a concrete `state`.
 """
 function abstractstate(domain::AbstractedDomain, state::GenericState)
     # Copy over facts

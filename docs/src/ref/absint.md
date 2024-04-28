@@ -1,6 +1,6 @@
 # Abstract Interpretation
 
-PDDL.jl supports [abstract interpretation](https://en.wikipedia.org/wiki/Abstract_interpretation) of PDDL domains, the semantics of which can also be compiled using the [PDDL.jl compiler](compiler.md). This functionality is exposed by the [`abstracted`](@ref) and [`abstractstate`](@ref) functions:
+PDDL.jl supports [abstract interpretation](https://en.wikipedia.org/wiki/Abstract_interpretation) of PDDL domains. This functionality is exposed by the [`abstracted`](@ref) and [`abstractstate`](@ref) functions:
 
 ```@docs
 abstracted
@@ -10,7 +10,14 @@ abstractstate
 The behavior of the abstract interpreter can be customized by specifying the Julia type used to represent abstract values for a particular fluent or PDDL type:
 
 ```@docs
-PDDL.AbstractInterpeter
+PDDL.AbstractInterpreter
+```
+
+Abstract semantics can also be compiled by calling [`compiled`](@ref) on an abstracted domain and state:
+
+```julia
+domain, state = abstracted(domain, state)
+domain, state = compiled(domain, state)
 ```
 
 ## Abstract Values and Types
