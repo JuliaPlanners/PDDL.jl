@@ -37,4 +37,4 @@ Given this interface-centered design, PDDL.jl itself does not include any applic
 
 ## Other Components
 
-In addition to implementations of its interface, PDDL.jl also provides a PDDL [**parser**](parser_writer.md#General-Parsing), [**writer**](parser_writer.md#General-Writing), and a set of [**utilities**](utilities.md) to help analyze and work with PDDL domains. Collectively, these components allow researchers, developers, and engineers to use symbolic planning in a wide variety of application contexts.
+In addition to implementations of its interface, PDDL.jl also provides a PDDL [**parser**](parser_writer.md#General-Parsing), [**writer**](parser_writer.md#General-Writing), and a set of [**utilities**](utilities.md) to help analyze and work with PDDL domains. [**Extension interfaces**](extensions.md) also make it easier to support new functionality in PDDL.jl. Collectively, these components allow researchers, developers, and engineers to use symbolic planning in a wide variety of application contexts.

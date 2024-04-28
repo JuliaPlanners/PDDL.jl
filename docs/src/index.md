@@ -21,8 +21,7 @@ Learn how to install and use PDDL.jl by following these tutorials:
 Pages = [
     "tutorials/getting_started.md",
     "tutorials/writing_planners.md",
-    "tutorials/speeding_up.md",
-    "tutorials/extending.md"
+    "tutorials/speeding_up.md"
 ]
 Depth = 1
 ```
@@ -40,6 +39,7 @@ Pages = [
     "ref/interpreter.md",
     "ref/compiler.md",
     "ref/absint.md",
+    "ref/extensions.md",
     "ref/utilities.md"
 ]
 Depth = 1

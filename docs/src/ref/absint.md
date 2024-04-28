@@ -29,3 +29,11 @@ PDDL.BooleanAbs
 PDDL.IntervalAbs
 PDDL.SetAbs
 ```
+
+When introducing a new global datatype using the PDDL.jl extension interfaces, a default abstraction can be associated with the type by defining a new method for [`PDDL.default_abstype`](@ref):
+
+```@docs
+PDDL.default_abstype
+```
+
+The [`PDDL.@register`](@ref) macro can also be used to register new default abstractions.

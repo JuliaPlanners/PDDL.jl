@@ -14,8 +14,7 @@ makedocs(
       "Tutorials" => [
          "tutorials/getting_started.md",
          "tutorials/writing_planners.md",
-         "tutorials/speeding_up.md",
-         "tutorials/extending.md"
+         "tutorials/speeding_up.md"
       ],
       "Reference" => [
          "ref/overview.md",
@@ -25,6 +24,7 @@ makedocs(
          "ref/interpreter.md",
          "ref/compiler.md",
          "ref/absint.md",
+         "ref/extensions.md",
          "ref/utilities.md"
       ]
    ]
