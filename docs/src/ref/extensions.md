@@ -207,7 +207,7 @@ Sets.deregister!()
 
 Alongside the `Sets` example shown above, a theory for handling `Arrays` is predefined as part of PDDL.jl:
 
-```julia
+```@docs
 PDDL.Sets
 PDDL.Arrays
 ```

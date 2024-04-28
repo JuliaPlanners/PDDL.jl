@@ -4,6 +4,27 @@
 Extends PDDL with set-valued fluents. Set members must be PDDL objects.
 Register by calling `PDDL.Sets.@register()`. Attach to a specific `domain`
 by calling `PDDL.Sets.attach!(domain)`.
+
+# Datatypes
+
+- `set`: A set of PDDL objects.
+
+# Predicates
+
+- `(member ?x - object ?s - set)`: Is `?x` a member of `?s`?
+- `(subset ?s1 ?s2 - set)`: Is `?s1` a subset of `?s2`?
+
+# Functions
+
+- `(construct-set ?x ?y ... - object)`: Constructs a set from `?x`, `?y`, etc.
+- `(empty-set)`: Constructs an empty set.
+- `(cardinality ?s - set)`: The number of elements in `?s`.
+- `(union ?s1 ?s2 - set)`: The union of `?s1` and `?s2`.
+- `(intersect ?s1 ?s2 - set)`: The intersection of `?s1` and `?s2`.
+- `(difference ?s1 ?s2 - set)`: The set difference of `?s1` and `?s2`.
+- `(add-element ?s - set? ?x - object)`: Add `?x` to `?s`.
+- `(rem-element ?s - set? ?x - object)`: Remove `?x` from `?s`.
+
 """
 @pddltheory module Sets
 

@@ -3,6 +3,92 @@
 
 Extends PDDL with array-valued fluents. Register by calling `PDDL.Arrays.@register()`.
 Attach to a specific `domain` by calling `PDDL.Arrays.attach!(domain)`.
+
+# Datatypes
+
+## Generic Arrays
+
+- `array`: A multidimensional array with untyped elements.
+- `vector`: A 1D array with untyped elements.
+- `matrix`: A 2D array with untyped elements.
+
+## Bit Arrays
+
+- `bit-array`: A multidimensional array with `boolean` elements.
+- `bit-vector`: A 1D array with `boolean` elements.
+- `bit-matrix`: A 2D array with `boolean` elements.
+
+## Integer Arrays
+
+- `int-array`: A multidimensional array with `integer` elements.
+- `int-vector`: A 1D array with `integer` elements.
+- `int-matrix`: A 2D array with `integer` elements.
+
+## Numeric Arrays
+
+- `num-array`: A multidimensional array with `number` elements.
+- `num-vector`: A 1D array with `number` elements.
+- `num-matrix`: A 2D array with `number` elements.
+
+## Array Indices
+
+- `array-index`: A multidimensional array index, represented as a `Tuple`.
+- `vector-index`: A 1D array index, represented as an `Int`.
+- `matrix-index`: A 2D array index, represented as a 2-tuple.
+
+# Predicates
+
+- `(has-index ?a ?i)`: Checks if `?i` is a valid index for `?a`.
+- `(has-row ?m ?i)`: Checks if `?i` is a valid row index for matrix `?m`.
+- `(has-col ?m ?i)`: Checks if `?i` is a valid column index for matrix `?m`.
+
+# Functions
+
+## Array Constructors
+
+- `(new-array ?v ?n1 ?n2 ...)`: Construct a new array filled with `?v`.
+- `(new-matrix ?v ?h ?w)`: Construct a new `?h` x `?w` matrix filled with `?v`.
+- `(new-vector ?v ?n)`: Construct a new vector of length `?n` filled with `?v`.
+- `(vec ?x1 ?x2 ... ?xn)`: Construct a vector from `?x1`, `?x2`, etc.
+- `(mat ?v1 ?v2 ... ?vn)`: Construct a matrix from column vectors `?v1`, `?v2`, etc.
+
+Similar constructors are available for bit arrays, integer arrays, and numeric arrays.
+
+## Index Constructors
+
+- `(index ?i1 ?i2 ...)`: Construct an array index from `?i1`, `?i2`, etc.
+- `(vec-index ?i)`: Construct a 1D array index from `?i`.
+- `(mat-index ?i1 ?i2)`: Construct a 2D array index from `?i1`, `?i2`.
+
+## Accessors
+
+- `(get-index ?a ?i ?j ...)`: Get element `(?i, ?j, ...)` of `?a`.
+- `(set-index ?a ?v ?i ?j ...)`: Set element `(?i, ?j, ...)` of `?a` to `?v`.
+
+## Array Dimensions
+
+- `(length ?a)`: Get the number of elements in an array `?a`.
+- `(height ?a)`: Get the height of a matrix `?m`.
+- `(width ?a)`: Get the width of a matrix `?m`.
+- `(ndims ?a)`: Get the number of dimensions of an array `?a`.
+
+## Array Manipulation
+
+- `(push ?v ?x)`: Push `?x` onto the end of `?v`.
+- `(pop ?v)`: Pop the last element of `?v`.
+- `(transpose ?m)`: Transpose a matrix `?m`.
+
+## Index Manipulation
+
+- `(get-row ?idx)`: Get the row number of a `matrix-index`.
+- `(get-col ?idx)`: Get the column number of a `matrix-index`.
+- `(set-row ?idx ?row)`: Set the row number of a `matrix-index` to `?row`.
+- `(set-col ?idx ?col)`: Set the column number of a `matrix-index` to `?col`.
+- `(increase-row ?idx ?d)`: Increase the row number of a `matrix-index` by `?d`.
+- `(increase-col ?idx ?d)`: Increase the column number of a `matrix-index` by `?d`.
+- `(decrease-row ?idx ?d)`: Decrease the row number of a `matrix-index` by `?d`.
+- `(decrease-col ?idx ?d)`: Decrease the column number of a `matrix-index` by `?d`.
+
 """
 @pddltheory module Arrays
 
