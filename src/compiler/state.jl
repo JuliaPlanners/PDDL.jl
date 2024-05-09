@@ -90,7 +90,7 @@ function generate_state_constructors(domain::Domain, state::State,
     end
     for (name, fn) in sortedpairs(get_functions(domain))
         push!(state_inits, generate_func_init(domain, state, fn))
-        if arity(pred) == 0
+        if arity(fn) == 0
             copy_expr = :(isbits(state.$name) ?
                 state.$name : copy(state.$name))
         else
